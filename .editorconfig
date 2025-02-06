@@ -1,0 +1,17 @@
+# EditorConfig is awesome: https://editorconfig.org
+root = true
+
+[*]
+end_of_line = lf
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{go,js,ts,html,css,json,toml}]
+charset = utf-8
+
+[*.go]
+indent_style = tab
+
+[*.{js,ts,html,css,json,toml}]
+indent_style = space
+indent_size = 2

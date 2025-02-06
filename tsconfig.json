@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "baseUrl": "./assets"
+  },
+  "include": [
+    "assets/**/*.js",
+    "assets/types.d.ts",
+    "assets/lib.d.ts"
+  ]
+}
