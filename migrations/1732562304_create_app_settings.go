@@ -8,10 +8,10 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		if _, err := app.FindCollectionByNameOrId(models.APP_SETTINGS_DB_KEY); err == nil {
+		if _, err := app.FindCollectionByNameOrId(models.APP_SETTINGS_COLLECTION_NAME); err == nil {
 			return nil
 		}
-		systemSettings := core.NewBaseCollection(models.APP_SETTINGS_DB_KEY)
+		systemSettings := core.NewBaseCollection(models.APP_SETTINGS_COLLECTION_NAME)
 		systemSettings.Fields.Add(&core.TextField{
 			Name:        "key",
 			Required:    true,
