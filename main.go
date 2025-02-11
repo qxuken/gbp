@@ -11,7 +11,9 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 
+	"github.com/qxuken/gbp/internals/completions"
 	_ "github.com/qxuken/gbp/migrations"
+	"github.com/qxuken/gbp/seed"
 )
 
 func main() {
@@ -24,6 +26,10 @@ func main() {
 	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
 		Automigrate: isDevMode,
 	})
+
+	app.RootCmd.AddCommand(seed.NewCobraCommand(app))
+
+	app.RootCmd.AddCommand(completions.NewCompletionsCommand(app.RootCmd))
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		gp := se.Router.Group("/assets")
