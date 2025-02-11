@@ -29,7 +29,7 @@ func init() {
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "weapon_special",
-			Required:     true,
+			Required:     false,
 			CollectionId: weapon_specials.Id,
 		})
 		collection.Fields.Add(&core.NumberField{
