@@ -34,7 +34,7 @@ func init() {
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "element",
-			Required:     true,
+			Required:     false,
 			CollectionId: elements.Id,
 		})
 		collection.Fields.Add(&core.RelationField{
