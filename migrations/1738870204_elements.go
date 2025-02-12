@@ -14,6 +14,12 @@ func init() {
 			Name:     "name",
 			Required: true,
 		})
+		collection.Fields.Add(&core.FileField{
+			Name:      "icon",
+			Required:  true,
+			MimeTypes: []string{"image/png", "image/webp"},
+			Thumbs:    []string{"16x16", "32x32"},
+		})
 		collection.AddIndex("idx_"+models.ELEMENTS_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.CreateRule = types.Pointer("")
 		collection.UpdateRule = types.Pointer("")

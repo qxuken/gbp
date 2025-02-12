@@ -9,7 +9,7 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		main_stat, err := app.FindCollectionByNameOrId(models.ARTIFACT_TYPE_MAIN_STATS_COLLECTION_NAME)
+		specials, err := app.FindCollectionByNameOrId(models.SPECIALS_COLLECTION_NAME)
 		if err != nil {
 			return err
 		}
@@ -18,10 +18,16 @@ func init() {
 			Name:     "name",
 			Required: true,
 		})
+		collection.Fields.Add(&core.FileField{
+			Name:      "icon",
+			Required:  true,
+			MimeTypes: []string{"image/png", "image/webp"},
+			Thumbs:    []string{"16x16", "32x32"},
+		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "main_stats",
+			Name:         "specials",
 			Required:     true,
-			CollectionId: main_stat.Id,
+			CollectionId: specials.Id,
 			MaxSelect:    50,
 		})
 		collection.AddIndex("idx_"+models.ARTIFACT_TYPES_COLLECTION_NAME+"_id", false, "`id`", "")

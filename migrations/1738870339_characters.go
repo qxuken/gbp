@@ -17,10 +17,20 @@ func init() {
 		if err != nil {
 			return err
 		}
+		specials, err := app.FindCollectionByNameOrId(models.SPECIALS_COLLECTION_NAME)
+		if err != nil {
+			return err
+		}
 		collection := core.NewBaseCollection(models.CHARACTERS_COLLECTION_NAME)
 		collection.Fields.Add(&core.TextField{
 			Name:     "name",
 			Required: true,
+		})
+		collection.Fields.Add(&core.FileField{
+			Name:      "icon",
+			Required:  true,
+			MimeTypes: []string{"image/png", "image/webp"},
+			Thumbs:    []string{"16x16", "32x32", "64x64", "128x128"},
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "element",
@@ -31,6 +41,11 @@ func init() {
 			Name:         "weapon_type",
 			Required:     true,
 			CollectionId: weapon_types.Id,
+		})
+		collection.Fields.Add(&core.RelationField{
+			Name:         "special",
+			Required:     true,
+			CollectionId: specials.Id,
 		})
 		collection.Fields.Add(&core.NumberField{
 			Name:     "rarity",

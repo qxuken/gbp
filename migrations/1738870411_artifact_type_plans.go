@@ -17,7 +17,7 @@ func init() {
 		if err != nil {
 			return nil
 		}
-		main_stats, err := app.FindCollectionByNameOrId(models.ARTIFACT_TYPE_MAIN_STATS_COLLECTION_NAME)
+		specials, err := app.FindCollectionByNameOrId(models.SPECIALS_COLLECTION_NAME)
 		if err != nil {
 			return nil
 		}
@@ -33,9 +33,9 @@ func init() {
 			CollectionId: artifact_types.Id,
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "main_stat",
+			Name:         "special",
 			Required:     true,
-			CollectionId: main_stats.Id,
+			CollectionId: specials.Id,
 		})
 		collection.AddIndex("idx_"+models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.AddIndex("idx_"+models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")

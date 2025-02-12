@@ -13,7 +13,7 @@ func init() {
 		if err != nil {
 			return err
 		}
-		weapon_specials, err := app.FindCollectionByNameOrId(models.WEAPON_SPECIALS_COLLECTION_NAME)
+		specials, err := app.FindCollectionByNameOrId(models.SPECIALS_COLLECTION_NAME)
 		if err != nil {
 			return err
 		}
@@ -22,15 +22,21 @@ func init() {
 			Name:     "name",
 			Required: true,
 		})
+		collection.Fields.Add(&core.FileField{
+			Name:      "icon",
+			Required:  true,
+			MimeTypes: []string{"image/png", "image/webp"},
+			Thumbs:    []string{"16x16", "32x32", "64x64", "128x128"},
+		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "weapon_type",
 			Required:     true,
 			CollectionId: weapon_types.Id,
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "weapon_special",
+			Name:         "special",
 			Required:     false,
-			CollectionId: weapon_specials.Id,
+			CollectionId: specials.Id,
 		})
 		collection.Fields.Add(&core.NumberField{
 			Name:     "rarity",
