@@ -31,9 +31,8 @@ func init() {
 			MaxSelect:    50,
 		})
 		collection.AddIndex("idx_"+models.ARTIFACT_TYPES_COLLECTION_NAME+"_id", false, "`id`", "")
-		collection.CreateRule = types.Pointer("")
-		collection.UpdateRule = types.Pointer("")
-		collection.DeleteRule = types.Pointer("")
+		collection.ListRule = types.Pointer("")
+		collection.ViewRule = types.Pointer("")
 		return app.Save(collection)
 	}, func(app core.App) error {
 		collection, err := app.FindCollectionByNameOrId(models.ARTIFACT_TYPES_COLLECTION_NAME)

@@ -21,9 +21,8 @@ func init() {
 			Thumbs:    []string{"16x16", "32x32"},
 		})
 		collection.AddIndex("idx_"+models.ELEMENTS_COLLECTION_NAME+"_id", false, "`id`", "")
-		collection.CreateRule = types.Pointer("")
-		collection.UpdateRule = types.Pointer("")
-		collection.DeleteRule = types.Pointer("")
+		collection.ListRule = types.Pointer("")
+		collection.ViewRule = types.Pointer("")
 		return app.Save(collection)
 	}, func(app core.App) error {
 		collection, err := app.FindCollectionByNameOrId(models.ELEMENTS_COLLECTION_NAME)

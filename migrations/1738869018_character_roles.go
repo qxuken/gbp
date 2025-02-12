@@ -15,9 +15,8 @@ func init() {
 			Required: true,
 		})
 		collection.AddIndex("idx_"+models.CHARACTER_ROLES_COLLECTION_NAME+"_id", false, "`id`", "")
-		collection.CreateRule = types.Pointer("")
-		collection.UpdateRule = types.Pointer("")
-		collection.DeleteRule = types.Pointer("")
+		collection.ListRule = types.Pointer("")
+		collection.ViewRule = types.Pointer("")
 		return app.Save(collection)
 	}, func(app core.App) error {
 		collection, err := app.FindCollectionByNameOrId(models.CHARACTER_ROLES_COLLECTION_NAME)
