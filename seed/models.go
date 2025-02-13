@@ -63,6 +63,7 @@ func (s CharacterRole) Save(app core.App) error {
 
 type ArtifactSet struct {
 	Name         string `db:"name"`
+	Rarity       string `db:"rarity"`
 	IconContent  Icon   `db:"icon_content"`
 	IconFilename string `db:"icon_filename"`
 }
@@ -72,6 +73,7 @@ func (s ArtifactSet) Save(app core.App) error {
 	if err != nil {
 		return err
 	}
+	record.Set("rarity", s.Rarity)
 	file, err := filesystem.NewFileFromBytes(s.IconContent, s.IconFilename)
 	if err != nil {
 		return err

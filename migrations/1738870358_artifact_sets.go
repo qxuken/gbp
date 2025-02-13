@@ -20,6 +20,13 @@ func init() {
 			MimeTypes: []string{"image/png", "image/webp"},
 			Thumbs:    []string{"16x16", "32x32", "64x64", "128x128"},
 		})
+		collection.Fields.Add(&core.NumberField{
+			Name:     "rarity",
+			Required: true,
+			OnlyInt:  true,
+			Min:      types.Pointer(float64(1)),
+			Max:      types.Pointer(float64(5)),
+		})
 		collection.AddIndex("idx_"+models.ARTIFACT_SETS_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.ListRule = types.Pointer("")
 		collection.ViewRule = types.Pointer("")
