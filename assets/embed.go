@@ -1,4 +1,4 @@
-package main
+package assets
 
 import (
 	"embed"
@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	//go:embed assets/*
+	//go:embed *
 	assets embed.FS
 )
 
-func getAssetsFileSystem(app *pocketbase.PocketBase) fs.FS {
+func GetAssetsFileSystem(app *pocketbase.PocketBase) fs.FS {
 	l := app.Logger().WithGroup("assets")
 	if app.IsDev() {
 		l.Debug("assets: using live mode")
