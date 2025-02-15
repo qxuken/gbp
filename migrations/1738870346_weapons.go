@@ -45,7 +45,6 @@ func init() {
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(5)),
 		})
-		collection.AddIndex("idx_"+models.WEAPONS_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.ListRule = types.Pointer("")
 		collection.ViewRule = types.Pointer("")
 		return app.Save(collection)

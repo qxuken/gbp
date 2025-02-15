@@ -56,7 +56,6 @@ func init() {
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(5)),
 		})
-		collection.AddIndex("idx_"+models.WEAPON_PLANS_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.AddIndex("idx_"+models.WEAPON_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")
 		collection.ListRule = types.Pointer(`@request.auth.id != "" && character_plan.user = @request.auth.id`)
 		collection.ViewRule = types.Pointer(`@request.auth.id != "" && character_plan.user = @request.auth.id`)

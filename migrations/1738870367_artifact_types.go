@@ -30,7 +30,6 @@ func init() {
 			CollectionId: specials.Id,
 			MaxSelect:    50,
 		})
-		collection.AddIndex("idx_"+models.ARTIFACT_TYPES_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.ListRule = types.Pointer("")
 		collection.ViewRule = types.Pointer("")
 		return app.Save(collection)

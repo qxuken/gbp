@@ -14,7 +14,6 @@ func init() {
 			Name:     "name",
 			Required: true,
 		})
-		collection.AddIndex("idx_"+models.CHARACTER_ROLES_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.ListRule = types.Pointer("")
 		collection.ViewRule = types.Pointer("")
 		return app.Save(collection)

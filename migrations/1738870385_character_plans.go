@@ -123,7 +123,6 @@ func init() {
 			CollectionId: characters.Id,
 			MaxSelect:    4,
 		})
-		collection.AddIndex("idx_"+models.CHARACTER_PLANS_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.AddIndex("idx_"+models.CHARACTER_PLANS_COLLECTION_NAME+"_user", false, "`user`", "")
 		collection.ListRule = types.Pointer(`@request.auth.id != "" && user = @request.auth.id`)
 		collection.ViewRule = types.Pointer(`@request.auth.id != "" && user = @request.auth.id`)
