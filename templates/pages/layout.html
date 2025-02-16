@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GBP</title>
+    <link href="/assets/styles/main.css" rel="stylesheet">
+  </head>
+  <body>
+    {{block "title" .}}
+    <header>
+      <h1>GBP</h1>
+      <div id="login-info-container"></div>
+      <template id="login-info-template">
+        <div data-login-info>
+          <div data-user-email></div>
+          <button data-action-logout>Logout</button>
+        </div>
+      </template>
+    </header>
+    {{end}}
+    {{block "body" .}}
+      <main></main>
+    {{end}}
+    <script type="importmap">
+    {
+      "imports": {
+        "pocketbase": "/assets/libs/pocketbase/pocketbase.es.js"
+      }
+    }
+    </script>
+    {{block "script" .}}{{end}}
+  </body>
+</html>

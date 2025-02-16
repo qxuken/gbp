@@ -1,0 +1,29 @@
+{{define "title"}}
+  <header>
+    <h1>Signup page</h1>
+  </header>
+{{end}}
+{{define "body"}}
+<main>
+  <form id="signup">
+    <fieldset>
+      <label for="email">Email</label>
+      <input type="email" name="email" required>
+    </fieldset>
+    <fieldset>
+      <label for="password">Password</label>
+      <input type="password" name="password" required>
+      <label for="passwordConfirm">Password Confirmation</label>
+      <input type="password" name="passwordConfirm" required>
+    </fieldset>
+    <div class="form-error"></div>
+    <div class="button-container">
+      <input type="submit" value="Create account">
+      <a href="/signin">Have an account? Login</a>
+    </div>
+  </form>
+</main>
+{{end}}
+{{define "script"}}
+<script async type="module" src="/assets/scripts/pages/signup.js"></script>
+{{end}}

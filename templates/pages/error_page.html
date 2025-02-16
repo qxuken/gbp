@@ -1,0 +1,20 @@
+{{define "title"}}
+  <header>
+    <h1>Error!</h1>
+    <div id="login-info">login container</div>
+  </header>
+{{end}}
+{{define "body"}}
+  <main>
+    <p>
+      {{ with .ErrorText }}
+        {{ . }}
+      {{else}}
+        Please try again
+      {{end}}
+    </p>
+    {{if .ShowReload}}
+      <button onclick="location.reload()">Refresh page</button>
+    {{end}}
+  </main>
+{{end}}
