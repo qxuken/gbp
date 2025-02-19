@@ -97,4 +97,14 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role='button']:disabled {
+    cursor: default;
+  }
 }

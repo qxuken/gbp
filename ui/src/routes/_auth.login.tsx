@@ -143,8 +143,8 @@ function LoginComponent() {
                   <Link
                     to="/signup"
                     className="underline underline-offset-4"
-                    search={(prev) => prev}
-                    activeOptions={{ exact: true }}
+                    search={s => s}
+                    activeOptions={{ exact: true, includeSearch: true }}
                   >
                     Sign up
                   </Link>

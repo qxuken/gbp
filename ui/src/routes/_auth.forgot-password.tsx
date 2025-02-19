@@ -85,7 +85,7 @@ function ForgotPassword() {
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="m@example.com"
+                          placeholder="me@example.com"
                           {...field}
                         />
                       </FormControl>
