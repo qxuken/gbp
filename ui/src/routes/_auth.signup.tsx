@@ -73,7 +73,10 @@ function SignupComponent() {
       await auth.register(formData);
       await auth.requestVerification(values.email);
 
-      await navigate({ to: '/confirm', search });
+      await navigate({
+        to: '/confirm',
+        search: { ...search, email: values.email, password: values.password },
+      });
     } catch (e) {
       if (e instanceof ClientResponseError) {
         toast.error(e.message);

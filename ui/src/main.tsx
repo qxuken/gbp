@@ -1,5 +1,5 @@
 import ReactDOM from 'react-dom/client';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { RouterProvider, createRouteMask, createRouter, redirect } from '@tanstack/react-router';
 import { routeTree } from '@/routeTree.gen';
 import { Icons } from '@/components/icons';
 import {
@@ -17,9 +17,17 @@ import {
 import { PropsWithChildren } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 
+const confirmationScreenMask = createRouteMask({
+  routeTree,
+  from: '/confirm',
+  to: '/login',
+  search: (s) => ({ redirect: 'redirect' in s ? s.redirect : '' }),
+})
+
 // Set up a Router instance
 const router = createRouter({
   routeTree,
+  routeMasks: [confirmationScreenMask],
   defaultPreload: 'intent',
   defaultPendingComponent: () => {
     <div className="p-2 text-2xl">
