@@ -16,6 +16,7 @@ import {
 } from '@/components/theme';
 import { PropsWithChildren } from 'react';
 import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from './components/ui/tooltip';
 
 const confirmationScreenMask = createRouteMask({
   routeTree,
@@ -56,7 +57,11 @@ export interface AppContext {
 function AppProviders({ children }: PropsWithChildren) {
   return (
     <ThemeProvider storageKey="gbp-ui-theme">
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          {children}
+        </TooltipProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

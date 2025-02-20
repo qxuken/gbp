@@ -1,6 +1,5 @@
 import { UserInfo } from '@/components/user-info';
 import {
-  Link,
   Outlet,
   createFileRoute,
   redirect,
@@ -24,15 +23,7 @@ function RouteComponent() {
   return (
     <div className="p-2">
       <header className="w-full flex justify-between gap-2 text-lg">
-        <Link
-          to="/"
-          activeProps={{
-            className: 'font-bold',
-          }}
-          activeOptions={{ exact: true }}
-        >
-          Home
-        </Link>
+        <h1 className='text-2xl font-black'>Genshin Build Planner</h1>
         <UserInfo />
       </header>
       <div>
