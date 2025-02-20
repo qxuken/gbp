@@ -13,6 +13,7 @@ import {
   useState,
 } from 'react';
 import { toast } from 'sonner';
+import { useRouter } from '@tanstack/react-router';
 
 export interface AuthContext {
   record: AuthRecord | null;
@@ -60,6 +61,7 @@ export const DEFAULT_AUTH_CONTEXT = {
 export const AuthContext = createContext(DEFAULT_AUTH_CONTEXT);
 
 export function AuthProvider({ children, ...props }: PropsWithChildren) {
+  const router = useRouter()
   const [record, setRecord] = useState(pbClient.authStore.record);
 
   const authRefresh = async () =>
@@ -70,6 +72,7 @@ export function AuthProvider({ children, ...props }: PropsWithChildren) {
       })
       .catch((e) => {
         if (e instanceof ClientResponseError && !e.isAbort) {
+          pbClient.authStore.clear();
           setRecord(null);
         }
         throw e;
@@ -97,6 +100,7 @@ export function AuthProvider({ children, ...props }: PropsWithChildren) {
     if (pbClient.authStore.isValid) {
       authRefresh().catch(() => {
         toast.error('You have been unathorized');
+        router.invalidate()
       });
     }
   }, []);

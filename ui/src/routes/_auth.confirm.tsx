@@ -23,7 +23,7 @@ function ConfirmComponent() {
   const router = useRouter();
   const navigate = useNavigate();
   const search = Route.useSearch()
-  const [resendTimeout, startResendTimeout] = useTimeoutButton(60, true)
+  const [resendTimeout, startResendTimeout] = useTimeoutButton()
 
   const login = async () => {
     try {
