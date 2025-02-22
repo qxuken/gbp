@@ -37,13 +37,13 @@ func init() {
 			Required:     true,
 			CollectionId: specials.Id,
 		})
-		collection.AddIndex("idx_"+models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME+"_id", false, "`id`", "")
 		collection.AddIndex("idx_"+models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")
-		collection.ListRule = types.Pointer(`@request.auth.id != "" && character_plan.user = @request.auth.id`)
-		collection.ViewRule = types.Pointer(`@request.auth.id != "" && character_plan.user = @request.auth.id`)
-		collection.CreateRule = types.Pointer(`@request.auth.id != "" && character_plan.user = @request.auth.id`)
-		collection.UpdateRule = types.Pointer(`@request.auth.id != "" && character_plan.user = @request.auth.id`)
-		collection.DeleteRule = types.Pointer(`@request.auth.id != "" && character_plan.user = @request.auth.id`)
+		rule := `@request.auth.id != "" && character_plan.user = @request.auth.id`
+		collection.ListRule = types.Pointer(rule)
+		collection.ViewRule = types.Pointer(rule)
+		collection.CreateRule = types.Pointer(rule)
+		collection.UpdateRule = types.Pointer(rule)
+		collection.DeleteRule = types.Pointer(rule)
 		return app.Save(collection)
 	}, func(app core.App) error {
 		collection, err := app.FindCollectionByNameOrId(models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME)

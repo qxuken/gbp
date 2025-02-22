@@ -14,6 +14,13 @@ func init() {
 			Name:     "name",
 			Required: true,
 		})
+		collection.Fields.Add(&core.TextField{
+			Name:     "color",
+			Required: true,
+		})
+		collection.Fields.Add(&core.BoolField{
+			Name: "inverseTextColor",
+		})
 		collection.Fields.Add(&core.FileField{
 			Name:      "icon",
 			Required:  true,

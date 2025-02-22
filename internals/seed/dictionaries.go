@@ -29,35 +29,35 @@ func Seed(app core.App, path string) error {
 	}
 
 	if err := seedCollection[Special](app, db, "specials"); err != nil {
-		return nil
+		return err
 	}
 
 	if err := seedCollection[Element](app, db, "elements"); err != nil {
-		return nil
+		return err
 	}
 
 	if err := seedCollection[CharacterRole](app, db, "character_roles"); err != nil {
-		return nil
+		return err
 	}
 
 	if err := seedCollection[ArtifactSet](app, db, "artifact_sets"); err != nil {
-		return nil
+		return err
 	}
 
 	if err := seedCollection[ArtifactType](app, db, "artifact_types"); err != nil {
-		return nil
+		return err
 	}
 
 	if err := seedCollection[WeaponType](app, db, "weapon_types"); err != nil {
-		return nil
+		return err
 	}
 
 	if err := seedCollection[Weapon](app, db, "weapons"); err != nil {
-		return nil
+		return err
 	}
 
 	if err := seedCollection[Character](app, db, "characters"); err != nil {
-		return nil
+		return err
 	}
 
 	return nil

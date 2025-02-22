@@ -31,9 +31,11 @@ func (s Special) Save(app core.App) error {
 }
 
 type Element struct {
-	Name         string `db:"name"`
-	IconContent  Icon   `db:"icon_content"`
-	IconFilename string `db:"icon_filename"`
+	Name             string `db:"name"`
+	Color            string `db:"color"`
+	InverseTextColor bool   `db:"inverse_text_color"`
+	IconContent      Icon   `db:"icon_content"`
+	IconFilename     string `db:"icon_filename"`
 }
 
 func (s Element) Save(app core.App) error {
@@ -41,6 +43,8 @@ func (s Element) Save(app core.App) error {
 	if err != nil {
 		return err
 	}
+	record.Set("color", s.Color)
+	record.Set("inverseTextColor", s.InverseTextColor)
 	file, err := filesystem.NewFileFromBytes(s.IconContent, s.IconFilename)
 	if err != nil {
 		return err

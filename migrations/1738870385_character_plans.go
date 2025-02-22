@@ -117,18 +117,13 @@ func init() {
 			CollectionId: artifact_sets.Id,
 			MaxSelect:    50,
 		})
-		collection.Fields.Add(&core.RelationField{
-			Name:         "team",
-			Required:     false,
-			CollectionId: characters.Id,
-			MaxSelect:    4,
-		})
 		collection.AddIndex("idx_"+models.CHARACTER_PLANS_COLLECTION_NAME+"_user", false, "`user`", "")
-		collection.ListRule = types.Pointer(`@request.auth.id != "" && user = @request.auth.id`)
-		collection.ViewRule = types.Pointer(`@request.auth.id != "" && user = @request.auth.id`)
-		collection.CreateRule = types.Pointer(`@request.auth.id != "" && user = @request.auth.id`)
-		collection.UpdateRule = types.Pointer(`@request.auth.id != "" && user = @request.auth.id`)
-		collection.DeleteRule = types.Pointer(`@request.auth.id != "" && user = @request.auth.id`)
+		rule := `@request.auth.id != "" && user = @request.auth.id`
+		collection.ListRule = types.Pointer(rule)
+		collection.ViewRule = types.Pointer(rule)
+		collection.CreateRule = types.Pointer(rule)
+		collection.UpdateRule = types.Pointer(rule)
+		collection.DeleteRule = types.Pointer(rule)
 		return app.Save(collection)
 	}, func(app core.App) error {
 		collection, err := app.FindCollectionByNameOrId(models.CHARACTER_PLANS_COLLECTION_NAME)

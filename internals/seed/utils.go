@@ -28,6 +28,7 @@ func seedCollection[T SeedItem](app core.App, db *dbx.DB, sourceTable string) er
 	if err := db.NewQuery(fmt.Sprintf("select * from %v", sourceTable)).All(&items); err != nil {
 		return err
 	}
+	app.Logger().Debug(fmt.Sprintf("Fetched %v", sourceTable))
 	for _, s := range items {
 		if err := s.Save(app); err != nil {
 			return err
