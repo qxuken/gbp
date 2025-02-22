@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -56,4 +58,16 @@ func CreateAppSettings(app core.App, key string, value string) (*AppSetting, err
 	appSetting.setKey(key)
 	appSetting.SetValue(value)
 	return appSetting, app.Save(appSetting)
+}
+
+func UpsertAppSettings(app core.App, key string, value string) (*AppSetting, error) {
+	record, err := FindAppSettingsByKey(app, key)
+	if err == sql.ErrNoRows {
+		return CreateAppSettings(app, key, value)
+	} else if err != nil {
+		return nil, err
+	}
+	record.setKey(key)
+	record.SetValue(value)
+	return record, app.Save(record)
 }

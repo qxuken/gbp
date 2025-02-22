@@ -1,9 +1,13 @@
 package seed
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/qxuken/gbp/internals/models"
 	"github.com/spf13/cobra"
 )
 
@@ -57,6 +61,19 @@ func Seed(app core.App, path string) error {
 	}
 
 	if err := seedCollection[Character](app, db, "characters"); err != nil {
+		return err
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return err
+	}
+	if _, err := models.UpsertAppSettings(app, "dictionary_version", fmt.Sprintf("%x", h.Sum(nil))); err != nil {
 		return err
 	}
 
