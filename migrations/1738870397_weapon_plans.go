@@ -22,11 +22,13 @@ func init() {
 			Name:         "character_plan",
 			Required:     true,
 			CollectionId: character_plans.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "weapon",
 			Required:     true,
 			CollectionId: weapons.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.NumberField{
 			Name:     "level_current",

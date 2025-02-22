@@ -22,6 +22,7 @@ func init() {
 			Name:         "character_plan",
 			Required:     true,
 			CollectionId: character_plans.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "team_members",

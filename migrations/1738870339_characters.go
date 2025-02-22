@@ -31,21 +31,25 @@ func init() {
 			Required:  true,
 			MimeTypes: []string{"image/png", "image/webp"},
 			Thumbs:    []string{"16x16", "32x32", "64x64", "128x128"},
+			MaxSelect: 1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "element",
 			Required:     false,
 			CollectionId: elements.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "weapon_type",
 			Required:     true,
 			CollectionId: weapon_types.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "special",
 			Required:     true,
 			CollectionId: specials.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.NumberField{
 			Name:     "rarity",

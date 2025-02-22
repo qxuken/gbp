@@ -26,16 +26,19 @@ func init() {
 			Name:         "character_plan",
 			Required:     true,
 			CollectionId: character_plans.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "artifact_type",
 			Required:     true,
 			CollectionId: artifact_types.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "special",
 			Required:     true,
 			CollectionId: specials.Id,
+			MaxSelect:    1,
 		})
 		collection.AddIndex("idx_"+models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")
 		rule := `@request.auth.id != "" && character_plan.user = @request.auth.id`

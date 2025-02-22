@@ -23,6 +23,7 @@ func init() {
 			Required:  true,
 			MimeTypes: []string{"image/png", "image/webp"},
 			Thumbs:    []string{"16x16", "32x32"},
+			MaxSelect: 1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "specials",

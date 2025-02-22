@@ -11,7 +11,7 @@ export function BuildInfo() {
       <CardTitle className="p-4 flex gap-16">
         <div className="w-full flex items-start gap-3">
           <Avatar className="size-16">
-            <AvatarImage src="http://127.0.0.1:8090/api/files/pbc_3298390430/0m8o7nddkix41vh/diluc_9x0ewc4ix4.webp" />
+            <AvatarImage src="http://127.0.0.1:8090/api/files/pbc_3298390430/wu4w979kwa1i3s9/diluc_9iy4pbxzgr.webp?token=" />
             <AvatarFallback>D</AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-2 flex-1">

@@ -21,11 +21,13 @@ func init() {
 			Name:         "character",
 			Required:     true,
 			CollectionId: characters.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "character_role",
 			Required:     false,
 			CollectionId: character_roles.Id,
+			MaxSelect:    1,
 		})
 		return app.Save(collection)
 	}, func(app core.App) error {

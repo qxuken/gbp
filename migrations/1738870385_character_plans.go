@@ -30,16 +30,19 @@ func init() {
 			Name:         "user",
 			Required:     true,
 			CollectionId: users.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "character",
 			Required:     true,
 			CollectionId: characters.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "character_role",
 			Required:     false,
 			CollectionId: character_roles.Id,
+			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.NumberField{
 			Name:     "constellation_current",
