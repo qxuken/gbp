@@ -44,7 +44,7 @@ func (s Element) Save(app core.App) error {
 		return err
 	}
 	record.Set("color", s.Color)
-	record.Set("inverseTextColor", s.InverseTextColor)
+	record.Set("inverse_text_color", s.InverseTextColor)
 	file, err := filesystem.NewFileFromBytes(s.IconContent, s.IconFilename)
 	if err != nil {
 		return err

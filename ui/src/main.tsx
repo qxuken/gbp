@@ -6,6 +6,7 @@ import {
 import { PropsWithChildren } from 'react';
 import ReactDOM from 'react-dom/client';
 
+import '@/api/dictionaries-loader';
 import {
   type AuthContext,
   AuthProvider,

@@ -11,7 +11,7 @@ export interface Elements {
   id: string;
   name: string;
   color: string;
-  inverseTextColor?: boolean;
+  inverse_text_color?: boolean;
   icon: string;
 }
 
