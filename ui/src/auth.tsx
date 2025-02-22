@@ -1,48 +1,53 @@
+import { useRouter } from '@tanstack/react-router';
 import {
-  ClientResponseError,
   type AuthRecord,
+  ClientResponseError,
   type RecordAuthResponse,
   type RecordModel,
 } from 'pocketbase';
-import { pbClient } from './api/pocketbase';
 import {
-  createContext,
   PropsWithChildren,
+  createContext,
   useContext,
   useEffect,
   useState,
 } from 'react';
 import { toast } from 'sonner';
-import { useRouter } from '@tanstack/react-router';
+
+import { pbClient } from '@/api/pocketbase';
 
 export interface AuthContext {
-  record: AuthRecord | null;
+  logout(): void;
   isAuthenticated: boolean;
+  record: AuthRecord | null;
+  passwordReset(email: string): Promise<boolean>;
+  requestVerification(email: string): Promise<boolean>;
   authRefresh(): Promise<RecordAuthResponse<RecordModel>>;
+  register(data: FormData): Promise<RecordAuthResponse<RecordModel>>;
   login(
     email: string,
     password: string,
   ): Promise<RecordAuthResponse<RecordModel>>;
-  passwordReset(email: string): Promise<boolean>;
-  register(data: FormData): Promise<RecordAuthResponse<RecordModel>>;
-  requestVerification(email: string): Promise<boolean>;
-  logout(): void;
 }
 
 export const DEFAULT_AUTH_CONTEXT = {
-  record: pbClient.authStore.record,
-  isAuthenticated: pbClient.authStore.isValid,
   authRefresh() {
     return pbClient.collection('users').authRefresh();
+  },
+  isAuthenticated: pbClient.authStore.isValid,
+  login(email: string, password: string) {
+    return pbClient.collection('users').authWithPassword(email, password);
+  },
+
+  logout() {
+    pbClient.authStore.clear();
   },
 
   passwordReset(email: string) {
     return pbClient.collection('users').requestPasswordReset(email);
   },
 
-  login(email: string, password: string) {
-    return pbClient.collection('users').authWithPassword(email, password);
-  },
+  record: pbClient.authStore.record,
 
   register(data: FormData) {
     data.set('emailVisibility', 'true');
@@ -52,16 +57,12 @@ export const DEFAULT_AUTH_CONTEXT = {
   requestVerification(email: string) {
     return pbClient.collection('users').requestVerification(email);
   },
-
-  logout() {
-    pbClient.authStore.clear();
-  },
 } satisfies AuthContext;
 
 export const AuthContext = createContext(DEFAULT_AUTH_CONTEXT);
 
 export function AuthProvider({ children, ...props }: PropsWithChildren) {
-  const router = useRouter()
+  const router = useRouter();
   const [record, setRecord] = useState(pbClient.authStore.record);
 
   const authRefresh = async () =>
@@ -100,20 +101,20 @@ export function AuthProvider({ children, ...props }: PropsWithChildren) {
     if (pbClient.authStore.isValid) {
       authRefresh().catch(() => {
         toast.error('You have been unathorized');
-        router.invalidate()
+        router.invalidate();
       });
     }
   }, []);
 
   const context = {
-    isAuthenticated: pbClient.authStore.isValid,
-    record,
     authRefresh,
+    isAuthenticated: pbClient.authStore.isValid,
     login,
     logout,
+    passwordReset: DEFAULT_AUTH_CONTEXT.passwordReset,
+    record,
     register: DEFAULT_AUTH_CONTEXT.register,
     requestVerification: DEFAULT_AUTH_CONTEXT.requestVerification,
-    passwordReset: DEFAULT_AUTH_CONTEXT.passwordReset,
   };
 
   return (

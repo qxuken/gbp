@@ -1,5 +1,8 @@
+import { useNavigate, useRouter } from '@tanstack/react-router';
+
+import { pbClient } from '@/api/pocketbase';
 import { useAuth } from '@/auth';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Icons } from '@/components/icons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,6 +13,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +22,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useRouter, useNavigate } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button';
-import { Icons } from '@/components/icons';
-import { pbClient } from '@/api/pocketbase';
+} from '@/components/ui/dropdown-menu';
 
 export function UserInfo() {
   const router = useRouter();
@@ -53,16 +54,22 @@ export function UserInfo() {
     <AlertDialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant='ghost' size="lg" className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex p-2">
+          <Button
+            variant="ghost"
+            size="lg"
+            className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex p-2"
+          >
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarImage src={avatarSrc} alt={user.name} />
-              <AvatarFallback className="rounded-lg">{shortName}</AvatarFallback>
+              <AvatarFallback className="rounded-lg">
+                {shortName}
+              </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight ms-1 me-2">
               <span className="truncate font-semibold">{user.name}</span>
               <span className="truncate text-xs">{user.email}</span>
             </div>
-            <Icons.dropdown className='ml-auto size-4' />
+            <Icons.dropdown className="ml-auto size-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -71,9 +78,7 @@ export function UserInfo() {
           align="end"
           sideOffset={4}
         >
-          <DropdownMenuLabel>
-            Account
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
             <DropdownMenuItem>
@@ -89,12 +94,9 @@ export function UserInfo() {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleLogout}>
-            Continue
-          </AlertDialogAction>
+          <AlertDialogAction onClick={handleLogout}>Continue</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-
   );
 }

@@ -1,9 +1,10 @@
-import globals from 'globals';
 import pluginJs from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import pluginReact from 'eslint-plugin-react';
 import reactCompiler from 'eslint-plugin-react-compiler';
-import eslintConfigPrettier from 'eslint-config-prettier';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -20,10 +21,11 @@ export default [
       'react-compiler/react-compiler': 'error',
     },
   },
-  eslintConfigPrettier,
   {
     rules: {
       'react/react-in-jsx-scope': 'off',
     },
   },
+  eslintConfigPrettier,
+  eslintPluginPrettierRecommended,
 ];

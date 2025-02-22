@@ -1,6 +1,7 @@
-import { CreateBuild } from '@/components/build-card/create-build';
-import { BuildInfo } from '@/components/build-card/build-info';
 import { createFileRoute } from '@tanstack/react-router';
+
+import { BuildInfo } from '@/components/build-card/build-info';
+import { CreateBuild } from '@/components/build-card/create-build';
 
 export const Route = createFileRoute('/_protected/')({
   component: HomeComponent,

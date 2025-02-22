@@ -1,6 +1,6 @@
 import {
-  createContext,
   PropsWithChildren,
+  createContext,
   useContext,
   useEffect,
   useState,
@@ -14,8 +14,8 @@ export interface ThemeContext {
 }
 
 export const THEME_PROVIDER_INITIAL_STATE = {
-  theme: 'system',
   setTheme: () => null,
+  theme: 'system',
 } satisfies ThemeContext;
 
 const ThemeContext = createContext<ThemeContext>(THEME_PROVIDER_INITIAL_STATE);
@@ -54,11 +54,11 @@ export function ThemeProvider({
   }, [theme]);
 
   const value = {
-    theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
       setTheme(theme);
     },
+    theme,
   };
 
   return (

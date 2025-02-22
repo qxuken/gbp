@@ -1,45 +1,50 @@
+import {
+  RouterProvider,
+  createRouteMask,
+  createRouter,
+} from '@tanstack/react-router';
+import { PropsWithChildren } from 'react';
 import ReactDOM from 'react-dom/client';
-import { RouterProvider, createRouteMask, createRouter, redirect } from '@tanstack/react-router';
-import { routeTree } from '@/routeTree.gen';
-import { Icons } from '@/components/icons';
+
 import {
   type AuthContext,
   AuthProvider,
   DEFAULT_AUTH_CONTEXT,
   useAuth,
 } from '@/auth';
+import { Icons } from '@/components/icons';
 import {
   THEME_PROVIDER_INITIAL_STATE,
   type ThemeContext,
   ThemeProvider,
   useTheme,
 } from '@/components/theme';
-import { PropsWithChildren } from 'react';
 import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from './components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { routeTree } from '@/routeTree.gen';
 
 const confirmationScreenMask = createRouteMask({
-  routeTree,
   from: '/confirm',
-  to: '/login',
+  routeTree,
   search: (s) => ({ redirect: 'redirect' in s ? s.redirect : '' }),
-})
+  to: '/login',
+});
 
 // Set up a Router instance
 const router = createRouter({
-  routeTree,
-  routeMasks: [confirmationScreenMask],
-  defaultPreload: 'intent',
+  context: {
+    auth: DEFAULT_AUTH_CONTEXT,
+    theme: THEME_PROVIDER_INITIAL_STATE,
+  },
   defaultPendingComponent: () => {
     <div className="p-2 text-2xl">
       <Icons.spinner />
     </div>;
   },
+  defaultPreload: 'intent',
+  routeMasks: [confirmationScreenMask],
+  routeTree,
   scrollRestoration: true,
-  context: {
-    auth: DEFAULT_AUTH_CONTEXT,
-    theme: THEME_PROVIDER_INITIAL_STATE,
-  },
 });
 
 // Register things for typesafety
@@ -58,9 +63,7 @@ function AppProviders({ children }: PropsWithChildren) {
   return (
     <ThemeProvider storageKey="gbp-ui-theme">
       <AuthProvider>
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
+        <TooltipProvider>{children}</TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
   );
@@ -70,7 +73,7 @@ function App() {
   const theme = useTheme();
   const auth = useAuth();
 
-  const context = { theme, auth };
+  const context = { auth, theme };
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 /**
  * @param timeoutDuration Time in seconds before the button is re-enabled.

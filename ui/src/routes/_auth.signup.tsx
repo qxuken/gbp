@@ -1,8 +1,13 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, createFileRoute } from '@tanstack/react-router';
+import { ClientResponseError } from 'pocketbase';
+import { BaseSyntheticEvent } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
-import { useAuth } from '../auth';
+
+import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -10,8 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Icons } from '@/components/icons';
-import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -21,9 +24,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import { BaseSyntheticEvent } from 'react';
-import { ClientResponseError } from 'pocketbase';
+
+import { useAuth } from '../auth';
 
 export const Route = createFileRoute('/_auth/signup')({
   component: SignupComponent,
@@ -36,11 +38,11 @@ const serverValueErrorSchema = z.object({
 const formSchema = z
   .object({
     avatar: z.any().optional(),
-    name: z.string().min(2, {
-      message: 'Name must be at least 2 characters.',
-    }),
     email: z.string().email({
       message: 'Please enter a valid email address.',
+    }),
+    name: z.string().min(2, {
+      message: 'Name must be at least 2 characters.',
     }),
     password: z.string().min(8, {
       message: 'Password must be at least 8 characters.',
@@ -74,8 +76,8 @@ function SignupComponent() {
       await auth.requestVerification(values.email);
 
       await navigate({
-        to: '/confirm',
         search: { ...search, email: values.email, password: values.password },
+        to: '/confirm',
       });
     } catch (e) {
       if (e instanceof ClientResponseError) {

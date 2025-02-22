@@ -10,120 +10,120 @@
 
 // Import Routes
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as ProtectedImport } from './routes/_protected'
-import { Route as AuthImport } from './routes/_auth'
-import { Route as ProtectedIndexImport } from './routes/_protected.index'
-import { Route as AuthSignupImport } from './routes/_auth.signup'
-import { Route as AuthLoginImport } from './routes/_auth.login'
-import { Route as AuthForgotPasswordImport } from './routes/_auth.forgot-password'
-import { Route as AuthConfirmImport } from './routes/_auth.confirm'
+import { Route as rootRoute } from './routes/__root';
+import { Route as ProtectedImport } from './routes/_protected';
+import { Route as AuthImport } from './routes/_auth';
+import { Route as ProtectedIndexImport } from './routes/_protected.index';
+import { Route as AuthSignupImport } from './routes/_auth.signup';
+import { Route as AuthLoginImport } from './routes/_auth.login';
+import { Route as AuthForgotPasswordImport } from './routes/_auth.forgot-password';
+import { Route as AuthConfirmImport } from './routes/_auth.confirm';
 
 // Create/Update Routes
 
 const ProtectedRoute = ProtectedImport.update({
   id: '/_protected',
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
 const AuthRoute = AuthImport.update({
   id: '/_auth',
   getParentRoute: () => rootRoute,
-} as any)
+} as any);
 
 const ProtectedIndexRoute = ProtectedIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProtectedRoute,
-} as any)
+} as any);
 
 const AuthSignupRoute = AuthSignupImport.update({
   id: '/signup',
   path: '/signup',
   getParentRoute: () => AuthRoute,
-} as any)
+} as any);
 
 const AuthLoginRoute = AuthLoginImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => AuthRoute,
-} as any)
+} as any);
 
 const AuthForgotPasswordRoute = AuthForgotPasswordImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
   getParentRoute: () => AuthRoute,
-} as any)
+} as any);
 
 const AuthConfirmRoute = AuthConfirmImport.update({
   id: '/confirm',
   path: '/confirm',
   getParentRoute: () => AuthRoute,
-} as any)
+} as any);
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthImport
-      parentRoute: typeof rootRoute
-    }
+      id: '/_auth';
+      path: '';
+      fullPath: '';
+      preLoaderRoute: typeof AuthImport;
+      parentRoute: typeof rootRoute;
+    };
     '/_protected': {
-      id: '/_protected'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof ProtectedImport
-      parentRoute: typeof rootRoute
-    }
+      id: '/_protected';
+      path: '';
+      fullPath: '';
+      preLoaderRoute: typeof ProtectedImport;
+      parentRoute: typeof rootRoute;
+    };
     '/_auth/confirm': {
-      id: '/_auth/confirm'
-      path: '/confirm'
-      fullPath: '/confirm'
-      preLoaderRoute: typeof AuthConfirmImport
-      parentRoute: typeof AuthImport
-    }
+      id: '/_auth/confirm';
+      path: '/confirm';
+      fullPath: '/confirm';
+      preLoaderRoute: typeof AuthConfirmImport;
+      parentRoute: typeof AuthImport;
+    };
     '/_auth/forgot-password': {
-      id: '/_auth/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof AuthForgotPasswordImport
-      parentRoute: typeof AuthImport
-    }
+      id: '/_auth/forgot-password';
+      path: '/forgot-password';
+      fullPath: '/forgot-password';
+      preLoaderRoute: typeof AuthForgotPasswordImport;
+      parentRoute: typeof AuthImport;
+    };
     '/_auth/login': {
-      id: '/_auth/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof AuthLoginImport
-      parentRoute: typeof AuthImport
-    }
+      id: '/_auth/login';
+      path: '/login';
+      fullPath: '/login';
+      preLoaderRoute: typeof AuthLoginImport;
+      parentRoute: typeof AuthImport;
+    };
     '/_auth/signup': {
-      id: '/_auth/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof AuthSignupImport
-      parentRoute: typeof AuthImport
-    }
+      id: '/_auth/signup';
+      path: '/signup';
+      fullPath: '/signup';
+      preLoaderRoute: typeof AuthSignupImport;
+      parentRoute: typeof AuthImport;
+    };
     '/_protected/': {
-      id: '/_protected/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof ProtectedIndexImport
-      parentRoute: typeof ProtectedImport
-    }
+      id: '/_protected/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof ProtectedIndexImport;
+      parentRoute: typeof ProtectedImport;
+    };
   }
 }
 
 // Create and export the route tree
 
 interface AuthRouteChildren {
-  AuthConfirmRoute: typeof AuthConfirmRoute
-  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthSignupRoute: typeof AuthSignupRoute
+  AuthConfirmRoute: typeof AuthConfirmRoute;
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute;
+  AuthLoginRoute: typeof AuthLoginRoute;
+  AuthSignupRoute: typeof AuthSignupRoute;
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -131,56 +131,56 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
-}
+};
 
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren);
 
 interface ProtectedRouteChildren {
-  ProtectedIndexRoute: typeof ProtectedIndexRoute
+  ProtectedIndexRoute: typeof ProtectedIndexRoute;
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedIndexRoute: ProtectedIndexRoute,
-}
+};
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
   ProtectedRouteChildren,
-)
+);
 
 export interface FileRoutesByFullPath {
-  '': typeof ProtectedRouteWithChildren
-  '/confirm': typeof AuthConfirmRoute
-  '/forgot-password': typeof AuthForgotPasswordRoute
-  '/login': typeof AuthLoginRoute
-  '/signup': typeof AuthSignupRoute
-  '/': typeof ProtectedIndexRoute
+  '': typeof ProtectedRouteWithChildren;
+  '/confirm': typeof AuthConfirmRoute;
+  '/forgot-password': typeof AuthForgotPasswordRoute;
+  '/login': typeof AuthLoginRoute;
+  '/signup': typeof AuthSignupRoute;
+  '/': typeof ProtectedIndexRoute;
 }
 
 export interface FileRoutesByTo {
-  '': typeof AuthRouteWithChildren
-  '/confirm': typeof AuthConfirmRoute
-  '/forgot-password': typeof AuthForgotPasswordRoute
-  '/login': typeof AuthLoginRoute
-  '/signup': typeof AuthSignupRoute
-  '/': typeof ProtectedIndexRoute
+  '': typeof AuthRouteWithChildren;
+  '/confirm': typeof AuthConfirmRoute;
+  '/forgot-password': typeof AuthForgotPasswordRoute;
+  '/login': typeof AuthLoginRoute;
+  '/signup': typeof AuthSignupRoute;
+  '/': typeof ProtectedIndexRoute;
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/_auth': typeof AuthRouteWithChildren
-  '/_protected': typeof ProtectedRouteWithChildren
-  '/_auth/confirm': typeof AuthConfirmRoute
-  '/_auth/forgot-password': typeof AuthForgotPasswordRoute
-  '/_auth/login': typeof AuthLoginRoute
-  '/_auth/signup': typeof AuthSignupRoute
-  '/_protected/': typeof ProtectedIndexRoute
+  __root__: typeof rootRoute;
+  '/_auth': typeof AuthRouteWithChildren;
+  '/_protected': typeof ProtectedRouteWithChildren;
+  '/_auth/confirm': typeof AuthConfirmRoute;
+  '/_auth/forgot-password': typeof AuthForgotPasswordRoute;
+  '/_auth/login': typeof AuthLoginRoute;
+  '/_auth/signup': typeof AuthSignupRoute;
+  '/_protected/': typeof ProtectedIndexRoute;
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/confirm' | '/forgot-password' | '/login' | '/signup' | '/'
-  fileRoutesByTo: FileRoutesByTo
-  to: '' | '/confirm' | '/forgot-password' | '/login' | '/signup' | '/'
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths: '' | '/confirm' | '/forgot-password' | '/login' | '/signup' | '/';
+  fileRoutesByTo: FileRoutesByTo;
+  to: '' | '/confirm' | '/forgot-password' | '/login' | '/signup' | '/';
   id:
     | '__root__'
     | '/_auth'
@@ -189,23 +189,23 @@ export interface FileRouteTypes {
     | '/_auth/forgot-password'
     | '/_auth/login'
     | '/_auth/signup'
-    | '/_protected/'
-  fileRoutesById: FileRoutesById
+    | '/_protected/';
+  fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
-  AuthRoute: typeof AuthRouteWithChildren
-  ProtectedRoute: typeof ProtectedRouteWithChildren
+  AuthRoute: typeof AuthRouteWithChildren;
+  ProtectedRoute: typeof ProtectedRouteWithChildren;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   ProtectedRoute: ProtectedRouteWithChildren,
-}
+};
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
 /* ROUTE_MANIFEST_START
 {

@@ -1,16 +1,28 @@
-import { type Icon as LucideIcon, AlertCircle, LoaderCircle, LogOut, ChevronsUpDown, Info, ArrowLeft, ArrowRight, Plus, Minus, SquarePen } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  ChevronsUpDown,
+  Info,
+  LoaderCircle,
+  LogOut,
+  type Icon as LucideIcon,
+  Minus,
+  Plus,
+  SquarePen,
+} from 'lucide-react';
 
 export type Icon = typeof LucideIcon;
 
 export const Icons = {
-  spinner: LoaderCircle,
-  logout: LogOut,
   alert: AlertCircle,
-  info: Info,
   dropdown: ChevronsUpDown,
+  info: Info,
   left: ArrowLeft,
-  right: ArrowRight,
-  plus: Plus,
+  logout: LogOut,
   minus: Minus,
   new: SquarePen,
+  plus: Plus,
+  right: ArrowRight,
+  spinner: LoaderCircle,
 };

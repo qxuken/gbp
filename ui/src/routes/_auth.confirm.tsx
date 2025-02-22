@@ -1,29 +1,35 @@
-import { createFileRoute, Link, redirect, useNavigate, useRouter } from '@tanstack/react-router';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/auth';
+import {
+  Link,
+  createFileRoute,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { useTimeoutButton } from '@/hooks/useTimeoutButton';
+import { z } from 'zod';
+
+import { useAuth } from '@/auth';
 import { Icons } from '@/components/icons';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTimeoutButton } from '@/hooks/useTimeoutButton';
 
 const fallback = '/' as const;
 
 export const Route = createFileRoute('/_auth/confirm')({
+  component: ConfirmComponent,
   validateSearch: z.object({
     email: z.string().email(),
     password: z.string().min(8),
   }),
-  component: ConfirmComponent,
 });
 
 function ConfirmComponent() {
-  const auth = useAuth()
+  const auth = useAuth();
   const router = useRouter();
   const navigate = useNavigate();
-  const search = Route.useSearch()
-  const [resendTimeout, startResendTimeout] = useTimeoutButton()
+  const search = Route.useSearch();
+  const [resendTimeout, startResendTimeout] = useTimeoutButton();
 
   const login = async () => {
     try {
@@ -35,12 +41,12 @@ function ConfirmComponent() {
         toast.error(e.message);
       }
     }
-  }
+  };
 
   const resendEmail = async () => {
     try {
       await auth.requestVerification(search.email);
-      startResendTimeout()
+      startResendTimeout();
       toast.success('Check your inbox');
     } catch {
       toast.error('Something went wrong');
@@ -56,16 +62,26 @@ function ConfirmComponent() {
               Verify your email to activate your account
             </CardTitle>
           </CardHeader>
-          <CardContent className='flex flex-col gap-2'>
+          <CardContent className="flex flex-col gap-2">
             <Alert>
-              <Icons.alert className='size-4' />
+              <Icons.alert className="size-4" />
               <AlertDescription>
-                We’ve sent a verification email. Please check your inbox and confirm your email to proceed.
+                We’ve sent a verification email. Please check your inbox and
+                confirm your email to proceed.
               </AlertDescription>
             </Alert>
-            <Button size="lg" className='mt-2 w-full' onClick={login}>I’ve Verified My Email</Button>
-            <Button variant="outline" size="lg" className='w-full' onClick={resendEmail} disabled={resendTimeout > 0}>
-              Resend Verification Email{resendTimeout > 0 && ` - ${resendTimeout}`}
+            <Button size="lg" className="mt-2 w-full" onClick={login}>
+              I’ve Verified My Email
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full"
+              onClick={resendEmail}
+              disabled={resendTimeout > 0}
+            >
+              Resend Verification Email
+              {resendTimeout > 0 && ` - ${resendTimeout}`}
             </Button>
             <div className="mt-2 text-center text-sm">
               Have verified account?{' '}
