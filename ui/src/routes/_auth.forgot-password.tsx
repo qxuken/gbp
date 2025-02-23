@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { useAuth } from '../auth';
+import { useAuth } from '../stores/auth';
 
 export const Route = createFileRoute('/_auth/forgot-password')({
   component: ForgotPassword,
@@ -88,6 +88,7 @@ function ForgotPassword() {
                         <Input
                           type="email"
                           placeholder="me@example.com"
+                          autoComplete="email"
                           {...field}
                         />
                       </FormControl>

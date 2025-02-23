@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { useAuth } from '../auth';
+import { useAuth } from '../stores/auth';
 
 export const Route = createFileRoute('/_auth/signup')({
   component: SignupComponent,
@@ -136,7 +136,11 @@ function SignupComponent() {
                     <FormItem>
                       <FormLabel>Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" {...field} />
+                        <Input
+                          placeholder="John Doe"
+                          autoComplete="name"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -152,6 +156,7 @@ function SignupComponent() {
                         <Input
                           type="email"
                           placeholder="me@example.com"
+                          autoComplete="email"
                           {...field}
                         />
                       </FormControl>
@@ -166,7 +171,11 @@ function SignupComponent() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input
+                          type="password"
+                          autoComplete="current-password"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

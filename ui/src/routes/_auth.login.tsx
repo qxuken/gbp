@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { useAuth } from '../auth';
+import { useAuth } from '../stores/auth';
 
 const fallback = '/' as const;
 
@@ -94,6 +94,7 @@ function LoginComponent() {
                         <Input
                           type="email"
                           placeholder="me@example.com"
+                          autoComplete="email"
                           {...field}
                         />
                       </FormControl>
@@ -121,6 +122,7 @@ function LoginComponent() {
                         <Input
                           type="password"
                           placeholder="password"
+                          autoComplete="current-password"
                           {...field}
                         />
                       </FormControl>

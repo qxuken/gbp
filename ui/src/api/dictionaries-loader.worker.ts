@@ -37,4 +37,9 @@ export async function loadDictionaries() {
   postMessage('Data loaded');
 }
 
-loadDictionaries();
+try {
+  loadDictionaries();
+} catch (e) {
+  console.error(e);
+  postMessage('Data loading abort');
+}

@@ -9,7 +9,7 @@ export const Route = createFileRoute('/_protected/')({
 
 function HomeComponent() {
   return (
-    <div className="p-2 grid gap-4 grid-flow-row-dense grid-cols-3 grid-rows-3">
+    <div className="p-2 flex flex-wrap gap-4 justify-center">
       <BuildInfo />
       <BuildInfo />
       <BuildInfo />

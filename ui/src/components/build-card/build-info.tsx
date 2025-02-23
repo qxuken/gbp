@@ -7,7 +7,7 @@ import { TalentsInfo } from './ui/talents-info';
 
 export function BuildInfo() {
   return (
-    <Card className="w-fit min-w-xs">
+    <Card className="w-fit min-w-md">
       <CardTitle className="p-4 flex gap-16">
         <div className="w-full flex items-start gap-3">
           <Avatar className="size-16">

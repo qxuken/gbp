@@ -1,7 +1,7 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
 
 import { pbClient } from '@/api/pocketbase';
-import { useAuth } from '@/auth';
+import { useAuth } from '@/stores/auth';
 import { Icons } from '@/components/icons';
 import {
   AlertDialog,

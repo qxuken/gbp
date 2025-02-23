@@ -16,6 +16,7 @@
     "@eslint/js": "^9.20.0",
     "@tanstack/router-plugin": "^1.105.0",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@tweakpane/core": "^2.0.5",
     "@types/node": "^22.13.4",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
@@ -28,6 +29,7 @@
     "eslint-plugin-react-compiler": "^19.0.0-beta-21e868a-20250216",
     "globals": "^15.15.0",
     "prettier": "3.5.1",
+    "tweakpane": "^4.0.5",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.0.3"
   },
@@ -58,6 +60,7 @@
     "tailwind-merge": "^3.0.1",
     "tailwindcss": "^4.0.6",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "zustand": "^5.0.3"
   }
 }

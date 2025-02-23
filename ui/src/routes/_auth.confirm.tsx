@@ -7,7 +7,7 @@ import {
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { useAuth } from '@/auth';
+import { useAuth } from '@/stores/auth';
 import { Icons } from '@/components/icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
