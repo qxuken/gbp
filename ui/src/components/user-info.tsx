@@ -1,7 +1,6 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
 
 import { pbClient } from '@/api/pocketbase';
-import { useAuth } from '@/stores/auth';
 import { Icons } from '@/components/icons';
 import {
   AlertDialog,
@@ -23,6 +22,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/stores/auth';
+
+import { getShortName } from './collection-avatar';
 
 export function UserInfo() {
   const router = useRouter();
@@ -44,11 +46,7 @@ export function UserInfo() {
   const avatarSrc: string = pbClient.files.getURL(user, user.avatar, {
     thumb: '8x8',
   });
-  const shortName: string =
-    user.name
-      .split(' ')
-      .map((p: string) => p[0]?.toUpperCase())
-      .join('') ?? '??';
+  const shortName: string = getShortName(user.name);
 
   return (
     <AlertDialog>

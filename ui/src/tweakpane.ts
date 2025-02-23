@@ -2,9 +2,7 @@ import { Pane } from 'tweakpane';
 
 document.createElement('div');
 const container = document.createElement('div');
-container.style.position = 'absolute';
-container.style.bottom = '8px';
-container.style.left = '8px';
+container.className = 'fixed right-4 bottom-4';
 document.body.appendChild(container);
 
 const styleElement = document.createElement('style');
@@ -58,4 +56,8 @@ styleElement.textContent = `
 `;
 document.head.appendChild(styleElement);
 
-export const pane = new Pane({ container, title: 'Dev parameters' });
+export const pane = new Pane({
+  container,
+  title: 'Dev parameters',
+  expanded: false,
+});

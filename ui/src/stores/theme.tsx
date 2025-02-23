@@ -28,8 +28,6 @@ let systemSub: AbortController | null;
 theme.subscribe(
   (state) => state.theme,
   (theme) => {
-    console.log('theme update', theme);
-
     systemSub?.abort();
 
     const root = window.document.documentElement;
@@ -44,7 +42,6 @@ theme.subscribe(
       query.addEventListener(
         'change',
         (e) => {
-          console.log('system update', theme);
           root.classList.remove('light', 'dark');
           root.classList.add(e.matches ? 'dark' : 'light');
         },
@@ -73,6 +70,7 @@ if (import.meta.env.DEV) {
       },
     };
     pane.addBinding(params, 'theme', {
+      label: 'Theme',
       options: {
         system: 'system',
         dark: 'dark',

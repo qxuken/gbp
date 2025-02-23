@@ -21,6 +21,8 @@ type Config = {
   value: string;
 };
 
+export const DICTIONARY_VERSION_CONFIG_KEY = 'dictionary_version';
+
 export const DB_COLLECTION_MAPPING = {
   elements: 'elements',
   specials: 'specials',
@@ -31,6 +33,8 @@ export const DB_COLLECTION_MAPPING = {
   artifactSets: 'artifact_sets',
   artifactTypes: 'artifact_types',
 } as const;
+export type DBCollections = keyof typeof DB_COLLECTION_MAPPING;
+export type PBCollections = (typeof DB_COLLECTION_MAPPING)[DBCollections];
 
 export type DB = Dexie & {
   config: EntityTable<Config, 'key'>;

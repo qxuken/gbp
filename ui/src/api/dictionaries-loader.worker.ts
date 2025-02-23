@@ -1,31 +1,37 @@
-import { db, DB_COLLECTION_MAPPING } from '@/api/dictionaries-db';
+import {
+  db,
+  DB_COLLECTION_MAPPING,
+  DICTIONARY_VERSION_CONFIG_KEY,
+  type DBCollections,
+  type PBCollections,
+} from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 
-type ReqCollectionsKeys = keyof typeof DB_COLLECTION_MAPPING;
-type ReqCollectionsValue = (typeof DB_COLLECTION_MAPPING)[ReqCollectionsKeys];
 const REQ_COLLECTIONS = Array.from(Object.entries(DB_COLLECTION_MAPPING)) as [
-  ReqCollectionsKeys,
-  ReqCollectionsValue,
+  DBCollections,
+  PBCollections,
 ][];
 
-export async function loadDictionaries() {
+export async function loadDictionaries(force = false) {
   const version = await pbClient.send('/api/dictionary_version', {});
-  const storedVersion = await db.config.get('dictionary_version');
-  if (version === storedVersion?.value) {
-    console.log('No dictionary update required!');
-    postMessage('No dictionary update required');
+  const storedVersion = await db.config.get(DICTIONARY_VERSION_CONFIG_KEY);
+  if (!force && version === storedVersion?.value) {
+    postMessage({ message: 'No dictionary update required' });
     return;
   }
 
+  postMessage({ message: 'Fetching collections' });
   const collections = await Promise.all(
     REQ_COLLECTIONS.map(([, v]) => pbClient.collection(v).getFullList()),
   );
+  postMessage({ message: 'Fetched collections' });
 
   const collectionIds = collections.map((c) => ({
     id: c[0].collectionId,
     name: c[0].collectionName,
   }));
 
+  postMessage({ message: 'Storing to indexedDB' });
   await Promise.all([
     ...REQ_COLLECTIONS.map(([c], i) =>
       // @ts-expect-error Don't worry i know what im doing :)
@@ -33,13 +39,36 @@ export async function loadDictionaries() {
     ),
     db.collectionIds.bulkPut(collectionIds),
   ]);
-  db.config.put({ key: 'dictionary_version', value: version });
-  postMessage('Data loaded');
+  postMessage({ message: 'Stored to indexedDB' });
+
+  db.config.put({ key: DICTIONARY_VERSION_CONFIG_KEY, value: version });
+  postMessage({ message: 'Data loaded', version });
 }
 
-try {
-  loadDictionaries();
-} catch (e) {
-  console.error(e);
-  postMessage('Data loading abort');
+let isLoading = false;
+function loadDictionariesSafe(force = false) {
+  if (isLoading) {
+    return;
+  }
+  isLoading = true;
+  loadDictionaries(force)
+    .catch((error) => {
+      postMessage({ message: 'Data loading error', error: error.message });
+    })
+    .finally(() => {
+      isLoading = false;
+    });
 }
+
+loadDictionariesSafe();
+
+self.addEventListener('message', (e) => {
+  switch (e.data?.action) {
+    case 'loadDictionaries':
+      loadDictionariesSafe();
+      break;
+    case 'reloadDictionaries':
+      loadDictionariesSafe(true);
+      break;
+  }
+});

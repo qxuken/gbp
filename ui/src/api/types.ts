@@ -87,7 +87,7 @@ export interface CharacterPlans {
 export interface TeamMembers {
   id: string;
   character: string;
-  character_role?: string;
+  character_role: string;
 }
 
 export interface TeamPlans {
