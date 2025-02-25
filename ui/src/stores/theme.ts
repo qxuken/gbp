@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { subscribeWithSelector, persist } from 'zustand/middleware';
 
-type ThemeValue = 'dark' | 'light' | 'system';
+export type ThemeValue = 'dark' | 'light' | 'system';
 
 export interface Theme {
   theme: ThemeValue;
-  setTheme: (theme: ThemeValue) => void;
+  setTheme(theme: ThemeValue): void;
 }
 
 export const theme = create(
@@ -57,25 +57,4 @@ theme.subscribe(
 
 export function useTheme() {
   return theme();
-}
-
-if (import.meta.env.DEV) {
-  import('@/tweakpane').then(({ pane }) => {
-    const params = {
-      get theme() {
-        return theme.getState().theme;
-      },
-      set theme(value: ThemeValue) {
-        theme.getState().setTheme(value);
-      },
-    };
-    pane.addBinding(params, 'theme', {
-      label: 'Theme',
-      options: {
-        system: 'system',
-        dark: 'dark',
-        light: 'light',
-      },
-    });
-  });
 }

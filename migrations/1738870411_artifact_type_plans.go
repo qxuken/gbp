@@ -23,22 +23,25 @@ func init() {
 		}
 		collection := core.NewBaseCollection(models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME)
 		collection.Fields.Add(&core.RelationField{
-			Name:         "character_plan",
-			Required:     true,
-			CollectionId: character_plans.Id,
-			MaxSelect:    1,
+			Name:          "character_plan",
+			Required:      true,
+			CollectionId:  character_plans.Id,
+			MaxSelect:     1,
+			CascadeDelete: true,
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "artifact_type",
-			Required:     true,
-			CollectionId: artifact_types.Id,
-			MaxSelect:    1,
+			Name:          "artifact_type",
+			Required:      true,
+			CollectionId:  artifact_types.Id,
+			MaxSelect:     1,
+			CascadeDelete: true,
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "special",
-			Required:     true,
-			CollectionId: specials.Id,
-			MaxSelect:    1,
+			Name:          "special",
+			Required:      true,
+			CollectionId:  specials.Id,
+			MaxSelect:     1,
+			CascadeDelete: true,
 		})
 		collection.AddIndex("idx_"+models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")
 		rule := `@request.auth.id != "" && character_plan.user = @request.auth.id`

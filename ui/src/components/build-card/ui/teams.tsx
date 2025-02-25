@@ -3,26 +3,16 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
-import { CharacterPlans, TeamMembers, TeamPlans } from '@/api/types';
+import { CharacterPlans, TeamPlans } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
-import { Badge } from '@/components/ui/badge';
 
-type CharacterProps = { characterId: string; roleId: string };
-function Character({ characterId, roleId }: CharacterProps) {
-  const res = useLiveQuery(
-    () =>
-      Promise.all([
-        db.characters.get(characterId),
-        db.characterRoles.get(roleId),
-      ]),
-    [characterId, roleId],
+type CharacterProps = { characterId: string };
+function Character({ characterId }: CharacterProps) {
+  const character = useLiveQuery(
+    () => db.characters.get(characterId),
+    [characterId],
   );
-  if (!res) {
-    return null;
-  }
-
-  const [character, role] = res;
-  if (!character || !role) {
+  if (!character) {
     return null;
   }
 
@@ -37,7 +27,6 @@ function Character({ characterId, roleId }: CharacterProps) {
         className="size-8"
       />
       <span>{character.name}</span>
-      <Badge>{role.name}</Badge>
     </div>
   );
 }
@@ -47,14 +36,9 @@ export function Teams({ build }: Props) {
   const query = useQuery({
     queryKey: ['character_plans', build.id, 'team_plans'],
     queryFn: () =>
-      pbClient
-        .collection<
-          TeamPlans & { expand: { team_members: TeamMembers[] } }
-        >('team_plans')
-        .getFullList({
-          filter: `character_plan = '${build.id}'`,
-          expand: 'team_members',
-        }),
+      pbClient.collection<TeamPlans>('team_plans').getFullList({
+        filter: `character_plan = '${build.id}'`,
+      }),
   });
   if (query.isPending) {
     return null;
@@ -68,12 +52,8 @@ export function Teams({ build }: Props) {
           <div key={tp.id}>
             <span>Team #{i}</span>
             <div className="flex gap-1">
-              {tp.expand.team_members.map((tm) => (
-                <Character
-                  key={tm.id}
-                  characterId={tm.character}
-                  roleId={tm.character_role}
-                />
+              {tp.characters.map((tm) => (
+                <Character key={tm} characterId={tm} />
               ))}
             </div>
           </div>

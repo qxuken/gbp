@@ -13,22 +13,24 @@ func init() {
 		if err != nil {
 			return err
 		}
-		team_members, err := app.FindCollectionByNameOrId(models.TEAM_MEMBERS_COLLECTION_NAME)
+		characters, err := app.FindCollectionByNameOrId(models.CHARACTERS_COLLECTION_NAME)
 		if err != nil {
 			return nil
 		}
 		collection := core.NewBaseCollection(models.TEAM_PLANS_COLLECTION_NAME)
 		collection.Fields.Add(&core.RelationField{
-			Name:         "character_plan",
-			Required:     true,
-			CollectionId: character_plans.Id,
-			MaxSelect:    1,
+			Name:          "character_plan",
+			Required:      true,
+			CollectionId:  character_plans.Id,
+			MaxSelect:     1,
+			CascadeDelete: true,
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "team_members",
-			Required:     true,
-			CollectionId: team_members.Id,
-			MaxSelect:    4,
+			Name:          "characters",
+			Required:      true,
+			CollectionId:  characters.Id,
+			MaxSelect:     4,
+			CascadeDelete: true,
 		})
 		collection.AddIndex("idx_"+models.TEAM_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")
 		rule := `@request.auth.id != "" && character_plan.user = @request.auth.id`

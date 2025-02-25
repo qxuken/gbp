@@ -71,39 +71,33 @@ export interface CharacterPlans {
   user: string;
   character: string;
   character_role?: string;
-  constellation_current?: number;
-  constellation_target?: number;
-  level_current?: number;
-  level_target?: number;
-  talent_atk_current?: number;
-  talent_atk_target?: number;
-  talent_skill_current?: number;
-  talent_skill_target?: number;
-  talent_burst_current?: number;
-  talent_burst_target?: number;
+  constellation_current: number;
+  constellation_target: number;
+  level_current: number;
+  level_target: number;
+  talent_atk_current: number;
+  talent_atk_target: number;
+  talent_skill_current: number;
+  talent_skill_target: number;
+  talent_burst_current: number;
+  talent_burst_target: number;
   artifact_sets?: string[];
-}
-
-export interface TeamMembers {
-  id: string;
-  character: string;
-  character_role: string;
 }
 
 export interface TeamPlans {
   id: string;
   character_plan: string;
-  team_members: string[];
+  characters: string[];
 }
 
 export interface WeaponPlans {
   id: string;
   character_plan: string;
   weapon: string;
-  level_current?: number;
-  level_target?: number;
-  refinement_current?: number;
-  refinement_target?: number;
+  level_current: number;
+  level_target: number;
+  refinement_current: number;
+  refinement_target: number;
 }
 
 export interface ArtifactTypePlans {

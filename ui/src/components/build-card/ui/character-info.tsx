@@ -28,7 +28,15 @@ export function CharacterInfo({ character, ...props }: Props) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" {...props}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn('size-7 hover:text-black', {
+            ['hover:bg-amber-400']: character.rarity === 5,
+            ['hover:bg-indigo-300']: character.rarity !== 5,
+          })}
+          {...props}
+        >
           <Icons.info />
         </Button>
       </PopoverTrigger>
@@ -37,7 +45,7 @@ export function CharacterInfo({ character, ...props }: Props) {
           <span>Rarity</span>
           <Badge
             className={cn({
-              'bg-amber-300': character.rarity === 5,
+              'bg-amber-400': character.rarity === 5,
               'bg-indigo-300': character.rarity !== 5,
             })}
           >

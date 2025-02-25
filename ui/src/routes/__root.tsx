@@ -1,8 +1,10 @@
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
-import { lazy, Suspense, useState } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { AppContext } from '@/main';
+import { router } from '@/router';
+import { useAuth } from '@/stores/auth';
 
 export const Route = createRootRouteWithContext<AppContext>()({
   component: RootComponent,
@@ -18,21 +20,12 @@ export const Route = createRootRouteWithContext<AppContext>()({
   },
 });
 
-const DevTools = import.meta.env.PROD
-  ? () => null
-  : lazy(() =>
-    import('@/tanstack-devtools').then(({ TanstackDevTools: DevTools }) => ({
-      default: DevTools,
-    })),
-  );
-
 function RootComponent() {
-  return (
-    <>
-      <Outlet />
-      <Suspense>
-        <DevTools />
-      </Suspense>
-    </>
-  );
+  const auth = useAuth();
+
+  useEffect(() => {
+    router.invalidate();
+  }, [auth.isAuthenticated]);
+
+  return <Outlet />;
 }

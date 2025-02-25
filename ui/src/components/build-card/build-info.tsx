@@ -1,79 +1,158 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { ClientResponseError } from 'pocketbase';
+import { useMemo } from 'react';
+import { toast } from 'sonner';
 
 import { db } from '@/api/dictionaries-db';
+import { pbClient } from '@/api/pocketbase';
 import type { CharacterPlans } from '@/api/types';
+import { CollectionAvatar } from '@/components/collection-avatar';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { AsyncDebounce } from '@/lib/async-debounce';
+import { mutateField } from '@/lib/mutate-field';
+import { queryClient } from '@/main';
 
-import { CollectionAvatar } from '../collection-avatar';
-import { Icons } from '../icons';
-import { ShortNumberInput } from '../short-number-input';
+import { Separator } from '../ui/separator';
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactTypes } from './ui/artifact-types';
 import { CharacterInfo } from './ui/character-info';
-import { TalentsInfo } from './ui/talents-info';
+import { DoubleInputLabeled } from './ui/double-input-labeled';
 import { Teams } from './ui/teams';
 import { Weapons } from './ui/weapons';
 
-type Props = { build: CharacterPlans };
-export function BuildInfo({ build }: Props) {
+type Props = { buildId: string };
+export function BuildInfo({ buildId }: Props) {
+  const queryKey = ['character_plans', buildId, 'main'];
+  const query = useQuery({
+    queryKey,
+    queryFn: () =>
+      pbClient.collection<CharacterPlans>('character_plans').getOne(buildId),
+  });
   const character = useLiveQuery(
-    () => db.characters.get(build.character),
-    [build.character],
+    () => db.characters.get(query.data?.character ?? ''),
+    [query.data?.character],
   );
-  if (!character) {
+
+  const mutationDebouncer = useMemo(
+    () =>
+      new AsyncDebounce(
+        (update: CharacterPlans) =>
+          pbClient
+            .collection<CharacterPlans>('character_plans')
+            .update(buildId, update),
+        1000,
+      ),
+    [],
+  );
+  const { variables, mutate } = useMutation({
+    mutationFn: (v: CharacterPlans) => mutationDebouncer.run(v),
+    onSettled: async (data) =>
+      data
+        ? queryClient.setQueryData(queryKey, data)
+        : queryClient.invalidateQueries({ queryKey }),
+    onError(error, variables) {
+      if (error instanceof ClientResponseError && !error.isAbort) {
+        toast.error(error.message, {
+          action: {
+            label: 'Retry',
+            onClick: () => {
+              mutate(variables);
+            },
+          },
+        });
+      }
+    },
+  });
+
+  if (!query.data || !character) {
     return null;
   }
+
+  const build = variables || query.data;
+
   return (
-    <Card className="w-fit min-w-md">
-      <CardTitle className="p-4 flex gap-16">
-        <div className="w-full flex items-start gap-3">
+    <Card className="w-min bg-accent text-accent-foreground">
+      <CardTitle className="p-4 w-full flex items-center gap-3">
+        <span className="flex-1 font-semibold text-lg">{character.name}</span>
+        <CharacterInfo character={character} />
+      </CardTitle>
+      <CardContent className="flex flex-col gap-4 w-min bg-accent">
+        <div className="flex items-start gap-6">
+          <div className="grid grid-cols-[auto_1fr] items-center gap-2">
+            <DoubleInputLabeled
+              name="Level"
+              min={0}
+              max={90}
+              current={build.level_current}
+              target={build.level_target}
+              onCurrentChange={mutateField(mutate, build, 'level_current')}
+              onTargetChange={mutateField(mutate, build, 'level_target')}
+            />
+            <DoubleInputLabeled
+              name="Constelation"
+              min={0}
+              max={6}
+              current={build.constellation_current}
+              target={build.constellation_target}
+              onCurrentChange={mutateField(
+                mutate,
+                build,
+                'constellation_current',
+              )}
+              onTargetChange={mutateField(
+                mutate,
+                build,
+                'constellation_target',
+              )}
+            />
+            <Separator className="col-span-2 bg-muted-foreground rounded-lg" />
+            <DoubleInputLabeled
+              name="Attack"
+              min={0}
+              max={10}
+              current={build.talent_atk_current}
+              target={build.talent_atk_target}
+              onCurrentChange={mutateField(mutate, build, 'talent_atk_current')}
+              onTargetChange={mutateField(mutate, build, 'talent_atk_target')}
+            />
+            <DoubleInputLabeled
+              name="Skill"
+              min={0}
+              max={13}
+              current={build.talent_skill_current}
+              target={build.talent_skill_target}
+              onCurrentChange={mutateField(
+                mutate,
+                build,
+                'talent_skill_current',
+              )}
+              onTargetChange={mutateField(mutate, build, 'talent_skill_target')}
+            />
+            <DoubleInputLabeled
+              name="Burst"
+              min={0}
+              max={13}
+              current={build.talent_burst_current}
+              target={build.talent_burst_target}
+              onCurrentChange={mutateField(
+                mutate,
+                build,
+                'talent_burst_current',
+              )}
+              onTargetChange={mutateField(mutate, build, 'talent_burst_target')}
+            />
+          </div>
           <CollectionAvatar
+            size={140}
+            className="size-35 rounded-2xl"
             collectionName="characters"
             recordId={build.character}
             fileName={character.icon}
             name={character.name}
-            size={64}
-            className="size-16"
           />
-          <span className="truncate font-semibold text-4xl">
-            {character.name}
-          </span>
-          <div className="flex flex-1 justify-between px-2">
-            <div className="flex flex-col gap-1 items-center">
-              <span className="text-lg font-medium">Level</span>
-              <div className="flex gap-1 items-center">
-                <ShortNumberInput
-                  value={build.level_current}
-                  min={0}
-                  max={90}
-                />
-                <Icons.right className="size-4" />
-                <ShortNumberInput value={build.level_target} min={0} max={90} />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1 items-center">
-              <span className="text-lg font-medium">Contelation</span>
-              <div className="flex gap-1 items-center">
-                <ShortNumberInput
-                  value={build.constellation_current}
-                  min={0}
-                  max={5}
-                />
-                <Icons.right className="size-4" />
-                <ShortNumberInput
-                  value={build.constellation_current}
-                  min={0}
-                  max={5}
-                />
-              </div>
-            </div>
-          </div>
-          <CharacterInfo character={character} />
         </div>
-      </CardTitle>
-      <CardContent className="flex flex-col gap-4">
-        <TalentsInfo build={build} />
-        <Weapons build={build} />
+        <Weapons buildId={buildId} />
         <ArtifactSets build={build} />
         <ArtifactTypes build={build} />
         <Teams build={build} />

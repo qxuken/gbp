@@ -19,16 +19,18 @@ func init() {
 		}
 		collection := core.NewBaseCollection(models.WEAPON_PLANS_COLLECTION_NAME)
 		collection.Fields.Add(&core.RelationField{
-			Name:         "character_plan",
-			Required:     true,
-			CollectionId: character_plans.Id,
-			MaxSelect:    1,
+			Name:          "character_plan",
+			Required:      true,
+			CollectionId:  character_plans.Id,
+			MaxSelect:     1,
+			CascadeDelete: true,
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "weapon",
-			Required:     true,
-			CollectionId: weapons.Id,
-			MaxSelect:    1,
+			Name:          "weapon",
+			Required:      true,
+			CollectionId:  weapons.Id,
+			MaxSelect:     1,
+			CascadeDelete: true,
 		})
 		collection.Fields.Add(&core.NumberField{
 			Name:     "level_current",

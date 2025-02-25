@@ -27,16 +27,19 @@ func init() {
 		}
 		collection := core.NewBaseCollection(models.CHARACTER_PLANS_COLLECTION_NAME)
 		collection.Fields.Add(&core.RelationField{
-			Name:         "user",
-			Required:     true,
-			CollectionId: users.Id,
-			MaxSelect:    1,
+			Name:          "user",
+			Required:      true,
+			CollectionId:  users.Id,
+			MaxSelect:     1,
+			Presentable:   true,
+			CascadeDelete: true,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "character",
 			Required:     true,
 			CollectionId: characters.Id,
 			MaxSelect:    1,
+			Presentable:  true,
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "character_role",
