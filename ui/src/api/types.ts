@@ -81,7 +81,7 @@ export interface CharacterPlans {
   talent_skill_target: number;
   talent_burst_current: number;
   talent_burst_target: number;
-  artifact_sets?: string[];
+  artifact_sets: string[];
 }
 
 export interface TeamPlans {

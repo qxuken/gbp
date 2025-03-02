@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
-import { WeaponPlans } from '@/api/types';
+import { Characters, WeaponPlans } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -108,7 +108,7 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
           size={48}
           className="size-12"
         />
-        <div>
+        <div className="flex-1">
           <div className="flex justify-between mb-1">
             <span>{weapon.name}</span>
             <Popover>
@@ -116,7 +116,7 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-6 p-1 opacity-75 invisible group-hover/weapon:visible group-focus-within/weapon:visible focus:block hover:outline disabled:visible data-[state=open]:visible data-[state=open]:outline data-[state=open]:animate-pulse"
+                  className="size-6 p-1 opacity-75 invisible group-hover/weapon:visible group-focus-within/weapon:visible focus:visible hover:outline disabled:visible data-[state=open]:visible data-[state=open]:outline data-[state=open]:animate-pulse"
                   disabled={deleteIsPending}
                 >
                   {deleteIsPending ? (
@@ -174,8 +174,8 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
   );
 }
 
-type Props = { buildId: string };
-export function Weapons({ buildId }: Props) {
+type Props = { buildId: string; character: Characters };
+export function Weapons({ buildId, character }: Props) {
   const queryKey = ['character_plans', buildId, 'weapons'];
   const query = useQuery({
     queryKey,
@@ -217,17 +217,26 @@ export function Weapons({ buildId }: Props) {
     <div className="flex flex-col gap-2 group/weapons">
       <div className="flex items-center gap-1">
         <span className="text-sm">Weapons</span>
-        <WeaponPicker title="New weapon" onSelect={mutate}>
+        <WeaponPicker
+          title="New weapon"
+          onSelect={mutate}
+          weaponTypeId={character.weapon_type}
+        >
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 opacity-75 invisible group-hover/weapons:visible group-focus-within/weapons:visible"
+            className={cn(
+              'size-6 opacity-75 transition-opacity invisible group-hover/weapons:visible group-focus-within/weapons:visible focus:opacity-100 hover:opacity-100',
+              {
+                ['visible opacity-50']: query.data?.length === 0,
+              },
+            )}
           >
             <Icons.add />
           </Button>
         </WeaponPicker>
       </div>
-      <div className="flex gap-4 justify-start flex-wrap w-full">
+      <div className="grid gap-2 w-full">
         {query.data?.map((wp) => (
           <Weapon key={wp.id} buildId={buildId} weaponPlanId={wp.id} />
         ))}

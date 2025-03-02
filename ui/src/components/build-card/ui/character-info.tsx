@@ -10,8 +10,8 @@ import { Button, ButtonProps } from '@/components/ui/button';
 import { Popover, PopoverContent } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-type Props = ButtonProps & { character: Characters };
-export function CharacterInfo({ character, ...props }: Props) {
+type InfoProps = { character: Characters };
+function Info({ character }: InfoProps) {
   const element = useLiveQuery(
     () => db.elements.get(character?.element ?? ''),
     [character?.element],
@@ -25,6 +25,52 @@ export function CharacterInfo({ character, ...props }: Props) {
     return null;
   }
 
+  return (
+    <div className="grid grid-cols-2 gap-1">
+      <span>Rarity</span>
+      <Badge
+        className={cn({
+          'bg-amber-400': character.rarity === 5,
+          'bg-indigo-300': character.rarity !== 5,
+        })}
+      >
+        {character.rarity}
+      </Badge>
+      <span>Element</span>
+      <Badge
+        className={cn({
+          'text-white hover:text-black': element.inverse_text_color,
+        })}
+        style={{ backgroundColor: element.color }}
+      >
+        <CollectionAvatar
+          collectionName="elements"
+          recordId={element.id}
+          fileName={element.icon}
+          name={element.name}
+          size={16}
+          className="size-4"
+        />
+        {element.name}
+      </Badge>
+      <span>Weapon</span>
+      <Badge variant="secondary" className="flex gap-1">
+        <CollectionAvatar
+          collectionName="weaponTypes"
+          recordId={weaponType.id}
+          fileName={weaponType.icon}
+          name={weaponType.name}
+          size={16}
+          className="size-4"
+        />
+        {weaponType.name}
+      </Badge>
+    </div>
+  );
+}
+
+type Props = ButtonProps & InfoProps;
+export function CharacterInfo({ character, ...props }: Props) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -41,46 +87,7 @@ export function CharacterInfo({ character, ...props }: Props) {
         </Button>
       </PopoverTrigger>
       <PopoverContent side="right">
-        <div className="grid grid-cols-2 gap-1">
-          <span>Rarity</span>
-          <Badge
-            className={cn({
-              'bg-amber-400': character.rarity === 5,
-              'bg-indigo-300': character.rarity !== 5,
-            })}
-          >
-            {character.rarity}
-          </Badge>
-          <span>Element</span>
-          <Badge
-            className={cn({
-              'text-white hover:text-black': element.inverse_text_color,
-            })}
-            style={{ backgroundColor: element.color }}
-          >
-            <CollectionAvatar
-              collectionName="elements"
-              recordId={element.id}
-              fileName={element.icon}
-              name={element.name}
-              size={16}
-              className="size-4"
-            />
-            {element.name}
-          </Badge>
-          <span>Weapon</span>
-          <Badge variant="secondary" className="flex gap-1">
-            <CollectionAvatar
-              collectionName="weaponTypes"
-              recordId={weaponType.id}
-              fileName={weaponType.icon}
-              name={weaponType.name}
-              size={16}
-              className="size-4"
-            />
-            {weaponType.name}
-          </Badge>
-        </div>
+        <Info character={character} />
       </PopoverContent>
     </Popover>
   );

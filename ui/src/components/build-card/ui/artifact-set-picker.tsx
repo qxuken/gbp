@@ -19,33 +19,26 @@ import { cn } from '@/lib/utils';
 
 const DEF_FILTER = {
   name: '',
-  weaponTypes: new Set(),
 };
 
 type PickerProps = {
-  weaponTypeId?: string;
   onSelect(weaponId: string): void;
 };
-
-function Picker({ weaponTypeId, onSelect }: PickerProps) {
+function Picker({ onSelect }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
-  const weaponTypes = useLiveQuery(() => db.weaponTypes.toArray(), []);
-  const weapons = useLiveQuery(
+  const artifactSets = useLiveQuery(
     () =>
-      db.weapons
+      db.artifactSets
         .orderBy('rarity')
         .filter(
-          (w) =>
-            (weaponTypeId === undefined || w.weapon_type === weaponTypeId) &&
-            (filter.weaponTypes.size === 0 ||
-              filter.weaponTypes.has(w.weapon_type)) &&
-            (filter.name.length === 0 ||
-              fuzzysearch(filter.name.toLowerCase(), w.name.toLowerCase())),
+          (as) =>
+            filter.name.length === 0 ||
+            fuzzysearch(filter.name.toLowerCase(), as.name.toLowerCase()),
         )
         .reverse()
         .toArray(),
-    [filter, weaponTypeId],
+    [filter],
   );
 
   return (
@@ -59,54 +52,18 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
             value={filter.name}
             onChange={(e) => setFilter((f) => ({ ...f, name: e.target.value }))}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && weapons && weapons.length > 0) {
-                onSelect(weapons[0].id);
+              if (
+                e.key === 'Enter' &&
+                artifactSets &&
+                artifactSets.length > 0
+              ) {
+                onSelect(artifactSets[0].id);
               }
             }}
           />
         </div>
-        {weaponTypeId === undefined && (
-          <div className="flex flex-wrap gap-y-1 gap-x-2">
-            {weaponTypes?.map((weaponType) => (
-              <Button
-                key={weaponType.id}
-                variant={
-                  filter.weaponTypes.has(weaponType.id)
-                    ? 'secondary'
-                    : 'outline'
-                }
-                size="sm"
-                onClick={() => {
-                  if (filter.weaponTypes.has(weaponType.id)) {
-                    setFilter((f) => {
-                      const weaponTypes = new Set(f.weaponTypes);
-                      weaponTypes.delete(weaponType.id);
-                      return { ...f, weaponTypes };
-                    });
-                  } else {
-                    setFilter((f) => {
-                      const weaponTypes = new Set(f.weaponTypes);
-                      weaponTypes.add(weaponType.id);
-                      return { ...f, weaponTypes };
-                    });
-                  }
-                }}
-              >
-                <CollectionAvatar
-                  collectionName="weaponTypes"
-                  recordId={weaponType.id}
-                  fileName={weaponType.icon}
-                  name={weaponType.name}
-                  size={16}
-                  className="size-4"
-                />
-                {weaponType.name}
-              </Button>
-            ))}
-          </div>
-        )}
         <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-4 md:grid-cols-6 grid-rows-[auto_auto] gap-2">
-          {weapons?.map((w) => (
+          {artifactSets?.map((w) => (
             <Button
               variant="secondary"
               key={w.id}
@@ -114,7 +71,7 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
               onClick={() => onSelect(w.id)}
             >
               <CollectionAvatar
-                collectionName="weapons"
+                collectionName="artifactSets"
                 recordId={w.id}
                 fileName={w.icon}
                 name={w.name}
@@ -125,7 +82,8 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
               <div
                 className={cn('absolute top-1 right-1 size-4 rounded-lg', {
                   'bg-amber-400': w.rarity === 5,
-                  'bg-indigo-300': w.rarity !== 5,
+                  'bg-indigo-300': w.rarity === 4,
+                  'bg-gray-400': w.rarity <= 3,
                 })}
               />
             </Button>
@@ -142,12 +100,7 @@ type Props = PropsWithChildren<
     title: string;
   }
 >;
-export function WeaponPicker({
-  title,
-  weaponTypeId,
-  onSelect,
-  children,
-}: Props) {
+export function ArtifactSetPicker({ title, onSelect, children }: Props) {
   const [open, setOpen] = useState(false);
 
   const select = (id: string) => {
@@ -161,9 +114,9 @@ export function WeaponPicker({
       <DialogContent className="md:max-w-3xl max-h-[calc(100%-4rem)] top-8 translate-y-0 overflow-hidden p-5">
         <DialogHeader className="p-2">
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Pick Weapon</DialogDescription>
+          <DialogDescription>Pick artifact set</DialogDescription>
         </DialogHeader>
-        <Picker onSelect={select} weaponTypeId={weaponTypeId} />
+        <Picker onSelect={select} />
       </DialogContent>
     </Dialog>
   );

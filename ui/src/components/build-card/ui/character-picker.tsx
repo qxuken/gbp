@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import fuzzysearch from 'fuzzysearch';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useState } from 'react';
 
 import { db } from '@/api/dictionaries-db';
 import { CollectionAvatar } from '@/components/collection-avatar';
@@ -23,24 +23,18 @@ const DEF_FILTER = {
   weaponTypes: new Set(),
 };
 
-type Props = PropsWithChildren<{
-  title: string;
+type PickerProps = {
   onSelect(characterId: string): void;
-}>;
-export function CharacterPicker({ title, onSelect, children }: Props) {
-  const [open, setOpen] = useState(false);
+};
+function Picker({ onSelect }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
-
-  useEffect(() => {
-    setFilter(DEF_FILTER);
-  }, [open]);
 
   const elements = useLiveQuery(() => db.elements.toArray(), []);
   const weaponTypes = useLiveQuery(() => db.weaponTypes.toArray(), []);
   const characters = useLiveQuery(
     () =>
       db.characters
-        .orderBy('name')
+        .orderBy('rarity')
         .filter(
           (c) =>
             (filter.elements.size === 0 ||
@@ -48,14 +42,145 @@ export function CharacterPicker({ title, onSelect, children }: Props) {
               filter.elements.has(c.element)) &&
             (filter.weaponTypes.size === 0 ||
               filter.weaponTypes.has(c.weapon_type)) &&
-            fuzzysearch(filter.name.toLowerCase(), c.name.toLowerCase()),
+            (filter.name.length === 0 ||
+              fuzzysearch(filter.name.toLowerCase(), c.name.toLowerCase())),
         )
+        .reverse()
         .toArray(),
     [filter],
   );
 
-  const select = (characterId: string) => {
-    onSelect(characterId);
+  return (
+    <ScrollArea>
+      <div className="p-1 flex flex-col gap-2">
+        <div className="flex justify-between items-center gap-4">
+          <Input
+            autoFocus
+            placeholder="Search..."
+            type="search"
+            value={filter.name}
+            onChange={(e) => setFilter((f) => ({ ...f, name: e.target.value }))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && characters && characters.length > 0) {
+                onSelect(characters[0].id);
+              }
+            }}
+          />
+        </div>
+        <div className="flex flex-wrap gap-y-1 gap-x-2">
+          {elements?.map((element) => (
+            <Button
+              key={element.id}
+              variant={
+                filter.elements.has(element.id) ? 'secondary' : 'outline'
+              }
+              size="sm"
+              onClick={() => {
+                if (filter.elements.has(element.id)) {
+                  setFilter((f) => {
+                    const elements = new Set(f.elements);
+                    elements.delete(element.id);
+                    return { ...f, elements };
+                  });
+                } else {
+                  setFilter((f) => {
+                    const elements = new Set(f.elements);
+                    elements.add(element.id);
+                    return { ...f, elements };
+                  });
+                }
+              }}
+            >
+              <CollectionAvatar
+                collectionName="elements"
+                recordId={element.id}
+                fileName={element.icon}
+                name={element.name}
+                size={16}
+                className="size-4"
+              />
+              {element.name}
+            </Button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-y-1 gap-x-2">
+          {weaponTypes?.map((weaponType) => (
+            <Button
+              key={weaponType.id}
+              variant={
+                filter.weaponTypes.has(weaponType.id) ? 'secondary' : 'outline'
+              }
+              size="sm"
+              onClick={() => {
+                if (filter.weaponTypes.has(weaponType.id)) {
+                  setFilter((f) => {
+                    const weaponTypes = new Set(f.weaponTypes);
+                    weaponTypes.delete(weaponType.id);
+                    return { ...f, weaponTypes };
+                  });
+                } else {
+                  setFilter((f) => {
+                    const weaponTypes = new Set(f.weaponTypes);
+                    weaponTypes.add(weaponType.id);
+                    return { ...f, weaponTypes };
+                  });
+                }
+              }}
+            >
+              <CollectionAvatar
+                collectionName="weaponTypes"
+                recordId={weaponType.id}
+                fileName={weaponType.icon}
+                name={weaponType.name}
+                size={16}
+                className="size-4"
+              />
+              {weaponType.name}
+            </Button>
+          ))}
+        </div>
+        <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-4 md:grid-cols-6 grid-rows-[auto_auto] gap-2">
+          {characters?.map((ch) => (
+            <Button
+              variant="secondary"
+              key={ch.id}
+              className="grid row-span-2 grid-rows-subgrid justify-items-center items-center h-full p-2 relative"
+              onClick={() => onSelect(ch.id)}
+            >
+              <CollectionAvatar
+                collectionName="characters"
+                recordId={ch.id}
+                fileName={ch.icon}
+                name={ch.name}
+                size={64}
+                className="size-16"
+              />
+              <span className="text-xs text-wrap">{ch.name}</span>
+              <div
+                className={cn('absolute top-1 right-1 size-4 rounded-lg', {
+                  'bg-amber-400': ch.rarity === 5,
+                  'bg-indigo-300': ch.rarity !== 5,
+                })}
+              />
+            </Button>
+          ))}
+        </div>
+        <ScrollBar />
+      </div>
+    </ScrollArea>
+  );
+}
+
+type Props = PropsWithChildren<
+  PickerProps & {
+    title: string;
+  }
+>;
+export function CharacterPicker({ title, onSelect, children }: Props) {
+  const [open, setOpen] = useState(false);
+
+  const select = (id: string) => {
+    onSelect(id);
     setOpen(false);
   };
 
@@ -67,131 +192,7 @@ export function CharacterPicker({ title, onSelect, children }: Props) {
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Pick Character</DialogDescription>
         </DialogHeader>
-        <ScrollArea>
-          <div className="p-1 flex flex-col gap-2">
-            <div className="flex justify-between items-center gap-4">
-              <Input
-                autoFocus
-                placeholder="Search..."
-                type="search"
-                value={filter.name}
-                onChange={(e) =>
-                  setFilter((f) => ({ ...f, name: e.target.value }))
-                }
-                onKeyDown={(e) => {
-                  if (
-                    e.key === 'Enter' &&
-                    characters &&
-                    characters.length > 0
-                  ) {
-                    select(characters[0].id);
-                  }
-                }}
-              />
-            </div>
-            <div className="flex flex-wrap gap-y-1 gap-x-2">
-              {elements?.map((element) => (
-                <Button
-                  key={element.id}
-                  variant={
-                    filter.elements.has(element.id) ? 'secondary' : 'outline'
-                  }
-                  size="sm"
-                  onClick={() => {
-                    if (filter.elements.has(element.id)) {
-                      setFilter((f) => {
-                        const elements = new Set(f.elements);
-                        elements.delete(element.id);
-                        return { ...f, elements };
-                      });
-                    } else {
-                      setFilter((f) => {
-                        const elements = new Set(f.elements);
-                        elements.add(element.id);
-                        return { ...f, elements };
-                      });
-                    }
-                  }}
-                >
-                  <CollectionAvatar
-                    collectionName="elements"
-                    recordId={element.id}
-                    fileName={element.icon}
-                    name={element.name}
-                    size={16}
-                    className="size-4"
-                  />
-                  {element.name}
-                </Button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-y-1 gap-x-2">
-              {weaponTypes?.map((weaponType) => (
-                <Button
-                  key={weaponType.id}
-                  variant={
-                    filter.weaponTypes.has(weaponType.id)
-                      ? 'secondary'
-                      : 'outline'
-                  }
-                  size="sm"
-                  onClick={() => {
-                    if (filter.weaponTypes.has(weaponType.id)) {
-                      setFilter((f) => {
-                        const weaponTypes = new Set(f.weaponTypes);
-                        weaponTypes.delete(weaponType.id);
-                        return { ...f, weaponTypes };
-                      });
-                    } else {
-                      setFilter((f) => {
-                        const weaponTypes = new Set(f.weaponTypes);
-                        weaponTypes.add(weaponType.id);
-                        return { ...f, weaponTypes };
-                      });
-                    }
-                  }}
-                >
-                  <CollectionAvatar
-                    collectionName="weaponTypes"
-                    recordId={weaponType.id}
-                    fileName={weaponType.icon}
-                    name={weaponType.name}
-                    size={16}
-                    className="size-4"
-                  />
-                  {weaponType.name}
-                </Button>
-              ))}
-            </div>
-            <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-4 md:grid-cols-6 grid-rows-[auto_auto] gap-2">
-              {characters?.map((ch) => (
-                <Button
-                  variant="secondary"
-                  key={ch.id}
-                  className="grid row-span-2 grid-rows-subgrid justify-items-center items-center h-full p-2 relative"
-                  onClick={() => select(ch.id)}
-                >
-                  <CollectionAvatar
-                    collectionName="characters"
-                    recordId={ch.id}
-                    fileName={ch.icon}
-                    name={ch.name}
-                    size={64}
-                    className="size-16"
-                  />
-                  <span className="text-xs text-wrap">{ch.name}</span>
-                  <div
-                    className={cn('absolute top-1 right-1 size-4 rounded-lg', {
-                      'bg-amber-400': ch.rarity === 5,
-                      'bg-indigo-300': ch.rarity !== 5,
-                    })}
-                  />
-                </Button>
-              ))}
-            </div>
-            <ScrollBar />
-          </div>
-        </ScrollArea>
+        <Picker onSelect={select} />
       </DialogContent>
     </Dialog>
   );

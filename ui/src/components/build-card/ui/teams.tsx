@@ -46,7 +46,7 @@ export function Teams({ build }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-2xl font-semibold">Teams</span>
+      <span className="text-sm">Teams</span>
       <div className="flex flex-col gap-4 flex-wrap w-full">
         {query.data?.map((tp, i) => (
           <div key={tp.id}>

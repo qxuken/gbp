@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_protected/')({
     page: z.number().optional(),
     perPage: z.number().optional(),
   }),
-  loaderDeps: ({ search: { page = 1, perPage = 40 } }) =>
+  loaderDeps: ({ search: { page = 1, perPage = 20 } }) =>
     queryOptions({
       queryKey: ['character_plans', 'collection'],
       queryFn: () =>

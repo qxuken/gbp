@@ -152,8 +152,11 @@ export function BuildInfo({ buildId }: Props) {
             name={character.name}
           />
         </div>
-        <Weapons buildId={buildId} />
-        <ArtifactSets build={build} />
+        <Weapons character={character} buildId={buildId} />
+        <ArtifactSets
+          build={build}
+          mutate={mutateField(mutate, build, 'artifact_sets')}
+        />
         <ArtifactTypes build={build} />
         <Teams build={build} />
       </CardContent>

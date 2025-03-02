@@ -31,7 +31,7 @@ export function ArtifactTypes({ build }: Props) {
   }
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-2xl font-semibold">Artifact Types</span>
+      <span className="text-sm">Artifact Types</span>
       <div className="flex gap-4 justify-start flex-wrap w-full">
         {query.data?.map(
           (at, i) =>
