@@ -23,7 +23,7 @@ import { Weapons } from './ui/weapons';
 
 type Props = { buildId: string };
 export function BuildInfo({ buildId }: Props) {
-  const queryKey = ['character_plans', buildId, 'main'];
+  const queryKey = ['character_plans', buildId];
   const query = useQuery({
     queryKey,
     queryFn: () =>
@@ -50,7 +50,7 @@ export function BuildInfo({ buildId }: Props) {
     onSettled: async (data) =>
       data
         ? queryClient.setQueryData(queryKey, data)
-        : queryClient.invalidateQueries({ queryKey }),
+        : queryClient.invalidateQueries({ queryKey, exact: true }),
     onError(error, variables) {
       if (error instanceof ClientResponseError && !error.isAbort) {
         toast.error(error.message, {
@@ -158,7 +158,7 @@ export function BuildInfo({ buildId }: Props) {
           mutate={mutateField(mutate, build, 'artifact_sets')}
         />
         <ArtifactTypes build={build} />
-        <Teams build={build} />
+        <Teams buildId={build.id} />
       </CardContent>
     </Card>
   );

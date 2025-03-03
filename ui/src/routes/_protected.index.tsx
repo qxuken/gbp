@@ -17,7 +17,7 @@ export const Route = createFileRoute('/_protected/')({
   }),
   loaderDeps: ({ search: { page = 1, perPage = 20 } }) =>
     queryOptions({
-      queryKey: ['character_plans', 'collection'],
+      queryKey: ['character_plans'],
       queryFn: () =>
         pbClient
           .collection<{ id: string }>('character_plans')

@@ -5,6 +5,7 @@ import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 import { ArtifactTypePlans, CharacterPlans } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
+import { cn } from '@/lib/utils';
 
 type Props = { build: CharacterPlans };
 export function ArtifactTypes({ build }: Props) {
@@ -17,43 +18,28 @@ export function ArtifactTypes({ build }: Props) {
           filter: `character_plan = '${build.id}'`,
         }),
   });
+
   const artifactTypes = useLiveQuery(
-    () =>
-      db.artifactTypes.bulkGet(query.data?.map((w) => w.artifact_type) ?? []),
+    () => db.artifactTypes.toArray(),
     [query.data],
   );
-  const specials = useLiveQuery(
-    () => db.specials.bulkGet(query.data?.map((w) => w.special) ?? []),
-    [query.data],
-  );
-  if (query.isPending || !artifactTypes || !specials) {
-    return null;
-  }
+  const specials = useLiveQuery(() => db.specials.toArray(), []);
+
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm">Artifact Types</span>
-      <div className="flex gap-4 justify-start flex-wrap w-full">
-        {query.data?.map(
-          (at, i) =>
-            at &&
-            artifactTypes[i] &&
-            specials[i] && (
-              <div key={at.id}>
-                <div className="flex gap-2 items-center align-middle">
-                  <CollectionAvatar
-                    collectionName="artifactTypes"
-                    recordId={artifactTypes[i].id}
-                    fileName={artifactTypes[i].icon}
-                    name={artifactTypes[i].name}
-                    size={32}
-                    className="size-8"
-                  />
-                  <span>{artifactTypes[i].name}</span>
-                </div>
-                <div>{specials[i].name}</div>
-              </div>
-            ),
-        )}
+      <div className="grid grid-cols-3 gap-1 justify-items-center">
+        {artifactTypes?.map((at) => (
+          <div key={at.id}>
+            <CollectionAvatar
+              collectionName="artifactTypes"
+              recordId={at.id}
+              fileName={at.icon}
+              name={at.name}
+              size={32}
+              className={cn('size-8')}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );

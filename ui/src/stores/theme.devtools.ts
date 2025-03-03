@@ -19,4 +19,4 @@ pane.addBinding(params, 'theme', {
   },
 });
 
-export { };
+export {};

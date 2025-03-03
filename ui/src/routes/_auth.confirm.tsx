@@ -7,12 +7,12 @@ import {
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { useAuth } from '@/stores/auth';
 import { Icons } from '@/components/icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTimeoutButton } from '@/hooks/useTimeoutButton';
+import { useAuth } from '@/stores/auth';
 
 const fallback = '/' as const;
 

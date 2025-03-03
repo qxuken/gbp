@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "es2024",
-      "dom",
-      "webworker"
-    ],
+    "lib": ["es2024", "dom", "webworker"],
     "strict": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
@@ -14,9 +10,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   }
 }

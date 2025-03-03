@@ -151,7 +151,7 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
             />
             <DoubleInputLabeled
               name="Refinement"
-              min={0}
+              min={1}
               max={5}
               current={weaponPlan.refinement_current}
               target={weaponPlan.refinement_target}
@@ -192,7 +192,7 @@ export function Weapons({ buildId, character }: Props) {
         weapon: weaponId,
         level_current: 0,
         level_target: 90,
-        refinement_current: 0,
+        refinement_current: 1,
         refinement_target: 5,
       }),
     onSuccess(data) {

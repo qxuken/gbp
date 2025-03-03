@@ -1,5 +1,4 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState } from 'react';
 
 import { db } from '@/api/dictionaries-db';
 import { CharacterPlans } from '@/api/types';
@@ -65,7 +64,7 @@ export function ArtifactSets({ build, mutate }: Props) {
   return (
     <div className="flex flex-col gap-2 group/artifact-sets">
       <div className="flex items-center gap-1">
-        <span className="text-sm">ArtifactSets</span>
+        <span className="text-sm">Artifacts</span>
         <ArtifactSetPicker
           title="New artifact set"
           onSelect={(as) => mutate([...artifactSets, as])}

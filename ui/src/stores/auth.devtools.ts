@@ -30,4 +30,4 @@ group
   .addButton({ title: 'pb logout' })
   .on('click', () => pbClient.authStore.clear());
 
-export { };
+export {};

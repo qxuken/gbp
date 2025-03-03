@@ -29,7 +29,7 @@ func init() {
 			Name:          "characters",
 			Required:      true,
 			CollectionId:  characters.Id,
-			MaxSelect:     4,
+			MaxSelect:     3,
 			CascadeDelete: true,
 		})
 		collection.AddIndex("idx_"+models.TEAM_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")

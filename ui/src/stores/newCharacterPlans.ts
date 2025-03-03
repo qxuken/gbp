@@ -1,7 +1,6 @@
 import { ClientResponseError } from 'pocketbase';
 import { toast } from 'sonner';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 import { pbClient } from '@/api/pocketbase';
 import { CharacterPlans } from '@/api/types';
@@ -90,9 +89,10 @@ function createPlans({ characterPlans, sentPlans }: NewCharacterPlans) {
         const res = await pbClient
           .collection<CharacterPlans>('character_plans')
           .create(plan);
-        queryClient.setQueryData(['character_plans', res.id, 'main'], res);
+        queryClient.setQueryData(['character_plans', res.id], res);
         await queryClient.invalidateQueries({
-          queryKey: ['character_plans', 'collection'],
+          queryKey: ['character_plans'],
+          exact: true,
         });
         newCharacterPlans.getState().planReady(pendingPlan);
       } catch (e) {

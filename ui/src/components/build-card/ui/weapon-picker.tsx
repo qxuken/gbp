@@ -105,7 +105,7 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
             ))}
           </div>
         )}
-        <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-4 md:grid-cols-6 grid-rows-[auto_auto] gap-2">
+        <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 grid-rows-[auto_auto] gap-2">
           {weapons?.map((w) => (
             <Button
               variant="secondary"
@@ -118,8 +118,8 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
                 recordId={w.id}
                 fileName={w.icon}
                 name={w.name}
-                size={64}
-                className="size-16"
+                size={104}
+                className="size-26"
               />
               <span className="text-xs text-wrap">{w.name}</span>
               <div
