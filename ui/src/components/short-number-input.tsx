@@ -1,4 +1,4 @@
-import { ChangeEvent, KeyboardEvent } from 'react';
+import { ChangeEvent, KeyboardEvent, useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
 
@@ -12,11 +12,19 @@ type Props = Omit<
   onChange: (value: number) => void;
 };
 export function ShortNumberInput({ max = 99, min = 0, ...props }: Props) {
+  const [value, setValue] = useState(() => String(props.value));
+  useEffect(() => {
+    setValue(String(props.value));
+  }, [props.value]);
+
   const setNewValue = (v: number) => {
     if (v < min || v > max) {
       return;
     }
     props.onChange(v);
+    if (v === props.value) {
+      setValue(String(v));
+    }
   };
   const dec = () => {
     setNewValue(props.value - 1);
@@ -26,11 +34,21 @@ export function ShortNumberInput({ max = 99, min = 0, ...props }: Props) {
   };
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value);
+    const eventValue = e.target.value;
+    if (eventValue === '') {
+      setValue('');
+      return;
+    }
+    const val = Number(eventValue);
     if (isNaN(val)) {
       return;
     }
     setNewValue(val);
+  };
+  const onBlur = () => {
+    if (value === '') {
+      return setValue(String(props.value));
+    }
   };
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
@@ -45,10 +63,12 @@ export function ShortNumberInput({ max = 99, min = 0, ...props }: Props) {
 
   return (
     <Input
-      className="size-6 text-xs md:text-xs leading-1/1 p-0 font-medium text-center border-0 hover:outline hover:outline-amber-100"
+      className="size-6 text-xs md:text-xs leading-1/1 p-0 font-medium text-center shadow-none border-0 hover:outline"
       {...props}
+      value={value}
       onChange={onChange}
       onKeyDown={onKeyDown}
+      onBlur={onBlur}
     />
   );
 }

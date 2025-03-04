@@ -45,7 +45,7 @@ export function CollectionAvatar({
   const shortName: string = getShortName(name);
   return (
     <Avatar {...props}>
-      <AvatarImage src={imgSrc} />
+      <AvatarImage src={imgSrc} alt={name} />
       <AvatarFallback>{shortName}</AvatarFallback>
     </Avatar>
   );

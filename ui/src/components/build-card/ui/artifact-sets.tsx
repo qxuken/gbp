@@ -1,3 +1,4 @@
+import { Trigger as SelectTrigger } from '@radix-ui/react-select';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '@/api/dictionaries-db';
@@ -10,6 +11,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
@@ -33,27 +40,46 @@ function ArtifactSet({ artifactSetId, deleteSet }: ArtifactSetProps) {
         size={48}
         className="size-12"
       />
-      <span className="flex-1">{artifactsSet.name}</span>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-6 p-1 opacity-75 invisible group-hover/artifact-set:visible group-focus-within/artifact-set:visible focus:visible hover:outline disabled:visible data-[state=open]:visible data-[state=open]:outline data-[state=open]:animate-pulse"
-          >
-            <Icons.remove />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="p-0" side="top">
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={() => deleteSet()}
-          >
-            Yes i really want to delete
-          </Button>
-        </PopoverContent>
-      </Popover>
+      <div className="flex-1">
+        <div className="flex justify-between mb-1">
+          <span className="flex-1">{artifactsSet.name}</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 p-1 opacity-75 invisible group-hover/artifact-set:visible group-focus-within/artifact-set:visible focus:visible hover:outline disabled:visible data-[state=open]:visible data-[state=open]:outline data-[state=open]:animate-pulse"
+              >
+                <Icons.remove />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" side="top">
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={() => deleteSet()}
+              >
+                Yes i really want to delete
+              </Button>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="flex items-center justify-between gap-1">
+          <Select defaultValue="2">
+            <SelectTrigger
+              data-slot="select-trigger"
+              className="text-xs text-muted-foreground"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1"> 1 pc </SelectItem>
+              <SelectItem value="2"> 2 pcs </SelectItem>
+              <SelectItem value="4"> 4 pcs </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
     </div>
   );
 }

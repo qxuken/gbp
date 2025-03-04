@@ -1,20 +1,20 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ClientResponseError } from 'pocketbase';
 import { useMemo } from 'react';
-import { toast } from 'sonner';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 import type { CharacterPlans } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { AsyncDebounce } from '@/lib/async-debounce';
 import { mutateField } from '@/lib/mutate-field';
+import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
 
-import { Separator } from '../ui/separator';
 import { ArtifactSets } from './ui/artifact-sets';
+import { ArtifactSubstats } from './ui/artifact-substats';
 import { ArtifactTypes } from './ui/artifact-types';
 import { CharacterInfo } from './ui/character-info';
 import { DoubleInputLabeled } from './ui/double-input-labeled';
@@ -51,18 +51,9 @@ export function BuildInfo({ buildId }: Props) {
       data
         ? queryClient.setQueryData(queryKey, data)
         : queryClient.invalidateQueries({ queryKey, exact: true }),
-    onError(error, variables) {
-      if (error instanceof ClientResponseError && !error.isAbort) {
-        toast.error(error.message, {
-          action: {
-            label: 'Retry',
-            onClick: () => {
-              mutate(variables);
-            },
-          },
-        });
-      }
-    },
+    onError: notifyWithRetry((v) => {
+      mutate(v);
+    }),
   });
 
   if (!query.data || !character) {
@@ -157,7 +148,8 @@ export function BuildInfo({ buildId }: Props) {
           build={build}
           mutate={mutateField(mutate, build, 'artifact_sets')}
         />
-        <ArtifactTypes build={build} />
+        <ArtifactTypes buildId={build.id} />
+        <ArtifactSubstats buildId={build.id} />
         <Teams buildId={build.id} />
       </CardContent>
     </Card>

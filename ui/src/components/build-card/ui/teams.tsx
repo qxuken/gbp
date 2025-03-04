@@ -1,7 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ClientResponseError } from 'pocketbase';
-import { toast } from 'sonner';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
@@ -14,6 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
@@ -92,18 +91,9 @@ function Team({ buildId, teamId }: TeamProps) {
       });
       queryClient.removeQueries({ queryKey });
     },
-    onError(error) {
-      if (error instanceof ClientResponseError && !error.isAbort) {
-        toast.error(error.message, {
-          action: {
-            label: 'Retry',
-            onClick: () => {
-              deleteTeam();
-            },
-          },
-        });
-      }
-    },
+    onError: notifyWithRetry(() => {
+      deleteTeam();
+    }),
   });
 
   const query = useQuery({
@@ -120,18 +110,9 @@ function Team({ buildId, teamId }: TeamProps) {
     mutationFn: (plan: TeamPlans) =>
       pbClient.collection<TeamPlans>('team_plans').update(teamId, plan),
     onSuccess: (data) => queryClient.setQueryData(queryKey, data),
-    onError(error, variables) {
-      if (error instanceof ClientResponseError && !error.isAbort) {
-        toast.error(error.message, {
-          action: {
-            label: 'Retry',
-            onClick: () => {
-              updateTeam(variables);
-            },
-          },
-        });
-      }
-    },
+    onError: notifyWithRetry((v) => {
+      updateTeam(v);
+    }),
   });
 
   const team = variables || query.data;
@@ -219,18 +200,9 @@ export function Teams({ buildId }: Props) {
       queryClient.setQueryData([...queryKey, data.id], data);
       return queryClient.invalidateQueries({ queryKey });
     },
-    onError(error, variables) {
-      if (error instanceof ClientResponseError && !error.isAbort) {
-        toast.error(error.message, {
-          action: {
-            label: 'Retry',
-            onClick: () => {
-              createTeam(variables);
-            },
-          },
-        });
-      }
-    },
+    onError: notifyWithRetry((v) => {
+      createTeam(v);
+    }),
   });
 
   const teams = query.data;

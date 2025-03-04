@@ -1,9 +1,7 @@
 import { Popover } from '@radix-ui/react-popover';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ClientResponseError } from 'pocketbase';
 import { useMemo } from 'react';
-import { toast } from 'sonner';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
@@ -14,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AsyncDebounce } from '@/lib/async-debounce';
 import { mutateField } from '@/lib/mutate-field';
+import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
@@ -50,18 +49,9 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
       data
         ? queryClient.setQueryData(queryKey, data)
         : queryClient.invalidateQueries({ queryKey }),
-    onError(error, variables) {
-      if (error instanceof ClientResponseError && !error.isAbort) {
-        toast.error(error.message, {
-          action: {
-            label: 'Retry',
-            onClick: () => {
-              mutate(variables);
-            },
-          },
-        });
-      }
-    },
+    onError: notifyWithRetry((v) => {
+      mutate(v);
+    }),
   });
 
   const {
@@ -74,18 +64,9 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
       queryClient.invalidateQueries({
         queryKey: ['character_plans', buildId, 'weapons'],
       }),
-    onError(error) {
-      if (error instanceof ClientResponseError && !error.isAbort) {
-        toast.error(error.message, {
-          action: {
-            label: 'Retry',
-            onClick: () => {
-              deleteWeaponPlan();
-            },
-          },
-        });
-      }
-    },
+    onError: notifyWithRetry(() => {
+      deleteWeaponPlan();
+    }),
   });
   if (!weapon || !query.data || isDeleted) {
     return null;
@@ -199,18 +180,9 @@ export function Weapons({ buildId, character }: Props) {
       queryClient.setQueryData([...queryKey, data.id], data);
       return queryClient.invalidateQueries({ queryKey });
     },
-    onError(error, variables) {
-      if (error instanceof ClientResponseError && !error.isAbort) {
-        toast.error(error.message, {
-          action: {
-            label: 'Retry',
-            onClick: () => {
-              mutate(variables);
-            },
-          },
-        });
-      }
-    },
+    onError: notifyWithRetry((v) => {
+      mutate(v);
+    }),
   });
 
   return (

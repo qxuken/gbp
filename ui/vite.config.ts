@@ -5,9 +5,7 @@ import path from 'path';
 import { defineConfig } from 'vite';
 
 const ReactCompilerConfig = {
-  sources: (filename: string) => {
-    return filename.indexOf('src') !== -1;
-  },
+  sources: (filename: string) => filename.indexOf('src') !== -1,
 };
 
 // https://vitejs.dev/config/
