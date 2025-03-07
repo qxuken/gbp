@@ -44,8 +44,7 @@ function Info({ character }: InfoProps) {
         style={{ backgroundColor: element.color }}
       >
         <CollectionAvatar
-          collectionName="elements"
-          recordId={element.id}
+          record={element}
           fileName={element.icon}
           name={element.name}
           size={16}
@@ -56,8 +55,7 @@ function Info({ character }: InfoProps) {
       <span>Weapon</span>
       <Badge variant="secondary" className="flex gap-1">
         <CollectionAvatar
-          collectionName="weaponTypes"
-          recordId={weaponType.id}
+          record={weaponType}
           fileName={weaponType.icon}
           name={weaponType.name}
           size={16}

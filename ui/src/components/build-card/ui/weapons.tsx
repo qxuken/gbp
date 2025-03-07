@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
-import { Characters, WeaponPlans } from '@/api/types';
+import { OnlyId, WeaponPlans } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -82,8 +82,7 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
     >
       <div className="flex gap-2">
         <CollectionAvatar
-          collectionName="weapons"
-          recordId={weapon.id}
+          record={weapon}
           fileName={weapon.icon}
           name={weapon.name}
           size={48}
@@ -155,13 +154,13 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
   );
 }
 
-type Props = { buildId: string; character: Characters };
-export function Weapons({ buildId, character }: Props) {
+type Props = { buildId: string; weaponType: string };
+export function Weapons({ buildId, weaponType }: Props) {
   const queryKey = ['characterPlans', buildId, 'weapons'];
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      pbClient.collection<{ id: string }>('weaponPlans').getFullList({
+      pbClient.collection<OnlyId>('weaponPlans').getFullList({
         filter: `characterPlan = '${buildId}'`,
         fields: 'id',
       }),
@@ -192,7 +191,7 @@ export function Weapons({ buildId, character }: Props) {
         <WeaponPicker
           title="New weapon"
           onSelect={mutate}
-          weaponTypeId={character.weaponType}
+          weaponTypeId={weaponType}
         >
           <Button
             variant="ghost"

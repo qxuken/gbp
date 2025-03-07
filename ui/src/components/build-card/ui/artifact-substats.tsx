@@ -1,6 +1,5 @@
 import { Trigger as SelectTrigger } from '@radix-ui/react-select';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState } from 'react';
 
 import { db } from '@/api/dictionaries-db';
 import { Specials } from '@/api/types';
@@ -14,27 +13,26 @@ import {
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
-type Props = { buildId: string };
-export function ArtifactSubstats({ buildId }: Props) {
-  const [selected, setSelected] = useState<Specials[]>([]);
+type Props = { substats: string[]; mutate(v: string[]): void };
+export function ArtifactSubstats({ substats, mutate }: Props) {
+  const selected = useLiveQuery(
+    () =>
+      db.specials
+        .bulkGet(substats)
+        .then((r) => r.filter((it) => it != undefined)),
+    [substats],
+    [] as Specials[],
+  );
   const specials = useLiveQuery(() => db.specials.toArray(), []);
   const selectedIds = new Set(selected.map((s) => s.id));
   const options = specials?.filter((s) => !selectedIds.has(s.id));
 
   const addSpecial = (specialId: string) => {
-    const special = specials?.find((s) => s.id === specialId);
-    if (!special) {
-      return;
-    }
-    setSelected((s) => [...s, special]);
+    mutate([...substats, specialId]);
   };
 
   const deleteSpecial = (specialId: string) => {
-    const special = specials?.find((s) => s.id === specialId);
-    if (!special) {
-      return;
-    }
-    setSelected((s) => s.filter((it) => it.id != special.id));
+    mutate(substats.filter((id) => id != specialId));
   };
 
   return (

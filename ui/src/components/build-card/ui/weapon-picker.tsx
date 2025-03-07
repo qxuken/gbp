@@ -93,8 +93,7 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
                 }}
               >
                 <CollectionAvatar
-                  collectionName="weaponTypes"
-                  recordId={weaponType.id}
+                  record={weaponType}
                   fileName={weaponType.icon}
                   name={weaponType.name}
                   size={16}
@@ -114,8 +113,7 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
               onClick={() => onSelect(w.id)}
             >
               <CollectionAvatar
-                collectionName="weapons"
-                recordId={w.id}
+                record={w}
                 fileName={w.icon}
                 name={w.name}
                 size={104}

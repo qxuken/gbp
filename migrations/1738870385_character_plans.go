@@ -21,7 +21,7 @@ func init() {
 		if err != nil {
 			return nil
 		}
-		artifactSets, err := app.FindCollectionByNameOrId(models.ARTIFACT_SETS_COLLECTION_NAME)
+		specials, err := app.FindCollectionByNameOrId(models.SPECIALS_COLLECTION_NAME)
 		if err != nil {
 			return nil
 		}
@@ -118,9 +118,9 @@ func init() {
 			Max:      types.Pointer(float64(13)),
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "artifactSets",
+			Name:         "substats",
 			Required:     false,
-			CollectionId: artifactSets.Id,
+			CollectionId: specials.Id,
 			MaxSelect:    50,
 		})
 		collection.AddIndex("idx_"+models.CHARACTER_PLANS_COLLECTION_NAME+"_user", false, "`user`", "")

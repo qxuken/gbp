@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 
 import { pbClient } from '@/api/pocketbase';
+import { OnlyId } from '@/api/types';
 import { BuildInfo } from '@/components/build-card/build-info';
 import { CreateBuild } from '@/components/build-card/create-build';
 import { PendingBuildInfo } from '@/components/build-card/pending-build-info';
@@ -20,7 +21,7 @@ export const Route = createFileRoute('/_protected/')({
       queryKey: ['characterPlans'],
       queryFn: () =>
         pbClient
-          .collection<{ id: string }>('characterPlans')
+          .collection<OnlyId>('characterPlans')
           .getList(page, perPage, { fields: 'id' }),
     }),
   loader: ({ deps }) => queryClient.ensureQueryData(deps),

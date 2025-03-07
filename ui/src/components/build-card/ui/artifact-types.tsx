@@ -24,11 +24,9 @@ export function ArtifactTypes({ buildId }: Props) {
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      pbClient
-        .collection<ArtifactTypePlans>('artifactTypePlans')
-        .getFullList({
-          filter: `characterPlan = '${buildId}'`,
-        }),
+      pbClient.collection<ArtifactTypePlans>('artifactTypePlans').getFullList({
+        filter: `characterPlan = '${buildId}'`,
+      }),
   });
 
   const { mutate } = useMutation({
@@ -113,8 +111,7 @@ export function ArtifactTypes({ buildId }: Props) {
           return (
             <div key={at.id} className="group/at w-full flex gap-2">
               <CollectionAvatar
-                collectionName="artifactTypes"
-                recordId={at.id}
+                record={at}
                 fileName={at.icon}
                 name={at.name}
                 size={32}

@@ -20,8 +20,7 @@ export function PendingBuildInfo({ characterId }: Props) {
       <CardTitle className="p-4 flex gap-16">
         <div className="w-full flex items-start gap-3">
           <CollectionAvatar
-            collectionName="characters"
-            recordId={character.id}
+            record={character}
             fileName={character.icon}
             name={character.name}
             size={64}

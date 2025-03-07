@@ -11,11 +11,6 @@ import type {
   WeaponTypes,
 } from './types';
 
-type Collection = {
-  id: string;
-  name: string;
-};
-
 type Config = {
   key: string;
   value: string;
@@ -23,22 +18,20 @@ type Config = {
 
 export const DICTIONARY_VERSION_CONFIG_KEY = 'dictionaryVersion';
 
-export const DB_COLLECTION_MAPPING = {
-  elements: 'elements',
-  specials: 'specials',
-  characterRoles: 'characterRoles',
-  weaponTypes: 'weaponTypes',
-  weapons: 'weapons',
-  characters: 'characters',
-  artifactSets: 'artifactSets',
-  artifactTypes: 'artifactTypes',
-} as const;
-export type DBCollections = keyof typeof DB_COLLECTION_MAPPING;
-export type PBCollections = (typeof DB_COLLECTION_MAPPING)[DBCollections];
+export const DB_COLLECTIONS = [
+  'elements',
+  'specials',
+  'characterRoles',
+  'weaponTypes',
+  'weapons',
+  'characters',
+  'artifactSets',
+  'artifactTypes',
+] as const;
+export type DBCollections = (typeof DB_COLLECTIONS)[number];
 
 export type DB = Dexie & {
   config: EntityTable<Config, 'key'>;
-  collectionIds: EntityTable<Collection, 'id'>;
   elements: EntityTable<Elements, 'id'>;
   specials: EntityTable<Specials, 'id'>;
   characterRoles: EntityTable<CharacterRoles, 'id'>;
@@ -53,7 +46,6 @@ export const db = new Dexie('Dictionaries') as DB;
 
 db.version(1).stores({
   config: '++key, value',
-  collectionIds: '++name, id',
   elements: '++id, name, color, inverseTextColor, icon',
   specials: '++id, name',
   characterRoles: '++id, name',

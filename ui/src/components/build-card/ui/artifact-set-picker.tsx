@@ -71,8 +71,7 @@ function Picker({ onSelect }: PickerProps) {
               onClick={() => onSelect(w.id)}
             >
               <CollectionAvatar
-                collectionName="artifactSets"
-                recordId={w.id}
+                record={w}
                 fileName={w.icon}
                 name={w.name}
                 size={104}

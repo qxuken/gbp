@@ -92,8 +92,7 @@ function Picker({ onSelect }: PickerProps) {
               }}
             >
               <CollectionAvatar
-                collectionName="elements"
-                recordId={element.id}
+                record={element}
                 fileName={element.icon}
                 name={element.name}
                 size={16}
@@ -128,8 +127,7 @@ function Picker({ onSelect }: PickerProps) {
               }}
             >
               <CollectionAvatar
-                collectionName="weaponTypes"
-                recordId={weaponType.id}
+                record={weaponType}
                 fileName={weaponType.icon}
                 name={weaponType.name}
                 size={16}
@@ -148,8 +146,7 @@ function Picker({ onSelect }: PickerProps) {
               onClick={() => onSelect(ch.id)}
             >
               <CollectionAvatar
-                collectionName="characters"
-                recordId={ch.id}
+                record={ch}
                 fileName={ch.icon}
                 name={ch.name}
                 size={104}

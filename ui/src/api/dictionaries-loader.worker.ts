@@ -1,48 +1,47 @@
 import {
   db,
-  DB_COLLECTION_MAPPING,
+  DB_COLLECTIONS,
   DICTIONARY_VERSION_CONFIG_KEY,
-  type DBCollections,
-  type PBCollections,
 } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 
-const REQ_COLLECTIONS = Array.from(Object.entries(DB_COLLECTION_MAPPING)) as [
-  DBCollections,
-  PBCollections,
-][];
+const CACHE_NAME = 'dict-images-v1';
 
-export async function loadDictionaries(force = false) {
+export async function loadDictionaries(reload = false) {
   const version = await pbClient.send('/api/dictionaryVersion', {});
   const storedVersion = await db.config.get(DICTIONARY_VERSION_CONFIG_KEY);
-  if (!force && version === storedVersion?.value) {
+  if (!reload && version === storedVersion?.value) {
     postMessage({ message: 'No dictionary update required' });
     return;
   }
 
-  postMessage({ message: 'Fetching collections' });
+  await caches.delete(CACHE_NAME);
+  postMessage({ message: 'Cleared old cache' });
+
   const collections = await Promise.all(
-    REQ_COLLECTIONS.map(([, v]) => pbClient.collection(v).getFullList()),
+    DB_COLLECTIONS.map((c) => pbClient.collection(c).getFullList()),
   );
   postMessage({ message: 'Fetched collections' });
 
-  const collectionIds = collections.map((c) => ({
-    id: c[0].collectionId,
-    name: c[0].collectionName,
-  }));
-
-  postMessage({ message: 'Storing to indexedDB' });
-  await Promise.all([
-    ...REQ_COLLECTIONS.map(([c], i) =>
-      // @ts-expect-error Don't worry i know what im doing :)
-      db[c].bulkPut(collections[i]),
-    ),
-    db.collectionIds.bulkPut(collectionIds),
-  ]);
+  await Promise.all(
+    DB_COLLECTIONS.map((c, i) => db[c].bulkPut(collections[i])),
+  );
   postMessage({ message: 'Stored to indexedDB' });
 
   db.config.put({ key: DICTIONARY_VERSION_CONFIG_KEY, value: version });
   postMessage({ message: 'Data loaded', version });
+
+  const cache = await caches.open(CACHE_NAME);
+  collections_loop: for (const collection of collections) {
+    for (const item of collection) {
+      if (!('icon' in item) || typeof item.icon !== 'string') {
+        continue collections_loop;
+      }
+      const fileUrl = pbClient.files.getURL(item, item.icon);
+      cache.add(fileUrl);
+    }
+  }
+  postMessage({ message: 'Cache setup success' });
 }
 
 let isLoading = false;
@@ -71,4 +70,19 @@ self.addEventListener('message', (e) => {
       loadDictionariesSafe(true);
       break;
   }
+});
+
+// FIX: not triggered
+self.addEventListener('fetch', (event) => {
+  console.log('fetch event:unverified');
+  if (!(event instanceof FetchEvent)) {
+    return;
+  }
+  console.log('fetch event:verified');
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      console.log('fetch event:cached', cachedResponse);
+      return cachedResponse ?? fetch(event.request);
+    }),
+  );
 });

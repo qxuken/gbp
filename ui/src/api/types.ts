@@ -1,4 +1,10 @@
-export interface Users {
+import type { RecordModel } from 'pocketbase';
+
+export interface OnlyId {
+  id: string;
+}
+
+export interface Users extends RecordModel {
   id: string;
   email: string;
   name?: string;
@@ -7,7 +13,7 @@ export interface Users {
 
 // Dictionaries
 
-export interface Elements {
+export interface Elements extends RecordModel {
   id: string;
   name: string;
   color: string;
@@ -15,23 +21,23 @@ export interface Elements {
   icon: string;
 }
 
-export interface Specials {
+export interface Specials extends RecordModel {
   id: string;
   name: string;
 }
 
-export interface CharacterRoles {
+export interface CharacterRoles extends RecordModel {
   id: string;
   name: string;
 }
 
-export interface WeaponTypes {
+export interface WeaponTypes extends RecordModel {
   id: string;
   name: string;
   icon: string;
 }
 
-export interface Weapons {
+export interface Weapons extends RecordModel {
   id: string;
   name: string;
   icon: string;
@@ -40,7 +46,7 @@ export interface Weapons {
   rarity: number;
 }
 
-export interface Characters {
+export interface Characters extends RecordModel {
   id: string;
   name: string;
   icon: string;
@@ -50,14 +56,14 @@ export interface Characters {
   rarity: number;
 }
 
-export interface ArtifactSets {
+export interface ArtifactSets extends RecordModel {
   id: string;
   name: string;
   icon: string;
   rarity: number;
 }
 
-export interface ArtifactTypes {
+export interface ArtifactTypes extends RecordModel {
   id: string;
   name: string;
   icon: string;
@@ -66,7 +72,7 @@ export interface ArtifactTypes {
 
 // Plans
 
-export interface CharacterPlans {
+export interface CharacterPlans extends RecordModel {
   id: string;
   user: string;
   character: string;
@@ -81,16 +87,16 @@ export interface CharacterPlans {
   talentSkillTarget: number;
   talentBurstCurrent: number;
   talentBurstTarget: number;
-  artifactSets: string[];
+  substats: string[];
 }
 
-export interface TeamPlans {
+export interface TeamPlans extends RecordModel {
   id: string;
   characterPlan: string;
   characters: string[];
 }
 
-export interface WeaponPlans {
+export interface WeaponPlans extends RecordModel {
   id: string;
   characterPlan: string;
   weapon: string;
@@ -100,9 +106,15 @@ export interface WeaponPlans {
   refinementTarget: number;
 }
 
-export interface ArtifactTypePlans {
+export interface ArtifactTypePlans extends RecordModel {
   id: string;
   characterPlan: string;
   artifactType: string;
   special: string;
+}
+
+export interface ArtifactSetsPlans extends RecordModel {
+  id: string;
+  characterPlan: string;
+  artifactSets: string[];
 }

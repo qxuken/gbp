@@ -1,8 +1,10 @@
 import { Trigger as SelectTrigger } from '@radix-ui/react-select';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '@/api/dictionaries-db';
-import { CharacterPlans } from '@/api/types';
+import { pbClient } from '@/api/pocketbase';
+import { ArtifactSetsPlans, OnlyId } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -17,38 +19,78 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
+import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
+import { queryClient } from '@/main';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
 
-type ArtifactSetProps = { artifactSetId: string; deleteSet(): void };
-function ArtifactSet({ artifactSetId, deleteSet }: ArtifactSetProps) {
-  const artifactsSet = useLiveQuery(
-    () => db.artifactSets.get(artifactSetId),
-    [artifactSetId],
+type ArtifactSetProps = { buildId: string; artifactSetPlanId: string };
+function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
+  const queryKey = [
+    'characterPlans',
+    buildId,
+    'artifactSetsPlans',
+    artifactSetPlanId,
+  ];
+  const query = useQuery({
+    queryKey,
+    queryFn: () =>
+      pbClient
+        .collection<ArtifactSetsPlans>('artifactSetsPlans')
+        .getOne(artifactSetPlanId),
+  });
+  const artifactsSets = useLiveQuery(
+    () =>
+      db.artifactSets
+        .bulkGet(query.data?.artifactSets ?? [])
+        .then((r) => r.filter((it) => it != undefined)),
+    [query.data?.artifactSets],
   );
-  if (!artifactsSet) {
+  const {
+    mutate: deleteSetPlan,
+    isPending: deleteIsPending,
+    isSuccess: isDeleted,
+  } = useMutation({
+    mutationFn: () =>
+      pbClient
+        .collection<ArtifactSetsPlans>('artifactSetsPlans')
+        .delete(artifactSetPlanId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ['characterPlans', buildId, 'artifactSetsPlans'],
+        exact: true,
+      });
+      queryClient.removeQueries({ queryKey });
+    },
+    onError: notifyWithRetry(() => {
+      deleteSetPlan();
+    }),
+  });
+
+  if (isDeleted) {
     return null;
   }
-  return (
-    <div className="flex gap-2 w-full group/artifact-set">
+
+  return artifactsSets?.map((artifactSet) => (
+    <div key={artifactSet.id} className="flex gap-2 w-full group/artifact-set">
       <CollectionAvatar
-        collectionName="artifactSets"
-        recordId={artifactsSet.id}
-        fileName={artifactsSet.icon}
-        name={artifactsSet.name}
+        record={artifactSet}
+        fileName={artifactSet.icon}
+        name={artifactSet.name}
         size={48}
         className="size-12"
       />
       <div className="flex-1">
         <div className="flex justify-between mb-1">
-          <span className="flex-1">{artifactsSet.name}</span>
+          <span className="flex-1">{artifactSet.name}</span>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
                 className="size-6 p-1 opacity-75 invisible group-hover/artifact-set:visible group-focus-within/artifact-set:visible focus:visible hover:outline disabled:visible data-[state=open]:visible data-[state=open]:outline data-[state=open]:animate-pulse"
+                disabled={deleteIsPending}
               >
                 <Icons.remove />
               </Button>
@@ -57,43 +99,55 @@ function ArtifactSet({ artifactSetId, deleteSet }: ArtifactSetProps) {
               <Button
                 variant="destructive"
                 className="w-full"
-                onClick={() => deleteSet()}
+                disabled={deleteIsPending}
               >
                 Yes i really want to delete
               </Button>
             </PopoverContent>
           </Popover>
         </div>
-        <div className="flex items-center justify-between gap-1">
-          <Select defaultValue="2">
-            <SelectTrigger
-              data-slot="select-trigger"
-              className="text-xs text-muted-foreground"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1"> 1 pc </SelectItem>
-              <SelectItem value="2"> 2 pcs </SelectItem>
-              <SelectItem value="4"> 4 pcs </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <span className="text-xs text-muted-foreground">
+          {artifactsSets.length == 2 ? '2 pcs' : '4 pcs'}
+        </span>
       </div>
     </div>
-  );
+  ));
 }
 
-type Props = { build: CharacterPlans; mutate(v: string[]): void };
-export function ArtifactSets({ build, mutate }: Props) {
-  const artifactSets = build.artifactSets;
+type Props = { buildId: string };
+export function ArtifactSets({ buildId }: Props) {
+  const queryKey = ['characterPlans', buildId, 'artifactSetsPlans'];
+  const query = useQuery({
+    queryKey,
+    queryFn: () =>
+      pbClient.collection<OnlyId>('artifactSetsPlans').getFullList({
+        filter: `characterPlan = '${buildId}'`,
+        fields: 'id',
+      }),
+  });
+  const { mutate: addSetPlan } = useMutation({
+    mutationFn: (artifactSetsId: string) =>
+      pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').create({
+        characterPlan: buildId,
+        artifactSets: [artifactSetsId],
+      }),
+    onSuccess(data) {
+      queryClient.setQueryData([...queryKey, data.id], data);
+      return queryClient.invalidateQueries({ queryKey });
+    },
+    onError: notifyWithRetry((v) => {
+      addSetPlan(v);
+    }),
+  });
+
+  const artifactSets = query.data;
   return (
     <div className="flex flex-col gap-2 group/artifact-sets">
       <div className="flex items-center gap-1">
         <span className="text-sm">Artifacts</span>
         <ArtifactSetPicker
           title="New artifact set"
-          onSelect={(as) => mutate([...artifactSets, as])}
+          onSelect={(as) => addSetPlan(as)}
         >
           <Button
             variant="ghost"
@@ -110,11 +164,11 @@ export function ArtifactSets({ build, mutate }: Props) {
         </ArtifactSetPicker>
       </div>
       <div className="grid gap-1 w-full">
-        {artifactSets.map((as) => (
+        {artifactSets?.map((as) => (
           <ArtifactSet
-            key={as}
-            artifactSetId={as}
-            deleteSet={() => mutate(artifactSets.filter((it) => it !== as))}
+            key={as.id}
+            buildId={buildId}
+            artifactSetPlanId={as.id}
           />
         ))}
       </div>

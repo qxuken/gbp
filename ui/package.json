@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit",
     "dev": "vite --port=3001",
     "build": "vite build",
     "serve": "vite preview",
     "start": "vite",
+    "typecheck": "tsc --noEmit",
     "check": "npx eslint src",
     "fix": "npx eslint src --fix"
   },

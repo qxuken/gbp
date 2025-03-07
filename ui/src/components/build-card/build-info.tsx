@@ -125,20 +125,19 @@ export function BuildInfo({ buildId }: Props) {
           <CollectionAvatar
             size={140}
             className="size-35 rounded-2xl ml-6"
-            collectionName="characters"
-            recordId={build.character}
+            record={character}
             fileName={character.icon}
             name={character.name}
           />
           <div />
         </div>
-        <Weapons character={character} buildId={buildId} />
-        <ArtifactSets
-          build={build}
-          mutate={mutateField(mutate, build, 'artifactSets')}
-        />
+        <Weapons weaponType={character.weaponType} buildId={buildId} />
+        <ArtifactSets buildId={build.id} />
         <ArtifactTypes buildId={build.id} />
-        <ArtifactSubstats buildId={build.id} />
+        <ArtifactSubstats
+          substats={build.substats}
+          mutate={mutateField(mutate, build, 'substats')}
+        />
         <Teams buildId={build.id} />
       </CardContent>
     </Card>

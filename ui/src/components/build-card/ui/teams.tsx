@@ -39,8 +39,7 @@ function Character({
   return (
     <div className="grid justify-items-center relative group/character">
       <CollectionAvatar
-        collectionName="characters"
-        recordId={character.id}
+        record={character}
         fileName={character.icon}
         name={character.name}
         size={40}

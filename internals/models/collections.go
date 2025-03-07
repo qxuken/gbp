@@ -13,6 +13,7 @@ const (
 	ARTIFACT_TYPES_COLLECTION_NAME      = "artifactTypes"
 	CHARACTER_PLANS_COLLECTION_NAME     = "characterPlans"
 	WEAPON_PLANS_COLLECTION_NAME        = "weaponPlans"
+	ARTIFACT_SETS_PLANS_COLLECTION_NAME = "artifactSetsPlans"
 	ARTIFACT_TYPE_PLANS_COLLECTION_NAME = "artifactTypePlans"
 	TEAM_PLANS_COLLECTION_NAME          = "teamPlans"
 )

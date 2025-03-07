@@ -8,7 +8,9 @@ import { queryClient } from '@/main';
 
 import { auth } from './auth';
 
-function newCharacterPlan(characterId: string) {
+function newCharacterPlan(
+  characterId: string,
+): Omit<CharacterPlans, 'id'> | undefined {
   if (!pbClient.authStore.record) {
     auth.getState().authRefresh();
     return;
@@ -26,7 +28,7 @@ function newCharacterPlan(characterId: string) {
     talentSkillTarget: 13,
     talentBurstCurrent: 0,
     talentBurstTarget: 13,
-    artifactSets: [],
+    substats: [],
   };
 }
 
