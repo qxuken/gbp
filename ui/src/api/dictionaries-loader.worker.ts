@@ -13,7 +13,7 @@ const REQ_COLLECTIONS = Array.from(Object.entries(DB_COLLECTION_MAPPING)) as [
 ][];
 
 export async function loadDictionaries(force = false) {
-  const version = await pbClient.send('/api/dictionary_version', {});
+  const version = await pbClient.send('/api/dictionaryVersion', {});
   const storedVersion = await db.config.get(DICTIONARY_VERSION_CONFIG_KEY);
   if (!force && version === storedVersion?.value) {
     postMessage({ message: 'No dictionary update required' });

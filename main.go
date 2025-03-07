@@ -42,8 +42,8 @@ func main() {
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		g := se.Router.Group("/api")
-		g.GET("/dictionary_version", func(e *core.RequestEvent) error {
-			rec, err := models.FindAppSettingsByKey(app, "dictionary_version")
+		g.GET("/dictionaryVersion", func(e *core.RequestEvent) error {
+			rec, err := models.FindAppSettingsByKey(app, "dictionaryVersion")
 			if err != nil {
 				return err
 			}

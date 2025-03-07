@@ -34,7 +34,7 @@ func init() {
 			OnCreate: true,
 			OnUpdate: true,
 		})
-		systemSettings.AddIndex("idx_app_settings_key", true, "`key`", "")
+		systemSettings.AddIndex("idx_"+models.APP_SETTINGS_COLLECTION_NAME+"_key", true, "`key`", "")
 		systemSettings.System = true
 		return app.Save(systemSettings)
 	}, nil)

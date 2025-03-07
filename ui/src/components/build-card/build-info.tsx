@@ -23,11 +23,11 @@ import { Weapons } from './ui/weapons';
 
 type Props = { buildId: string };
 export function BuildInfo({ buildId }: Props) {
-  const queryKey = ['character_plans', buildId];
+  const queryKey = ['characterPlans', buildId];
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      pbClient.collection<CharacterPlans>('character_plans').getOne(buildId),
+      pbClient.collection<CharacterPlans>('characterPlans').getOne(buildId),
   });
   const character = useLiveQuery(
     () => db.characters.get(query.data?.character ?? ''),
@@ -39,7 +39,7 @@ export function BuildInfo({ buildId }: Props) {
       new AsyncDebounce(
         (update: CharacterPlans) =>
           pbClient
-            .collection<CharacterPlans>('character_plans')
+            .collection<CharacterPlans>('characterPlans')
             .update(buildId, update),
         1000,
       ),
@@ -63,90 +63,79 @@ export function BuildInfo({ buildId }: Props) {
   const build = variables || query.data;
 
   return (
-    <Card className="w-min bg-accent text-accent-foreground">
+    <Card className="w-full bg-accent text-accent-foreground">
       <CardTitle className="p-4 w-full flex items-center gap-3">
         <span className="flex-1 font-semibold text-lg">{character.name}</span>
         <CharacterInfo character={character} />
       </CardTitle>
-      <CardContent className="flex flex-col gap-4 w-min bg-accent">
-        <div className="flex items-start gap-6">
+      <CardContent className="w-full flex flex-col gap-4 bg-accent">
+        <div className="flex items-start justify-around">
           <div className="grid grid-cols-[auto_1fr] items-center gap-2">
             <DoubleInputLabeled
               name="Level"
               min={0}
               max={90}
-              current={build.level_current}
-              target={build.level_target}
-              onCurrentChange={mutateField(mutate, build, 'level_current')}
-              onTargetChange={mutateField(mutate, build, 'level_target')}
+              current={build.levelCurrent}
+              target={build.levelTarget}
+              onCurrentChange={mutateField(mutate, build, 'levelCurrent')}
+              onTargetChange={mutateField(mutate, build, 'levelTarget')}
             />
             <DoubleInputLabeled
               name="Constelation"
               min={0}
               max={6}
-              current={build.constellation_current}
-              target={build.constellation_target}
+              current={build.constellationCurrent}
+              target={build.constellationTarget}
               onCurrentChange={mutateField(
                 mutate,
                 build,
-                'constellation_current',
+                'constellationCurrent',
               )}
-              onTargetChange={mutateField(
-                mutate,
-                build,
-                'constellation_target',
-              )}
+              onTargetChange={mutateField(mutate, build, 'constellationTarget')}
             />
             <Separator className="col-span-2 bg-muted-foreground rounded-lg" />
             <DoubleInputLabeled
               name="Attack"
               min={0}
               max={10}
-              current={build.talent_atk_current}
-              target={build.talent_atk_target}
-              onCurrentChange={mutateField(mutate, build, 'talent_atk_current')}
-              onTargetChange={mutateField(mutate, build, 'talent_atk_target')}
+              current={build.talentAtkCurrent}
+              target={build.talentAtkTarget}
+              onCurrentChange={mutateField(mutate, build, 'talentAtkCurrent')}
+              onTargetChange={mutateField(mutate, build, 'talentAtkTarget')}
             />
             <DoubleInputLabeled
               name="Skill"
               min={0}
               max={13}
-              current={build.talent_skill_current}
-              target={build.talent_skill_target}
-              onCurrentChange={mutateField(
-                mutate,
-                build,
-                'talent_skill_current',
-              )}
-              onTargetChange={mutateField(mutate, build, 'talent_skill_target')}
+              current={build.talentSkillCurrent}
+              target={build.talentSkillTarget}
+              onCurrentChange={mutateField(mutate, build, 'talentSkillCurrent')}
+              onTargetChange={mutateField(mutate, build, 'talentSkillTarget')}
             />
             <DoubleInputLabeled
               name="Burst"
               min={0}
               max={13}
-              current={build.talent_burst_current}
-              target={build.talent_burst_target}
-              onCurrentChange={mutateField(
-                mutate,
-                build,
-                'talent_burst_current',
-              )}
-              onTargetChange={mutateField(mutate, build, 'talent_burst_target')}
+              current={build.talentBurstCurrent}
+              target={build.talentBurstTarget}
+              onCurrentChange={mutateField(mutate, build, 'talentBurstCurrent')}
+              onTargetChange={mutateField(mutate, build, 'talentBurstTarget')}
             />
           </div>
           <CollectionAvatar
             size={140}
-            className="size-35 rounded-2xl"
+            className="size-35 rounded-2xl ml-6"
             collectionName="characters"
             recordId={build.character}
             fileName={character.icon}
             name={character.name}
           />
+          <div />
         </div>
         <Weapons character={character} buildId={buildId} />
         <ArtifactSets
           build={build}
-          mutate={mutateField(mutate, build, 'artifact_sets')}
+          mutate={mutateField(mutate, build, 'artifactSets')}
         />
         <ArtifactTypes buildId={build.id} />
         <ArtifactSubstats buildId={build.id} />

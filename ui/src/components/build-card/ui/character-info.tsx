@@ -17,8 +17,8 @@ function Info({ character }: InfoProps) {
     [character?.element],
   );
   const weaponType = useLiveQuery(
-    () => db.weaponTypes.get(character?.weapon_type ?? ''),
-    [character?.weapon_type],
+    () => db.weaponTypes.get(character?.weaponType ?? ''),
+    [character?.weaponType],
   );
 
   if (!character || !element || !weaponType) {
@@ -39,7 +39,7 @@ function Info({ character }: InfoProps) {
       <span>Element</span>
       <Badge
         className={cn({
-          'text-white hover:text-black': element.inverse_text_color,
+          'text-white hover:text-black': element.inverseTextColor,
         })}
         style={{ backgroundColor: element.color }}
       >

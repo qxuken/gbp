@@ -9,7 +9,7 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		character_plans, err := app.FindCollectionByNameOrId(models.CHARACTER_PLANS_COLLECTION_NAME)
+		characterPlans, err := app.FindCollectionByNameOrId(models.CHARACTER_PLANS_COLLECTION_NAME)
 		if err != nil {
 			return err
 		}
@@ -19,9 +19,9 @@ func init() {
 		}
 		collection := core.NewBaseCollection(models.TEAM_PLANS_COLLECTION_NAME)
 		collection.Fields.Add(&core.RelationField{
-			Name:          "character_plan",
+			Name:          "characterPlan",
 			Required:      true,
-			CollectionId:  character_plans.Id,
+			CollectionId:  characterPlans.Id,
 			MaxSelect:     1,
 			CascadeDelete: true,
 		})
@@ -32,8 +32,8 @@ func init() {
 			MaxSelect:     3,
 			CascadeDelete: true,
 		})
-		collection.AddIndex("idx_"+models.TEAM_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")
-		rule := `@request.auth.id != "" && character_plan.user = @request.auth.id`
+		collection.AddIndex("idx_"+models.TEAM_PLANS_COLLECTION_NAME+"_characterPlan", false, "`characterPlan`", "")
+		rule := `@request.auth.id != "" && characterPlan.user = @request.auth.id`
 		collection.ListRule = types.Pointer(rule)
 		collection.ViewRule = types.Pointer(rule)
 		collection.CreateRule = types.Pointer(rule)

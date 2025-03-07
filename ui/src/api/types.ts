@@ -11,7 +11,7 @@ export interface Elements {
   id: string;
   name: string;
   color: string;
-  inverse_text_color?: boolean;
+  inverseTextColor?: boolean;
   icon: string;
 }
 
@@ -35,7 +35,7 @@ export interface Weapons {
   id: string;
   name: string;
   icon: string;
-  weapon_type: string;
+  weaponType: string;
   special?: string;
   rarity: number;
 }
@@ -45,7 +45,7 @@ export interface Characters {
   name: string;
   icon: string;
   element?: string;
-  weapon_type: string;
+  weaponType: string;
   special: string;
   rarity: number;
 }
@@ -70,39 +70,39 @@ export interface CharacterPlans {
   id: string;
   user: string;
   character: string;
-  character_role?: string;
-  constellation_current: number;
-  constellation_target: number;
-  level_current: number;
-  level_target: number;
-  talent_atk_current: number;
-  talent_atk_target: number;
-  talent_skill_current: number;
-  talent_skill_target: number;
-  talent_burst_current: number;
-  talent_burst_target: number;
-  artifact_sets: string[];
+  characterRole?: string;
+  constellationCurrent: number;
+  constellationTarget: number;
+  levelCurrent: number;
+  levelTarget: number;
+  talentAtkCurrent: number;
+  talentAtkTarget: number;
+  talentSkillCurrent: number;
+  talentSkillTarget: number;
+  talentBurstCurrent: number;
+  talentBurstTarget: number;
+  artifactSets: string[];
 }
 
 export interface TeamPlans {
   id: string;
-  character_plan: string;
+  characterPlan: string;
   characters: string[];
 }
 
 export interface WeaponPlans {
   id: string;
-  character_plan: string;
+  characterPlan: string;
   weapon: string;
-  level_current: number;
-  level_target: number;
-  refinement_current: number;
-  refinement_target: number;
+  levelCurrent: number;
+  levelTarget: number;
+  refinementCurrent: number;
+  refinementTarget: number;
 }
 
 export interface ArtifactTypePlans {
   id: string;
-  character_plan: string;
-  artifact_type: string;
+  characterPlan: string;
+  artifactType: string;
   special: string;
 }

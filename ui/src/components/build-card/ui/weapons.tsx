@@ -21,11 +21,11 @@ import { WeaponPicker } from './weapon-picker';
 
 type WeaponProps = { weaponPlanId: string; buildId: string };
 export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
-  const queryKey = ['character_plans', buildId, 'weapons', weaponPlanId];
+  const queryKey = ['characterPlans', buildId, 'weapons', weaponPlanId];
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      pbClient.collection<WeaponPlans>('weapon_plans').getOne(weaponPlanId),
+      pbClient.collection<WeaponPlans>('weaponPlans').getOne(weaponPlanId),
   });
   const weapon = useLiveQuery(
     () => query.data && db.weapons.get(query.data.weapon),
@@ -37,7 +37,7 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
       new AsyncDebounce(
         (update: WeaponPlans) =>
           pbClient
-            .collection<WeaponPlans>('weapon_plans')
+            .collection<WeaponPlans>('weaponPlans')
             .update(weaponPlanId, update),
         1000,
       ),
@@ -59,10 +59,10 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
     isPending: deleteIsPending,
     isSuccess: isDeleted,
   } = useMutation({
-    mutationFn: () => pbClient.collection('weapon_plans').delete(weaponPlanId),
+    mutationFn: () => pbClient.collection('weaponPlans').delete(weaponPlanId),
     onSuccess: () =>
       queryClient.invalidateQueries({
-        queryKey: ['character_plans', buildId, 'weapons'],
+        queryKey: ['characterPlans', buildId, 'weapons'],
       }),
     onError: notifyWithRetry(() => {
       deleteWeaponPlan();
@@ -124,27 +124,27 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
               name="Level"
               min={0}
               max={90}
-              current={weaponPlan.level_current}
-              target={weaponPlan.level_target}
-              onCurrentChange={mutateField(mutate, weaponPlan, 'level_current')}
-              onTargetChange={mutateField(mutate, weaponPlan, 'level_target')}
+              current={weaponPlan.levelCurrent}
+              target={weaponPlan.levelTarget}
+              onCurrentChange={mutateField(mutate, weaponPlan, 'levelCurrent')}
+              onTargetChange={mutateField(mutate, weaponPlan, 'levelTarget')}
               disabled={deleteIsPending}
             />
             <DoubleInputLabeled
               name="Refinement"
               min={1}
               max={5}
-              current={weaponPlan.refinement_current}
-              target={weaponPlan.refinement_target}
+              current={weaponPlan.refinementCurrent}
+              target={weaponPlan.refinementTarget}
               onCurrentChange={mutateField(
                 mutate,
                 weaponPlan,
-                'refinement_current',
+                'refinementCurrent',
               )}
               onTargetChange={mutateField(
                 mutate,
                 weaponPlan,
-                'refinement_target',
+                'refinementTarget',
               )}
               disabled={deleteIsPending}
             />
@@ -157,24 +157,24 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
 
 type Props = { buildId: string; character: Characters };
 export function Weapons({ buildId, character }: Props) {
-  const queryKey = ['character_plans', buildId, 'weapons'];
+  const queryKey = ['characterPlans', buildId, 'weapons'];
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      pbClient.collection<{ id: string }>('weapon_plans').getFullList({
-        filter: `character_plan = '${buildId}'`,
+      pbClient.collection<{ id: string }>('weaponPlans').getFullList({
+        filter: `characterPlan = '${buildId}'`,
         fields: 'id',
       }),
   });
   const { mutate } = useMutation({
     mutationFn: (weaponId: string) =>
-      pbClient.collection<WeaponPlans>('weapon_plans').create({
-        character_plan: buildId,
+      pbClient.collection<WeaponPlans>('weaponPlans').create({
+        characterPlan: buildId,
         weapon: weaponId,
-        level_current: 0,
-        level_target: 90,
-        refinement_current: 1,
-        refinement_target: 5,
+        levelCurrent: 0,
+        levelTarget: 90,
+        refinementCurrent: 1,
+        refinementTarget: 5,
       }),
     onSuccess(data) {
       queryClient.setQueryData([...queryKey, data.id], data);
@@ -192,7 +192,7 @@ export function Weapons({ buildId, character }: Props) {
         <WeaponPicker
           title="New weapon"
           onSelect={mutate}
-          weaponTypeId={character.weapon_type}
+          weaponTypeId={character.weaponType}
         >
           <Button
             variant="ghost"

@@ -33,9 +33,9 @@ func (s Special) Save(app core.App) error {
 type Element struct {
 	Name             string `db:"name"`
 	Color            string `db:"color"`
-	InverseTextColor bool   `db:"inverse_text_color"`
-	IconContent      Icon   `db:"icon_content"`
-	IconFilename     string `db:"icon_filename"`
+	InverseTextColor bool   `db:"inverseTextColor"`
+	IconContent      Icon   `db:"iconContent"`
+	IconFilename     string `db:"iconFilename"`
 }
 
 func (s Element) Save(app core.App) error {
@@ -44,7 +44,7 @@ func (s Element) Save(app core.App) error {
 		return err
 	}
 	record.Set("color", s.Color)
-	record.Set("inverse_text_color", s.InverseTextColor)
+	record.Set("inverseTextColor", s.InverseTextColor)
 	file, err := filesystem.NewFileFromBytes(s.IconContent, s.IconFilename)
 	if err != nil {
 		return err
@@ -68,8 +68,8 @@ func (s CharacterRole) Save(app core.App) error {
 type ArtifactSet struct {
 	Name         string `db:"name"`
 	Rarity       string `db:"rarity"`
-	IconContent  Icon   `db:"icon_content"`
-	IconFilename string `db:"icon_filename"`
+	IconContent  Icon   `db:"iconContent"`
+	IconFilename string `db:"iconFilename"`
 }
 
 func (s ArtifactSet) Save(app core.App) error {
@@ -89,8 +89,8 @@ func (s ArtifactSet) Save(app core.App) error {
 type ArtifactType struct {
 	Name         string                  `db:"name"`
 	Specials     types.JSONArray[string] `db:"specials"`
-	IconContent  Icon                    `db:"icon_content"`
-	IconFilename string                  `db:"icon_filename"`
+	IconContent  Icon                    `db:"iconContent"`
+	IconFilename string                  `db:"iconFilename"`
 }
 
 func (s ArtifactType) Save(app core.App) error {
@@ -117,8 +117,8 @@ func (s ArtifactType) Save(app core.App) error {
 
 type WeaponType struct {
 	Name         string `db:"name"`
-	IconContent  Icon   `db:"icon_content"`
-	IconFilename string `db:"icon_filename"`
+	IconContent  Icon   `db:"iconContent"`
+	IconFilename string `db:"iconFilename"`
 }
 
 func (s WeaponType) Save(app core.App) error {
@@ -139,8 +139,8 @@ type Weapon struct {
 	Rarity       int     `db:"rarity"`
 	Type         string  `db:"type"`
 	Special      *string `db:"special"`
-	IconContent  Icon    `db:"icon_content"`
-	IconFilename string  `db:"icon_filename"`
+	IconContent  Icon    `db:"iconContent"`
+	IconFilename string  `db:"iconFilename"`
 }
 
 func (s Weapon) Save(app core.App) error {
@@ -153,7 +153,7 @@ func (s Weapon) Save(app core.App) error {
 	if err != nil {
 		return err
 	}
-	record.Set("weapon_type", weaponType.Id)
+	record.Set("weaponType", weaponType.Id)
 	if s.Special != nil {
 		special, err := app.FindFirstRecordByData(models.SPECIALS_COLLECTION_NAME, "name", s.Special)
 		if err != nil {
@@ -173,10 +173,10 @@ type Character struct {
 	Name         string  `db:"name"`
 	Rarity       int     `db:"rarity"`
 	Element      *string `db:"element"`
-	WeaponType   string  `db:"weapon_type"`
+	WeaponType   string  `db:"weaponType"`
 	Special      string  `db:"special"`
-	IconContent  Icon    `db:"icon_content"`
-	IconFilename string  `db:"icon_filename"`
+	IconContent  Icon    `db:"iconContent"`
+	IconFilename string  `db:"iconFilename"`
 }
 
 func (s Character) Save(app core.App) error {
@@ -196,7 +196,7 @@ func (s Character) Save(app core.App) error {
 	if err != nil {
 		return err
 	}
-	record.Set("weapon_type", weaponType.Id)
+	record.Set("weaponType", weaponType.Id)
 	special, err := app.FindFirstRecordByData(models.SPECIALS_COLLECTION_NAME, "name", s.Special)
 	if err != nil {
 		return err

@@ -28,6 +28,7 @@ func Seed(app core.App, path string) error {
 	app.Logger().Debug(fmt.Sprintf("seed db path %#v", path))
 
 	db, err := core.DefaultDBConnect(path)
+	defer db.Close()
 	if err != nil {
 		return err
 	}
@@ -40,19 +41,19 @@ func Seed(app core.App, path string) error {
 		return err
 	}
 
-	if err := seedCollection[CharacterRole](app, db, "character_roles"); err != nil {
+	if err := seedCollection[CharacterRole](app, db, "characterRoles"); err != nil {
 		return err
 	}
 
-	if err := seedCollection[ArtifactSet](app, db, "artifact_sets"); err != nil {
+	if err := seedCollection[ArtifactSet](app, db, "artifactSets"); err != nil {
 		return err
 	}
 
-	if err := seedCollection[ArtifactType](app, db, "artifact_types"); err != nil {
+	if err := seedCollection[ArtifactType](app, db, "artifactTypes"); err != nil {
 		return err
 	}
 
-	if err := seedCollection[WeaponType](app, db, "weapon_types"); err != nil {
+	if err := seedCollection[WeaponType](app, db, "weaponTypes"); err != nil {
 		return err
 	}
 
@@ -73,7 +74,7 @@ func Seed(app core.App, path string) error {
 	if _, err := io.Copy(h, f); err != nil {
 		return err
 	}
-	if _, err := models.UpsertAppSettings(app, "dictionary_version", fmt.Sprintf("%x", h.Sum(nil))); err != nil {
+	if _, err := models.UpsertAppSettings(app, "dictionaryVersion", fmt.Sprintf("%x", h.Sum(nil))); err != nil {
 		return err
 	}
 

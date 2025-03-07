@@ -17,11 +17,11 @@ func init() {
 		if err != nil {
 			return nil
 		}
-		character_roles, err := app.FindCollectionByNameOrId(models.CHARACTER_ROLES_COLLECTION_NAME)
+		characterRoles, err := app.FindCollectionByNameOrId(models.CHARACTER_ROLES_COLLECTION_NAME)
 		if err != nil {
 			return nil
 		}
-		artifact_sets, err := app.FindCollectionByNameOrId(models.ARTIFACT_SETS_COLLECTION_NAME)
+		artifactSets, err := app.FindCollectionByNameOrId(models.ARTIFACT_SETS_COLLECTION_NAME)
 		if err != nil {
 			return nil
 		}
@@ -42,85 +42,85 @@ func init() {
 			Presentable:  true,
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "character_role",
+			Name:         "characterRole",
 			Required:     false,
-			CollectionId: character_roles.Id,
+			CollectionId: characterRoles.Id,
 			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "constellation_current",
+			Name:     "constellationCurrent",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(6)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "constellation_target",
+			Name:     "constellationTarget",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(6)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "level_current",
+			Name:     "levelCurrent",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(0)),
 			Max:      types.Pointer(float64(90)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "level_target",
+			Name:     "levelTarget",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(90)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "talent_atk_current",
+			Name:     "talentAtkCurrent",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(10)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "talent_atk_target",
+			Name:     "talentAtkTarget",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(10)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "talent_skill_current",
+			Name:     "talentSkillCurrent",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(13)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "talent_skill_target",
+			Name:     "talentSkillTarget",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(13)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "talent_burst_current",
+			Name:     "talentBurstCurrent",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(13)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "talent_burst_target",
+			Name:     "talentBurstTarget",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(13)),
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "artifact_sets",
+			Name:         "artifactSets",
 			Required:     false,
-			CollectionId: artifact_sets.Id,
+			CollectionId: artifactSets.Id,
 			MaxSelect:    50,
 		})
 		collection.AddIndex("idx_"+models.CHARACTER_PLANS_COLLECTION_NAME+"_user", false, "`user`", "")

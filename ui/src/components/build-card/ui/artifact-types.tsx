@@ -20,14 +20,14 @@ import { queryClient } from '@/main';
 
 type Props = { buildId: string };
 export function ArtifactTypes({ buildId }: Props) {
-  const queryKey = ['character_plans', buildId, 'artifact_type_plans'];
+  const queryKey = ['characterPlans', buildId, 'artifactTypePlans'];
   const query = useQuery({
     queryKey,
     queryFn: () =>
       pbClient
-        .collection<ArtifactTypePlans>('artifact_type_plans')
+        .collection<ArtifactTypePlans>('artifactTypePlans')
         .getFullList({
-          filter: `character_plan = '${buildId}'`,
+          filter: `characterPlan = '${buildId}'`,
         }),
   });
 
@@ -36,23 +36,23 @@ export function ArtifactTypes({ buildId }: Props) {
       variables:
         | ({ type: 'add' } & Pick<
             ArtifactTypePlans,
-            'special' | 'artifact_type'
+            'special' | 'artifactType'
           >)
         | ({ type: 'delete' } & Pick<ArtifactTypePlans, 'id'>),
     ) => {
       switch (variables.type) {
         case 'add':
           await pbClient
-            .collection<ArtifactTypePlans>('artifact_type_plans')
+            .collection<ArtifactTypePlans>('artifactTypePlans')
             .create({
-              character_plan: buildId,
+              characterPlan: buildId,
               special: variables.special,
-              artifact_type: variables.artifact_type,
+              artifactType: variables.artifactType,
             });
           return;
         case 'delete':
           await pbClient
-            .collection<ArtifactTypePlans>('artifact_type_plans')
+            .collection<ArtifactTypePlans>('artifactTypePlans')
             .delete(variables.id);
           return;
       }
@@ -76,22 +76,22 @@ export function ArtifactTypes({ buildId }: Props) {
   );
 
   const artifactTypesPlans = query.data?.reduce((acc, it) => {
-    let types = acc.get(it.artifact_type);
+    let types = acc.get(it.artifactType);
     if (!types) {
       types = new Set();
-      acc.set(it.artifact_type, types);
+      acc.set(it.artifactType, types);
     }
     types.add(it.special);
     return acc;
   }, new Map<string, Set<string>>());
 
-  const addSpecial = (artifact_type: string, special: string) => {
-    mutate({ special, artifact_type, type: 'add' });
+  const addSpecial = (artifactType: string, special: string) => {
+    mutate({ special, artifactType, type: 'add' });
   };
 
-  const deleteSpecial = (artifact_type: string, special: string) => {
+  const deleteSpecial = (artifactType: string, special: string) => {
     const id = query.data?.find(
-      (at) => at.special === special && at.artifact_type === artifact_type,
+      (at) => at.special === special && at.artifactType === artifactType,
     )?.id;
     if (!id) {
       return;

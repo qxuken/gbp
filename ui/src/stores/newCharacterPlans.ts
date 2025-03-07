@@ -16,17 +16,17 @@ function newCharacterPlan(characterId: string) {
   return {
     user: pbClient.authStore.record?.id,
     character: characterId,
-    constellation_current: 0,
-    constellation_target: 6,
-    level_current: 0,
-    level_target: 90,
-    talent_atk_current: 0,
-    talent_atk_target: 10,
-    talent_skill_current: 0,
-    talent_skill_target: 13,
-    talent_burst_current: 0,
-    talent_burst_target: 13,
-    artifact_sets: [],
+    constellationCurrent: 0,
+    constellationTarget: 6,
+    levelCurrent: 0,
+    levelTarget: 90,
+    talentAtkCurrent: 0,
+    talentAtkTarget: 10,
+    talentSkillCurrent: 0,
+    talentSkillTarget: 13,
+    talentBurstCurrent: 0,
+    talentBurstTarget: 13,
+    artifactSets: [],
   };
 }
 
@@ -87,11 +87,11 @@ function createPlans({ characterPlans, sentPlans }: NewCharacterPlans) {
     async function try_create() {
       try {
         const res = await pbClient
-          .collection<CharacterPlans>('character_plans')
+          .collection<CharacterPlans>('characterPlans')
           .create(plan);
-        queryClient.setQueryData(['character_plans', res.id], res);
+        queryClient.setQueryData(['characterPlans', res.id], res);
         await queryClient.invalidateQueries({
-          queryKey: ['character_plans'],
+          queryKey: ['characterPlans'],
           exact: true,
         });
         newCharacterPlans.getState().planReady(pendingPlan);

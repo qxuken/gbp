@@ -75,7 +75,7 @@ function Character({
 
 type TeamProps = { buildId: string; teamId: string };
 function Team({ buildId, teamId }: TeamProps) {
-  const queryKey = ['character_plans', buildId, 'team_plans', teamId];
+  const queryKey = ['characterPlans', buildId, 'teamPlans', teamId];
 
   const {
     mutate: deleteTeam,
@@ -83,10 +83,10 @@ function Team({ buildId, teamId }: TeamProps) {
     isSuccess: isDeleted,
   } = useMutation({
     mutationFn: () =>
-      pbClient.collection<TeamPlans>('team_plans').delete(teamId),
+      pbClient.collection<TeamPlans>('teamPlans').delete(teamId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ['character_plans', buildId, 'team_plans'],
+        queryKey: ['characterPlans', buildId, 'teamPlans'],
         exact: true,
       });
       queryClient.removeQueries({ queryKey });
@@ -98,7 +98,7 @@ function Team({ buildId, teamId }: TeamProps) {
 
   const query = useQuery({
     queryKey,
-    queryFn: () => pbClient.collection<TeamPlans>('team_plans').getOne(teamId),
+    queryFn: () => pbClient.collection<TeamPlans>('teamPlans').getOne(teamId),
     enabled: !isDeleted,
   });
 
@@ -108,7 +108,7 @@ function Team({ buildId, teamId }: TeamProps) {
     isPending: updateIsPending,
   } = useMutation({
     mutationFn: (plan: TeamPlans) =>
-      pbClient.collection<TeamPlans>('team_plans').update(teamId, plan),
+      pbClient.collection<TeamPlans>('teamPlans').update(teamId, plan),
     onSuccess: (data) => queryClient.setQueryData(queryKey, data),
     onError: notifyWithRetry((v) => {
       updateTeam(v);
@@ -180,20 +180,20 @@ function Team({ buildId, teamId }: TeamProps) {
 
 type Props = { buildId: string };
 export function Teams({ buildId }: Props) {
-  const queryKey = ['character_plans', buildId, 'team_plans'];
+  const queryKey = ['characterPlans', buildId, 'teamPlans'];
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      pbClient.collection<TeamPlans>('team_plans').getFullList({
-        filter: `character_plan = '${buildId}'`,
+      pbClient.collection<TeamPlans>('teamPlans').getFullList({
+        filter: `characterPlan = '${buildId}'`,
         fields: 'id',
       }),
   });
 
   const { mutate: createTeam, isPending: createIsPending } = useMutation({
     mutationFn: (characterId: string) =>
-      pbClient.collection<TeamPlans>('team_plans').create({
-        character_plan: buildId,
+      pbClient.collection<TeamPlans>('teamPlans').create({
+        characterPlan: buildId,
         characters: [characterId],
       }),
     onSuccess(data) {

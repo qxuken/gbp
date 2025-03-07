@@ -13,7 +13,7 @@ export function CreateBuild() {
   };
 
   return (
-    <Card className="w-2xl opacity-80">
+    <Card className="w-full opacity-80">
       <CardContent className="size-full p-0">
         <CharacterPicker title="Create new build" onSelect={createNewPlan}>
           <Button className="size-full p-4" size="icon" variant="ghost">

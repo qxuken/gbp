@@ -16,7 +16,7 @@ export function PendingBuildInfo({ characterId }: Props) {
   }
 
   return (
-    <Card className="w-2xl opacity-75 animate-pulse">
+    <Card className="w-full opacity-75 animate-pulse">
       <CardTitle className="p-4 flex gap-16">
         <div className="w-full flex items-start gap-3">
           <CollectionAvatar

@@ -13,7 +13,7 @@ func init() {
 		if err != nil {
 			return err
 		}
-		weapon_types, err := app.FindCollectionByNameOrId(models.WEAPON_TYPES_COLLECTION_NAME)
+		weaponTypes, err := app.FindCollectionByNameOrId(models.WEAPON_TYPES_COLLECTION_NAME)
 		if err != nil {
 			return err
 		}
@@ -40,9 +40,9 @@ func init() {
 			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{
-			Name:         "weapon_type",
+			Name:         "weaponType",
 			Required:     true,
-			CollectionId: weapon_types.Id,
+			CollectionId: weaponTypes.Id,
 			MaxSelect:    1,
 		})
 		collection.Fields.Add(&core.RelationField{

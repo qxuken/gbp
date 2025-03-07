@@ -86,7 +86,7 @@ function ArtifactSet({ artifactSetId, deleteSet }: ArtifactSetProps) {
 
 type Props = { build: CharacterPlans; mutate(v: string[]): void };
 export function ArtifactSets({ build, mutate }: Props) {
-  const artifactSets = build.artifact_sets;
+  const artifactSets = build.artifactSets;
   return (
     <div className="flex flex-col gap-2 group/artifact-sets">
       <div className="flex items-center gap-1">

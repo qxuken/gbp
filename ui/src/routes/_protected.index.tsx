@@ -17,10 +17,10 @@ export const Route = createFileRoute('/_protected/')({
   }),
   loaderDeps: ({ search: { page = 1, perPage = 20 } }) =>
     queryOptions({
-      queryKey: ['character_plans'],
+      queryKey: ['characterPlans'],
       queryFn: () =>
         pbClient
-          .collection<{ id: string }>('character_plans')
+          .collection<{ id: string }>('characterPlans')
           .getList(page, perPage, { fields: 'id' }),
     }),
   loader: ({ deps }) => queryClient.ensureQueryData(deps),
@@ -33,7 +33,7 @@ function HomeComponent() {
   const { characterPlans } = useNewCharacterPlans();
 
   return (
-    <div className="p-2 flex flex-wrap gap-4 justify-center">
+    <div className="p-2 grid grid-cols-[repeat(auto-fill,_minmax(24rem,_1fr))] gap-4 justify-center">
       {items.map((build) => (
         <BuildInfo key={build.id} buildId={build.id} />
       ))}

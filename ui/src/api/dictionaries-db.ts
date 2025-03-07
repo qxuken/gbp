@@ -21,17 +21,17 @@ type Config = {
   value: string;
 };
 
-export const DICTIONARY_VERSION_CONFIG_KEY = 'dictionary_version';
+export const DICTIONARY_VERSION_CONFIG_KEY = 'dictionaryVersion';
 
 export const DB_COLLECTION_MAPPING = {
   elements: 'elements',
   specials: 'specials',
-  characterRoles: 'character_roles',
-  weaponTypes: 'weapon_types',
+  characterRoles: 'characterRoles',
+  weaponTypes: 'weaponTypes',
   weapons: 'weapons',
   characters: 'characters',
-  artifactSets: 'artifact_sets',
-  artifactTypes: 'artifact_types',
+  artifactSets: 'artifactSets',
+  artifactTypes: 'artifactTypes',
 } as const;
 export type DBCollections = keyof typeof DB_COLLECTION_MAPPING;
 export type PBCollections = (typeof DB_COLLECTION_MAPPING)[DBCollections];
@@ -54,12 +54,12 @@ export const db = new Dexie('Dictionaries') as DB;
 db.version(1).stores({
   config: '++key, value',
   collectionIds: '++name, id',
-  elements: '++id, name, color, inverse_text_color, icon',
+  elements: '++id, name, color, inverseTextColor, icon',
   specials: '++id, name',
   characterRoles: '++id, name',
   weaponTypes: '++id, name, icon',
-  weapons: '++id, name, icon, weapon_type, special, rarity',
-  characters: '++id, name, icon, element, weapon_type, special, rarity',
+  weapons: '++id, name, icon, weaponType, special, rarity',
+  characters: '++id, name, icon, element, weaponType, special, rarity',
   artifactSets: '++id, name, icon, rarity',
   artifactTypes: '++id, name, icon, specials',
 });

@@ -9,7 +9,7 @@ import (
 
 func init() {
 	m.Register(func(app core.App) error {
-		character_plans, err := app.FindCollectionByNameOrId(models.CHARACTER_PLANS_COLLECTION_NAME)
+		characterPlans, err := app.FindCollectionByNameOrId(models.CHARACTER_PLANS_COLLECTION_NAME)
 		if err != nil {
 			return err
 		}
@@ -19,9 +19,9 @@ func init() {
 		}
 		collection := core.NewBaseCollection(models.WEAPON_PLANS_COLLECTION_NAME)
 		collection.Fields.Add(&core.RelationField{
-			Name:          "character_plan",
+			Name:          "characterPlan",
 			Required:      true,
-			CollectionId:  character_plans.Id,
+			CollectionId:  characterPlans.Id,
 			MaxSelect:     1,
 			CascadeDelete: true,
 		})
@@ -33,35 +33,35 @@ func init() {
 			CascadeDelete: true,
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "level_current",
+			Name:     "levelCurrent",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(0)),
 			Max:      types.Pointer(float64(90)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "level_target",
+			Name:     "levelTarget",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(90)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "refinement_current",
+			Name:     "refinementCurrent",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(5)),
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "refinement_target",
+			Name:     "refinementTarget",
 			Required: false,
 			OnlyInt:  true,
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(5)),
 		})
-		collection.AddIndex("idx_"+models.WEAPON_PLANS_COLLECTION_NAME+"_character_plan", false, "`character_plan`", "")
-		rule := `@request.auth.id != "" && character_plan.user = @request.auth.id`
+		collection.AddIndex("idx_"+models.WEAPON_PLANS_COLLECTION_NAME+"_characterPlan", false, "`characterPlan`", "")
+		rule := `@request.auth.id != "" && characterPlan.user = @request.auth.id`
 		collection.ListRule = types.Pointer(rule)
 		collection.ViewRule = types.Pointer(rule)
 		collection.CreateRule = types.Pointer(rule)
