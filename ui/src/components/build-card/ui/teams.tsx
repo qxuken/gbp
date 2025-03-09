@@ -19,7 +19,7 @@ import { CharacterPicker } from './character-picker';
 
 type CharacterProps = {
   characterId: string;
-  deleteMember(): void;
+  deleteMember?: () => void;
   updateIsPending?: boolean;
 };
 function Character({
@@ -45,34 +45,40 @@ function Character({
         className="size-10"
       />
       <span className="text-center text-xs opacity-85">{character.name}</span>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-0 right-0 size-6 p-1 opacity-50 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-            disabled={updateIsPending}
-          >
-            <Icons.Remove />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="p-0" side="top">
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={deleteMember}
-            disabled={updateIsPending}
-          >
-            Yes i really want to delete
-          </Button>
-        </PopoverContent>
-      </Popover>
+      {deleteMember && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-0 right-0 size-6 p-1 opacity-50 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+              disabled={updateIsPending}
+            >
+              <Icons.Remove />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" side="top">
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={deleteMember}
+              disabled={updateIsPending}
+            >
+              Yes i really want to delete
+            </Button>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 }
 
-type TeamProps = { buildId: string; teamId: string };
-function Team({ buildId, teamId }: TeamProps) {
+type TeamProps = {
+  buildId: string;
+  teamId: string;
+  characterId: string;
+};
+function Team({ buildId, teamId, characterId }: TeamProps) {
   const queryKey = ['characterPlans', buildId, 'teamPlans', teamId];
 
   const {
@@ -115,6 +121,10 @@ function Team({ buildId, teamId }: TeamProps) {
 
   const team = variables || query.data;
 
+  const ignoreCharacters = new Set([characterId, ...(team?.characters ?? [])]);
+
+  const isPending = deleteIsPending || updateIsPending;
+
   const addMember = (characterId: string) => {
     if (!team || deleteIsPending || updateIsPending) {
       return;
@@ -146,10 +156,9 @@ function Team({ buildId, teamId }: TeamProps) {
     return null;
   }
 
-  const isPending = deleteIsPending || updateIsPending;
-
   return (
-    <div className="grid gap-2 grid-cols-3">
+    <div className="grid gap-2 grid-cols-4">
+      <Character characterId={characterId} updateIsPending={isPending} />
       {team?.characters.map((tm) => (
         <Character
           key={tm}
@@ -159,7 +168,11 @@ function Team({ buildId, teamId }: TeamProps) {
         />
       ))}
       {team && team.characters.length < 3 && (
-        <CharacterPicker title="Add new team member" onSelect={addMember}>
+        <CharacterPicker
+          title="Add new team member"
+          onSelect={addMember}
+          ignoreCharacters={ignoreCharacters}
+        >
           <Button
             size="icon"
             variant="ghost"
@@ -174,8 +187,8 @@ function Team({ buildId, teamId }: TeamProps) {
   );
 }
 
-type Props = { buildId: string };
-export function Teams({ buildId }: Props) {
+type Props = { buildId: string; characterId: string };
+export function Teams({ buildId, characterId }: Props) {
   const queryKey = ['characterPlans', buildId, 'teamPlans'];
   const query = useQuery({
     queryKey,
@@ -203,11 +216,17 @@ export function Teams({ buildId }: Props) {
 
   const teams = query.data;
 
+  const ignoreCharacters = new Set([characterId]);
+
   return (
     <div className="flex flex-col gap-2 group/teams">
       <div className="flex items-center gap-1">
         <span className="text-sm">Teams</span>
-        <CharacterPicker title="Create new team" onSelect={createTeam}>
+        <CharacterPicker
+          title="Create new team"
+          onSelect={createTeam}
+          ignoreCharacters={ignoreCharacters}
+        >
           <Button
             size="icon"
             variant="ghost"
@@ -221,7 +240,12 @@ export function Teams({ buildId }: Props) {
       {teams && teams.length > 0 && (
         <div className="grid gap-4 w-full">
           {teams.map((tp) => (
-            <Team key={tp.id} buildId={buildId} teamId={tp.id} />
+            <Team
+              key={tp.id}
+              buildId={buildId}
+              teamId={tp.id}
+              characterId={characterId}
+            />
           ))}
         </div>
       )}

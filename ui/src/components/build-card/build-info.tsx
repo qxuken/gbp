@@ -138,7 +138,7 @@ export function BuildInfo({ buildId }: Props) {
           substats={build.substats}
           mutate={mutateField(mutate, build, 'substats')}
         />
-        <Teams buildId={build.id} />
+        <Teams buildId={build.id} characterId={build.character} />
       </CardContent>
     </Card>
   );

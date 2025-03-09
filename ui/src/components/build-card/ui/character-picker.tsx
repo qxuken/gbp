@@ -24,9 +24,10 @@ const DEF_FILTER = {
 };
 
 type PickerProps = {
+  ignoreCharacters?: Set<string>;
   onSelect(characterId: string): void;
 };
-function Picker({ onSelect }: PickerProps) {
+function Picker({ onSelect, ignoreCharacters }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
   const elements = useLiveQuery(() => db.elements.toArray(), []);
@@ -37,6 +38,7 @@ function Picker({ onSelect }: PickerProps) {
         .orderBy('rarity')
         .filter(
           (c) =>
+            (ignoreCharacters === undefined || !ignoreCharacters.has(c.id)) &&
             (filter.elements.size === 0 ||
               !c.element ||
               filter.elements.has(c.element)) &&
@@ -173,7 +175,12 @@ type Props = PropsWithChildren<
     title: string;
   }
 >;
-export function CharacterPicker({ title, onSelect, children }: Props) {
+export function CharacterPicker({
+  title,
+  onSelect,
+  ignoreCharacters,
+  children,
+}: Props) {
   const [open, setOpen] = useState(false);
 
   const select = (id: string) => {
@@ -189,7 +196,7 @@ export function CharacterPicker({ title, onSelect, children }: Props) {
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Pick Character</DialogDescription>
         </DialogHeader>
-        <Picker onSelect={select} />
+        <Picker onSelect={select} ignoreCharacters={ignoreCharacters} />
       </DialogContent>
     </Dialog>
   );
