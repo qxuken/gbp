@@ -24,7 +24,7 @@ export const router = createRouter({
   },
   defaultPendingComponent: () => {
     <div className="p-2 text-2xl">
-      <Icons.spinner />
+      <Icons.Spinner />
     </div>;
   },
 });

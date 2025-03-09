@@ -59,7 +59,7 @@ function Info({ character }: InfoProps) {
           fileName={weaponType.icon}
           name={weaponType.name}
           size={16}
-          className="size-4"
+          className="size-4 not-dark:bg-black"
         />
         {weaponType.name}
       </Badge>
@@ -81,7 +81,7 @@ export function CharacterInfo({ character, ...props }: Props) {
           })}
           {...props}
         >
-          <Icons.info />
+          <Icons.Info />
         </Button>
       </PopoverTrigger>
       <PopoverContent side="right">

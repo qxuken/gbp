@@ -43,8 +43,8 @@ tmp_dir = "tmp"
   clean_on_exit = false
 
 [proxy]
+  enabled = false
   app_port = 8090
-  enabled = true
   proxy_port = 8091
 
 [screen]

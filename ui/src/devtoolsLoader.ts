@@ -1,1 +1,1 @@
-Object.values(import.meta.glob('./**/*.devtools.{ts,tsx}', { eager: true }));
+import.meta.glob('./**/*.devtools.{ts,tsx}', { eager: true });

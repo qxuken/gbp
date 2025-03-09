@@ -10,7 +10,7 @@ const params = {
     theme.getState().setTheme(value);
   },
 };
-pane.addBinding(params, 'theme', {
+const themeSelector = pane.addBinding(params, 'theme', {
   label: 'Theme',
   options: {
     system: 'system',
@@ -18,5 +18,11 @@ pane.addBinding(params, 'theme', {
     light: 'light',
   },
 });
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    themeSelector.dispose();
+  });
+}
 
 export {};

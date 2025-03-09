@@ -30,4 +30,10 @@ group
   .addButton({ title: 'pb logout' })
   .on('click', () => pbClient.authStore.clear());
 
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    group.dispose();
+  });
+}
+
 export {};

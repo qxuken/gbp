@@ -52,4 +52,10 @@ group.addButton({ title: 'Delete database' }).on('click', () => {
   db.delete();
 });
 
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    group.dispose();
+  });
+}
+
 export {};

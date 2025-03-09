@@ -14,8 +14,8 @@ import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
 
 import { ArtifactSets } from './ui/artifact-sets';
+import { ArtifactStats } from './ui/artifact-stats';
 import { ArtifactSubstats } from './ui/artifact-substats';
-import { ArtifactTypes } from './ui/artifact-types';
 import { CharacterInfo } from './ui/character-info';
 import { DoubleInputLabeled } from './ui/double-input-labeled';
 import { Teams } from './ui/teams';
@@ -63,14 +63,14 @@ export function BuildInfo({ buildId }: Props) {
   const build = variables || query.data;
 
   return (
-    <Card className="w-full bg-accent text-accent-foreground">
+    <Card className="w-full bg-accent text-accent-foreground overflow-hidden">
       <CardTitle className="p-4 w-full flex items-center gap-3">
         <span className="flex-1 font-semibold text-lg">{character.name}</span>
         <CharacterInfo character={character} />
       </CardTitle>
-      <CardContent className="w-full flex flex-col gap-4 bg-accent">
+      <CardContent className="w-full flex flex-col gap-3 bg-accent">
         <div className="flex items-start justify-around">
-          <div className="grid grid-cols-[auto_1fr] items-center gap-2">
+          <div className="grid grid-cols-[auto_1fr] items-center gap-1">
             <DoubleInputLabeled
               name="Level"
               min={0}
@@ -93,7 +93,7 @@ export function BuildInfo({ buildId }: Props) {
               )}
               onTargetChange={mutateField(mutate, build, 'constellationTarget')}
             />
-            <Separator className="col-span-2 bg-muted-foreground rounded-lg" />
+            <Separator className="col-span-2 bg-muted-foreground rounded-lg opacity-50" />
             <DoubleInputLabeled
               name="Attack"
               min={0}
@@ -133,7 +133,7 @@ export function BuildInfo({ buildId }: Props) {
         </div>
         <Weapons weaponType={character.weaponType} buildId={buildId} />
         <ArtifactSets buildId={build.id} />
-        <ArtifactTypes buildId={build.id} />
+        <ArtifactStats buildId={build.id} />
         <ArtifactSubstats
           substats={build.substats}
           mutate={mutateField(mutate, build, 'substats')}

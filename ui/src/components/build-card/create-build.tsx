@@ -17,7 +17,7 @@ export function CreateBuild() {
       <CardContent className="size-full p-0">
         <CharacterPicker title="Create new build" onSelect={createNewPlan}>
           <Button className="size-full p-4" size="icon" variant="ghost">
-            <Icons.new />
+            <Icons.New />
             <span>Create new build</span>
           </Button>
         </CharacterPicker>

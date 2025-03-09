@@ -201,7 +201,7 @@ function SignupComponent() {
                 >
                   {form.formState.isSubmitting && (
                     <>
-                      <Icons.spinner />{' '}
+                      <Icons.Spinner />{' '}
                     </>
                   )}
                   Sign Up

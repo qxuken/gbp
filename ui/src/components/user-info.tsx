@@ -67,7 +67,7 @@ export function UserInfo() {
               <span className="truncate font-semibold">{user.name}</span>
               <span className="truncate text-xs">{user.email}</span>
             </div>
-            <Icons.dropdown className="ml-auto size-4" />
+            <Icons.Dropdown className="ml-auto size-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -80,7 +80,7 @@ export function UserInfo() {
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
             <DropdownMenuItem>
-              <Icons.logout />
+              <Icons.Logout />
               Log out
             </DropdownMenuItem>
           </AlertDialogTrigger>

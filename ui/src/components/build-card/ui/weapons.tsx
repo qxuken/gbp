@@ -76,7 +76,7 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
 
   return (
     <div
-      className={cn('w-full group/weapon', {
+      className={cn('w-full', {
         ['animate-pulse']: deleteIsPending,
       })}
     >
@@ -96,13 +96,13 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-6 p-1 opacity-75 invisible group-hover/weapon:visible group-focus-within/weapon:visible focus:visible hover:outline disabled:visible data-[state=open]:visible data-[state=open]:outline data-[state=open]:animate-pulse"
+                  className="size-6 p-1 opacity-50 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
                   disabled={deleteIsPending}
                 >
                   {deleteIsPending ? (
-                    <Icons.spinner className="animate-spin" />
+                    <Icons.Spinner className="animate-spin" />
                   ) : (
-                    <Icons.remove />
+                    <Icons.Remove />
                   )}
                 </Button>
               </PopoverTrigger>
@@ -185,7 +185,7 @@ export function Weapons({ buildId, weaponType }: Props) {
   });
 
   return (
-    <div className="flex flex-col gap-2 group/weapons">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
         <span className="text-sm">Weapons</span>
         <WeaponPicker
@@ -196,14 +196,9 @@ export function Weapons({ buildId, weaponType }: Props) {
           <Button
             variant="ghost"
             size="icon"
-            className={cn(
-              'size-6 opacity-75 transition-opacity invisible group-hover/weapons:visible group-focus-within/weapons:visible focus:opacity-100 hover:opacity-100',
-              {
-                ['visible opacity-50']: query.data?.length === 0,
-              },
-            )}
+            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100"
           >
-            <Icons.add />
+            <Icons.Add />
           </Button>
         </WeaponPicker>
       </div>

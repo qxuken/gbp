@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
 type Props = { buildId: string };
-export function ArtifactTypes({ buildId }: Props) {
+export function ArtifactStats({ buildId }: Props) {
   const queryKey = ['characterPlans', buildId, 'artifactTypePlans'];
   const query = useQuery({
     queryKey,
@@ -99,6 +99,7 @@ export function ArtifactTypes({ buildId }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
+      <span className="text-xs text-muted-foreground">Stats</span>
       <div className="grid gap-2 w-full">
         {artifactTypes?.map((at) => {
           const selectedSpecials = artifactTypesPlans?.get(at.id);
@@ -109,7 +110,7 @@ export function ArtifactTypes({ buildId }: Props) {
               (s) => s && (!selectedSpecials || !selectedSpecials.has(s.id)),
             ) as Specials[];
           return (
-            <div key={at.id} className="group/at w-full flex gap-2">
+            <div key={at.id} className="w-full flex gap-2">
               <CollectionAvatar
                 record={at}
                 fileName={at.icon}
@@ -126,30 +127,27 @@ export function ArtifactTypes({ buildId }: Props) {
                     return null;
                   }
                   return (
-                    <Popover key={special.id}>
-                      <PopoverTrigger asChild>
-                        <button
-                          className={cn(
-                            'text-md after:text-gray-400 cursor-pointer hover:line-through focus:line-through',
-                            {
-                              ['after:content-[","]']:
-                                selected.length - 1 !== i,
-                            },
-                          )}
-                        >
-                          {special.name}
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-0" side="top">
-                        <Button
-                          variant="destructive"
-                          className="w-full"
-                          onClick={() => deleteSpecial(at.id, s)}
-                        >
-                          Yes i really want to delete
-                        </Button>
-                      </PopoverContent>
-                    </Popover>
+                    <div key={special.id} className="flex gap-1 items-center">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="text-md after:text-gray-400 cursor-pointer hover:line-through focus:line-through">
+                            {special.name}
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0" side="top">
+                          <Button
+                            variant="destructive"
+                            className="w-full"
+                            onClick={() => deleteSpecial(at.id, s)}
+                          >
+                            Yes i really want to delete
+                          </Button>
+                        </PopoverContent>
+                      </Popover>
+                      {selected.length - 1 !== i && (
+                        <Icons.Divide className="text-gray-400 size-4" />
+                      )}
+                    </div>
                   );
                 })}
                 {options.length > 0 && (
@@ -158,14 +156,9 @@ export function ArtifactTypes({ buildId }: Props) {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className={cn(
-                          'size-6 opacity-75 invisible group-hover/at:visible group-focus-within/at:visible data-[state=open]:visible hover:opacity-100 focus:opacity-100',
-                          {
-                            ['visible opacity-50']: selected.length === 0,
-                          },
-                        )}
+                        className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
                       >
-                        <Icons.add />
+                        <Icons.Add />
                       </Button>
                     </SelectTrigger>
                     <SelectContent>

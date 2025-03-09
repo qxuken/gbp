@@ -11,7 +11,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
 type Props = { substats: string[]; mutate(v: string[]): void };
 export function ArtifactSubstats({ substats, mutate }: Props) {
@@ -36,34 +35,32 @@ export function ArtifactSubstats({ substats, mutate }: Props) {
   };
 
   return (
-    <div className="group/subs">
+    <div>
       <span className="text-xs text-muted-foreground">Substats</span>
       <div className="flex flex-wrap gap-1 items-start">
         {selected.map((special, i) => {
           return (
-            <Popover key={special.id}>
-              <PopoverTrigger asChild>
-                <button
-                  className={cn(
-                    'text-md after:text-gray-400 cursor-pointer hover:line-through focus:line-through',
-                    {
-                      ['after:content-[","]']: selected.length - 1 !== i,
-                    },
-                  )}
-                >
-                  {special.name}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0" side="top">
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  onClick={() => deleteSpecial(special.id)}
-                >
-                  Yes i really want to delete
-                </Button>
-              </PopoverContent>
-            </Popover>
+            <div key={special.id} className="flex gap-1 items-center">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="text-md after:text-gray-400 cursor-pointer hover:line-through focus:line-through">
+                    {special.name}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0" side="top">
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    onClick={() => deleteSpecial(special.id)}
+                  >
+                    Yes i really want to delete
+                  </Button>
+                </PopoverContent>
+              </Popover>
+              {selected.length - 1 !== i && (
+                <Icons.Divide className="text-gray-400 size-4" />
+              )}
+            </div>
           );
         })}
         {options && options.length > 0 && (
@@ -72,14 +69,9 @@ export function ArtifactSubstats({ substats, mutate }: Props) {
               <Button
                 size="icon"
                 variant="ghost"
-                className={cn(
-                  'size-6 opacity-75 invisible group-hover/subs:visible group-focus-within/subs:visible data-[state=open]:visible hover:opacity-100 focus:opacity-100',
-                  {
-                    ['visible opacity-50']: selected.length === 0,
-                  },
-                )}
+                className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
               >
-                <Icons.add />
+                <Icons.Add />
               </Button>
             </SelectTrigger>
             <SelectContent>

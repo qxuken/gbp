@@ -137,7 +137,7 @@ function LoginComponent() {
                 >
                   {form.formState.isSubmitting && (
                     <>
-                      <Icons.spinner />{' '}
+                      <Icons.Spinner />{' '}
                     </>
                   )}
                   Login

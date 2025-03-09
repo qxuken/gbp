@@ -131,13 +131,13 @@ function Picker({ onSelect }: PickerProps) {
                 fileName={weaponType.icon}
                 name={weaponType.name}
                 size={16}
-                className="size-4"
+                className="size-4 not-dark:bg-black"
               />
               {weaponType.name}
             </Button>
           ))}
         </div>
-        <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-[repeat(auto-fit,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
+        <div className="min-h-32 max-h-[calc(75svh-12rem)] w-full grid grid-cols-[repeat(auto-fit,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
           {characters?.map((ch) => (
             <Button
               variant="secondary"

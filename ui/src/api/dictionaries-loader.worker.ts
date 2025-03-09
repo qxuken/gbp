@@ -72,7 +72,7 @@ self.addEventListener('message', (e) => {
   }
 });
 
-// FIX: not triggered
+// NOTE: Check on https
 self.addEventListener('fetch', (event) => {
   console.log('fetch event:unverified');
   if (!(event instanceof FetchEvent)) {

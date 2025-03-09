@@ -103,7 +103,7 @@ function ForgotPassword() {
                 >
                   {form.formState.isSubmitting && (
                     <>
-                      <Icons.spinner />{' '}
+                      <Icons.Spinner />{' '}
                     </>
                   )}
                   Reset Password

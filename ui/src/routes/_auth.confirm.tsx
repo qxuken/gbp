@@ -64,7 +64,7 @@ function ConfirmComponent() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             <Alert>
-              <Icons.alert className="size-4" />
+              <Icons.Alert className="size-4" />
               <AlertDescription>
                 We’ve sent a verification email. Please check your inbox and
                 confirm your email to proceed.

@@ -26,7 +26,7 @@ export function DoubleInputLabeled(props: Props) {
           max={props.max}
           disabled={props.disabled}
         />
-        <Icons.right className="size-4" />
+        <Icons.Right className="size-4" />
         <ShortNumberInput
           value={props.target}
           onChange={props.onTargetChange}

@@ -25,4 +25,10 @@ group.addButton({ title: 'Clear' }).on('click', () => {
   newCharacterPlans.setState({ latestId: 0, characterPlans: [] });
 });
 
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    group.dispose();
+  });
+}
+
 export {};

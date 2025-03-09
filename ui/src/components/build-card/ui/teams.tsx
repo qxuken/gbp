@@ -13,7 +13,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
-import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
 import { CharacterPicker } from './character-picker';
@@ -37,7 +36,7 @@ function Character({
   }
 
   return (
-    <div className="grid justify-items-center relative group/character">
+    <div className="grid justify-items-center relative">
       <CollectionAvatar
         record={character}
         fileName={character.icon}
@@ -51,10 +50,10 @@ function Character({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-0 right-0 size-6 p-1 opacity-75 invisible group-hover/character:visible group-focus-within/character:visible focus:visible hover:outline disabled:visible data-[state=open]:visible data-[state=open]:outline data-[state=open]:animate-pulse"
+            className="absolute top-0 right-0 size-6 p-1 opacity-50 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
             disabled={updateIsPending}
           >
-            <Icons.remove />
+            <Icons.Remove />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="p-0" side="top">
@@ -150,7 +149,7 @@ function Team({ buildId, teamId }: TeamProps) {
   const isPending = deleteIsPending || updateIsPending;
 
   return (
-    <div className="grid gap-2 grid-cols-3 group/team">
+    <div className="grid gap-2 grid-cols-3">
       {team?.characters.map((tm) => (
         <Character
           key={tm}
@@ -164,12 +163,10 @@ function Team({ buildId, teamId }: TeamProps) {
           <Button
             size="icon"
             variant="ghost"
-            className={cn(
-              'size-full opacity-75 hover:opacity-100 focus:opacity-100 invisible group-hover/team:visible outline',
-            )}
+            className="size-full opacity-50 hover:opacity-100 focus:opacity-100 hover:outline focus:outline"
             disabled={isPending}
           >
-            <Icons.add />
+            <Icons.Add />
           </Button>
         </CharacterPicker>
       )}
@@ -214,15 +211,10 @@ export function Teams({ buildId }: Props) {
           <Button
             size="icon"
             variant="ghost"
-            className={cn(
-              'size-6 opacity-75 hover:opacity-100 focus:opacity-100 invisible group-hover/teams:visible',
-              {
-                ['visible opacity-50']: !teams?.length,
-              },
-            )}
+            className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
             disabled={createIsPending}
           >
-            <Icons.add />
+            <Icons.Add />
           </Button>
         </CharacterPicker>
       </div>
