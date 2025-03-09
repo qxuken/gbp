@@ -14,6 +14,12 @@ func init() {
 			Name:     "name",
 			Required: true,
 		})
+		collection.Fields.Add(&core.NumberField{
+			Name:    "substat",
+			OnlyInt: true,
+			Min:     types.Pointer(float64(0)),
+			Max:     types.Pointer(float64(1)),
+		})
 		collection.ListRule = types.Pointer("")
 		collection.ViewRule = types.Pointer("")
 		return app.Save(collection)

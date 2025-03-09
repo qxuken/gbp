@@ -19,7 +19,8 @@ func (s Icon) GoString() string {
 }
 
 type Special struct {
-	Name string `db:"name"`
+	Name    string `db:"name"`
+	Substat int    `db:"substat"`
 }
 
 func (s Special) Save(app core.App) error {
@@ -27,6 +28,7 @@ func (s Special) Save(app core.App) error {
 	if err != nil {
 		return err
 	}
+	record.Set("substat", s.Substat)
 	return app.Save(record)
 }
 

@@ -47,7 +47,7 @@ export const db = new Dexie('Dictionaries') as DB;
 db.version(1).stores({
   config: '++key, value',
   elements: '++id, name, color, inverseTextColor, icon',
-  specials: '++id, name',
+  specials: '++id, name, substat',
   characterRoles: '++id, name',
   weaponTypes: '++id, name, icon',
   weapons: '++id, name, icon, weaponType, special, rarity',

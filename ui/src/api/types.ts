@@ -28,6 +28,7 @@ export interface Elements extends RecordModel {
 export interface Specials extends RecordModel {
   id: string;
   name: string;
+  substat: number;
 }
 
 export interface CharacterRoles extends RecordModel {

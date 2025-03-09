@@ -22,7 +22,10 @@ export function ArtifactSubstats({ substats, mutate }: Props) {
     [substats],
     [] as Specials[],
   );
-  const specials = useLiveQuery(() => db.specials.toArray(), []);
+  const specials = useLiveQuery(
+    () => db.specials.where('substat').equals(1).toArray(),
+    [],
+  );
   const selectedIds = new Set(selected.map((s) => s.id));
   const options = specials?.filter((s) => !selectedIds.has(s.id));
 
