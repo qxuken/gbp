@@ -96,7 +96,7 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-6 p-1 opacity-50 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                  className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
                   disabled={deleteIsPending}
                 >
                   {deleteIsPending ? (
@@ -160,10 +160,12 @@ export function Weapons({ buildId, weaponType }: Props) {
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      pbClient.collection<OnlyId>('weaponPlans').getFullList({
-        filter: `characterPlan = '${buildId}'`,
-        fields: 'id',
-      }),
+      pbClient
+        .collection<OnlyId & { weapon: string }>('weaponPlans')
+        .getFullList({
+          filter: `characterPlan = '${buildId}'`,
+          fields: 'id, weapon',
+        }),
   });
   const { mutate } = useMutation({
     mutationFn: (weaponId: string) =>
@@ -184,6 +186,8 @@ export function Weapons({ buildId, weaponType }: Props) {
     }),
   });
 
+  const ignoreWeapons = new Set(query.data?.map((it) => it.weapon));
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
@@ -192,6 +196,7 @@ export function Weapons({ buildId, weaponType }: Props) {
           title="New weapon"
           onSelect={mutate}
           weaponTypeId={weaponType}
+          ignoreWeapons={ignoreWeapons}
         >
           <Button
             variant="ghost"

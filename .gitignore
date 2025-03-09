@@ -1,6 +1,11 @@
+!.keep
+
+*.db-wal
+*.db-shm
+
 dist
 node_modules
-pb_data/*
+
 tmp
-!.keep
+pb_data/*
 

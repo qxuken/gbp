@@ -114,7 +114,7 @@ function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-6 p-1 opacity-50 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                    className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
                     disabled={deleteIsPending}
                   >
                     <Icons.Remove />
@@ -143,6 +143,7 @@ function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
           <ArtifactSetPicker
             title="Split into two peaces"
             onSelect={(as) => addSet(as)}
+            ignoreArifacts={new Set(artifactsSets.map((it) => it.id))}
           >
             <Button
               variant="ghost"

@@ -24,10 +24,11 @@ const DEF_FILTER = {
 
 type PickerProps = {
   weaponTypeId?: string;
+  ignoreWeapons?: Set<string>;
   onSelect(weaponId: string): void;
 };
 
-function Picker({ weaponTypeId, onSelect }: PickerProps) {
+function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
   const weaponTypes = useLiveQuery(() => db.weaponTypes.toArray(), []);
@@ -37,6 +38,7 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
         .orderBy('rarity')
         .filter(
           (w) =>
+            (ignoreWeapons === undefined || !ignoreWeapons.has(w.id)) &&
             (weaponTypeId === undefined || w.weaponType === weaponTypeId) &&
             (filter.weaponTypes.size === 0 ||
               filter.weaponTypes.has(w.weaponType)) &&
@@ -104,7 +106,7 @@ function Picker({ weaponTypeId, onSelect }: PickerProps) {
             ))}
           </div>
         )}
-        <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fit,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
+        <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
           {weapons?.map((w) => (
             <Button
               variant="secondary"
@@ -143,6 +145,7 @@ type Props = PropsWithChildren<
 export function WeaponPicker({
   title,
   weaponTypeId,
+  ignoreWeapons,
   onSelect,
   children,
 }: Props) {
@@ -161,7 +164,11 @@ export function WeaponPicker({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Pick Weapon</DialogDescription>
         </DialogHeader>
-        <Picker onSelect={select} weaponTypeId={weaponTypeId} />
+        <Picker
+          onSelect={select}
+          weaponTypeId={weaponTypeId}
+          ignoreWeapons={ignoreWeapons}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -18,6 +18,7 @@ function newCharacterPlan(
   return {
     user: pbClient.authStore.record?.id,
     character: characterId,
+    order: 1,
     constellationCurrent: 0,
     constellationTarget: 6,
     levelCurrent: 0,

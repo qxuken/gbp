@@ -33,9 +33,9 @@ export function ArtifactStats({ buildId }: Props) {
     mutationFn: async (
       variables:
         | ({ type: 'add' } & Pick<
-            ArtifactTypePlans,
-            'special' | 'artifactType'
-          >)
+          ArtifactTypePlans,
+          'special' | 'artifactType'
+        >)
         | ({ type: 'delete' } & Pick<ArtifactTypePlans, 'id'>),
     ) => {
       switch (variables.type) {
@@ -61,7 +61,10 @@ export function ArtifactStats({ buildId }: Props) {
     }),
   });
 
-  const artifactTypes = useLiveQuery(() => db.artifactTypes.toArray(), []);
+  const artifactTypes = useLiveQuery(
+    () => db.artifactTypes.orderBy('order').toArray(),
+    [],
+  );
   const specialsMap = useLiveQuery(
     () =>
       db.specials.toArray().then((s) =>
@@ -116,7 +119,7 @@ export function ArtifactStats({ buildId }: Props) {
                 fileName={at.icon}
                 name={at.name}
                 size={32}
-                className={cn('size-12', {
+                className={cn('size-8', {
                   ['opacity-50']: selected.length === 0,
                 })}
               />

@@ -90,7 +90,7 @@ export interface CharacterPlans extends RecordModel {
   talentBurstCurrent: number;
   talentBurstTarget: number;
   substats: string[];
-  notes?: string;
+  note: string;
 }
 
 export interface TeamPlans extends RecordModel {

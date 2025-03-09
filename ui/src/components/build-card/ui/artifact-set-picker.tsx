@@ -23,8 +23,9 @@ const DEF_FILTER = {
 
 type PickerProps = {
   onSelect(weaponId: string): void;
+  ignoreArifacts?: Set<string>;
 };
-function Picker({ onSelect }: PickerProps) {
+function Picker({ onSelect, ignoreArifacts }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
   const artifactSets = useLiveQuery(
@@ -33,8 +34,9 @@ function Picker({ onSelect }: PickerProps) {
         .orderBy('rarity')
         .filter(
           (as) =>
-            filter.name.length === 0 ||
-            fuzzysearch(filter.name.toLowerCase(), as.name.toLowerCase()),
+            (ignoreArifacts === undefined || !ignoreArifacts.has(as.id)) &&
+            (filter.name.length === 0 ||
+              fuzzysearch(filter.name.toLowerCase(), as.name.toLowerCase())),
         )
         .reverse()
         .toArray(),
@@ -62,7 +64,7 @@ function Picker({ onSelect }: PickerProps) {
             }}
           />
         </div>
-        <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fit,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
+        <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
           {artifactSets?.map((w) => (
             <Button
               variant="secondary"
@@ -99,7 +101,12 @@ type Props = PropsWithChildren<
     title: string;
   }
 >;
-export function ArtifactSetPicker({ title, onSelect, children }: Props) {
+export function ArtifactSetPicker({
+  title,
+  onSelect,
+  ignoreArifacts,
+  children,
+}: Props) {
   const [open, setOpen] = useState(false);
 
   const select = (id: string) => {
@@ -115,7 +122,7 @@ export function ArtifactSetPicker({ title, onSelect, children }: Props) {
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Pick artifact set</DialogDescription>
         </DialogHeader>
-        <Picker onSelect={select} />
+        <Picker onSelect={select} ignoreArifacts={ignoreArifacts} />
       </DialogContent>
     </Dialog>
   );

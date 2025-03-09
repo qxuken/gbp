@@ -22,7 +22,7 @@ func init() {
 			Name:     "order",
 			Required: true,
 			OnlyInt:  true,
-			Min:      types.Pointer(float64(0)),
+			Min:      types.Pointer(float64(1)),
 		})
 		collection.Fields.Add(&core.FileField{
 			Name:      "icon",

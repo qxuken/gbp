@@ -51,7 +51,7 @@ function Character({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-0 right-0 size-6 p-1 opacity-50 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+              className="absolute top-0 right-0 size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
               disabled={updateIsPending}
             >
               <Icons.Remove />

@@ -53,5 +53,5 @@ db.version(1).stores({
   weapons: '++id, name, icon, weaponType, special, rarity',
   characters: '++id, name, icon, element, weaponType, special, rarity',
   artifactSets: '++id, name, icon, rarity',
-  artifactTypes: '++id, name, icon, specials',
+  artifactTypes: '++id, name, order, icon, specials',
 });

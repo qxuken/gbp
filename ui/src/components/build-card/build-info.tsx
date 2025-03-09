@@ -6,13 +6,23 @@ import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 import type { CharacterPlans } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
+import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { AsyncDebounce } from '@/lib/async-debounce';
 import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
 
+import { AutoTextarea } from '../ui/auto-textarea';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactStats } from './ui/artifact-stats';
 import { ArtifactSubstats } from './ui/artifact-substats';
@@ -45,7 +55,11 @@ export function BuildInfo({ buildId }: Props) {
       ),
     [],
   );
-  const { variables, mutate } = useMutation({
+  const {
+    variables,
+    mutate,
+    isPending: updateIsPending,
+  } = useMutation({
     mutationFn: (v: CharacterPlans) => mutationDebouncer.run(v),
     onSettled: async (data) =>
       data
@@ -55,8 +69,28 @@ export function BuildInfo({ buildId }: Props) {
       mutate(v);
     }),
   });
+  const {
+    mutate: deleteBuild,
+    isPending: deleteIsPending,
+    isSuccess: isDeleted,
+  } = useMutation({
+    mutationFn: () =>
+      pbClient.collection<CharacterPlans>('characterPlans').delete(buildId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ['characterPlans'],
+        exact: true,
+      });
+      queryClient.removeQueries({ queryKey });
+    },
+    onError: notifyWithRetry(() => {
+      deleteBuild();
+    }),
+  });
 
-  if (!query.data || !character) {
+  const isPending = updateIsPending || deleteIsPending;
+
+  if (!query.data || !character || isDeleted) {
     return null;
   }
 
@@ -65,8 +99,31 @@ export function BuildInfo({ buildId }: Props) {
   return (
     <Card className="w-full bg-accent text-accent-foreground overflow-hidden">
       <CardTitle className="p-4 w-full flex items-center gap-3">
-        <span className="flex-1 font-semibold text-lg">{character.name}</span>
+        <span className="font-semibold text-lg">{character.name}</span>
         <CharacterInfo character={character} />
+        <div className="flex-1" />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+              disabled={isPending}
+            >
+              <Icons.Remove />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" side="top">
+            <Button
+              variant="destructive"
+              className="w-full"
+              disabled={isPending}
+              onClick={() => deleteBuild()}
+            >
+              Yes i really want to delete
+            </Button>
+          </PopoverContent>
+        </Popover>
       </CardTitle>
       <CardContent className="w-full flex flex-col gap-3 bg-accent">
         <div className="flex items-start justify-around">
@@ -139,6 +196,17 @@ export function BuildInfo({ buildId }: Props) {
           mutate={mutateField(mutate, build, 'substats')}
         />
         <Teams buildId={build.id} characterId={build.character} />
+        <div className="mt-1 w-full grid gap-2">
+          <Label htmlFor={buildId + '_note'} className="text-muted-foreground">
+            Notes
+          </Label>
+          <AutoTextarea
+            id={buildId + '_note'}
+            placeholder="Additional build notes"
+            value={build.note}
+            onChange={(e) => mutateField(mutate, build, 'note')(e.target.value)}
+          />
+        </div>
       </CardContent>
     </Card>
   );
