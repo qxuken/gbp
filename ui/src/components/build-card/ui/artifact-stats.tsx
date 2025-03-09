@@ -33,9 +33,9 @@ export function ArtifactStats({ buildId }: Props) {
     mutationFn: async (
       variables:
         | ({ type: 'add' } & Pick<
-          ArtifactTypePlans,
-          'special' | 'artifactType'
-        >)
+            ArtifactTypePlans,
+            'special' | 'artifactType'
+          >)
         | ({ type: 'delete' } & Pick<ArtifactTypePlans, 'id'>),
     ) => {
       switch (variables.type) {

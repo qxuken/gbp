@@ -1,3 +1,5 @@
+import { useSortable } from '@dnd-kit/sortable';
+// import { CSS } from '@dnd-kit/utilities';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo } from 'react';
@@ -22,7 +24,6 @@ import { queryClient } from '@/main';
 
 import { AutoTextarea } from '../ui/auto-textarea';
 import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactStats } from './ui/artifact-stats';
 import { ArtifactSubstats } from './ui/artifact-substats';
@@ -31,8 +32,8 @@ import { DoubleInputLabeled } from './ui/double-input-labeled';
 import { Teams } from './ui/teams';
 import { Weapons } from './ui/weapons';
 
-type Props = { buildId: string };
-export function BuildInfo({ buildId }: Props) {
+type Props = { buildId: string; reorderIsPending?: boolean };
+export function BuildInfo({ buildId, reorderIsPending }: Props) {
   const queryKey = ['characterPlans', buildId];
   const query = useQuery({
     queryKey,
@@ -88,7 +89,18 @@ export function BuildInfo({ buildId }: Props) {
     }),
   });
 
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: buildId });
+
   const isPending = updateIsPending || deleteIsPending;
+
+  const style = {
+    transform: transform
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+      : undefined,
+    // transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   if (!query.data || !character || isDeleted) {
     return null;
@@ -97,8 +109,22 @@ export function BuildInfo({ buildId }: Props) {
   const build = variables || query.data;
 
   return (
-    <Card className="w-full bg-accent text-accent-foreground overflow-hidden">
-      <CardTitle className="p-4 w-full flex items-center gap-3">
+    <Card
+      className="w-full bg-accent text-accent-foreground overflow-hidden"
+      ref={setNodeRef}
+      style={style}
+    >
+      <div className="w-full flex justify-center pt-1">
+        {reorderIsPending ? (
+          <Icons.Drag
+            className="opacity-25 animate-pulse py-1 px-2"
+            {...attributes}
+          />
+        ) : (
+          <Icons.Drag className="py-1" {...listeners} {...attributes} />
+        )}
+      </div>
+      <CardTitle className="px-4 w-full flex items-center gap-3">
         <span className="font-semibold text-lg">{character.name}</span>
         <CharacterInfo character={character} />
         <div className="flex-1" />
@@ -125,7 +151,7 @@ export function BuildInfo({ buildId }: Props) {
           </PopoverContent>
         </Popover>
       </CardTitle>
-      <CardContent className="w-full flex flex-col gap-3 bg-accent">
+      <CardContent className="w-full pt-4 flex flex-col gap-3 bg-accent">
         <div className="flex items-start justify-around">
           <div className="grid grid-cols-[auto_1fr] items-center gap-1">
             <DoubleInputLabeled

@@ -1,5 +1,9 @@
 import type { RecordModel } from 'pocketbase';
 
+export type WithOrder<T> = T & {
+  order: number;
+};
+
 export interface OnlyId {
   id: string;
 }

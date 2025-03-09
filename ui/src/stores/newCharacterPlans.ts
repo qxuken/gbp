@@ -9,7 +9,7 @@ import { queryClient } from '@/main';
 import { auth } from './auth';
 
 function newCharacterPlan(
-  characterId: string,
+  pending: PendingCharacter,
 ): Omit<CharacterPlans, 'id'> | undefined {
   if (!pbClient.authStore.record) {
     auth.getState().authRefresh();
@@ -17,10 +17,10 @@ function newCharacterPlan(
   }
   return {
     user: pbClient.authStore.record?.id,
-    character: characterId,
-    order: 1,
+    character: pending.characterId,
+    order: pending.order,
     constellationCurrent: 0,
-    constellationTarget: 6,
+    constellationTarget: 0,
     levelCurrent: 0,
     levelTarget: 90,
     talentAtkCurrent: 0,
@@ -36,13 +36,14 @@ function newCharacterPlan(
 type PendingCharacter = {
   id: string;
   characterId: string;
+  order: number;
 };
 
 export interface NewCharacterPlans {
   characterPlans: PendingCharacter[];
   sentPlans: WeakSet<PendingCharacter>;
   latestId: number;
-  addNew(plan: string): void;
+  addNew(characterId: string, itemsCount: number): void;
   planReady(planId: PendingCharacter): void;
 }
 
@@ -50,13 +51,17 @@ export const newCharacterPlans = create<NewCharacterPlans>((set) => ({
   characterPlans: [],
   latestId: 0,
   sentPlans: new WeakSet(),
-  addNew(characterId) {
+  addNew(characterId, itemsCount) {
     const newId = this.latestId + 1;
     set(() => ({
       latestId: newId,
       characterPlans: [
         ...this.characterPlans,
-        { id: String(newId), characterId },
+        {
+          id: String(newId),
+          characterId,
+          order: itemsCount + this.characterPlans.length + 1,
+        },
       ],
     }));
   },
@@ -81,7 +86,7 @@ function createPlans({ characterPlans, sentPlans }: NewCharacterPlans) {
     if (sentPlans.has(pendingPlan)) {
       continue;
     }
-    const plan = newCharacterPlan(pendingPlan.characterId);
+    const plan = newCharacterPlan(pendingPlan);
     if (!plan) {
       break;
     }

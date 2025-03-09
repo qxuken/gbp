@@ -14,6 +14,7 @@ import {
   Trash,
   SquareSplitVertical,
   Slash,
+  GripHorizontal,
 } from 'lucide-react';
 
 export type Icon = typeof LucideIcon;
@@ -34,4 +35,5 @@ export const Icons = {
   New: SquarePen,
   SplitY: SquareSplitVertical,
   Divide: Slash,
+  Drag: GripHorizontal,
 };
