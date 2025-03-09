@@ -31,6 +31,15 @@ func init() {
 			CollectionId: artifactSets.Id,
 			MaxSelect:    2,
 		})
+		collection.Fields.Add(&core.AutodateField{
+			Name:     "created",
+			OnCreate: true,
+		})
+		collection.Fields.Add(&core.AutodateField{
+			Name:     "updated",
+			OnCreate: true,
+			OnUpdate: true,
+		})
 		collection.AddIndex("idx_"+models.ARTIFACT_SETS_PLANS_COLLECTION_NAME+"_characterPlan", false, "`characterPlan`", "")
 		rule := `@request.auth.id != "" && characterPlan.user = @request.auth.id`
 		collection.ListRule = types.Pointer(rule)

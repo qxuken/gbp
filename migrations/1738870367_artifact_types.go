@@ -18,6 +18,12 @@ func init() {
 			Name:     "name",
 			Required: true,
 		})
+		collection.Fields.Add(&core.NumberField{
+			Name:     "order",
+			Required: true,
+			OnlyInt:  true,
+			Min:      types.Pointer(float64(0)),
+		})
 		collection.Fields.Add(&core.FileField{
 			Name:      "icon",
 			Required:  true,

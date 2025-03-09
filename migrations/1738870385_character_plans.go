@@ -41,6 +41,12 @@ func init() {
 			MaxSelect:    1,
 			Presentable:  true,
 		})
+		collection.Fields.Add(&core.NumberField{
+			Name:     "order",
+			Required: true,
+			OnlyInt:  true,
+			Min:      types.Pointer(float64(0)),
+		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "characterRole",
 			Required:     false,
@@ -122,6 +128,18 @@ func init() {
 			Required:     false,
 			CollectionId: specials.Id,
 			MaxSelect:    50,
+		})
+		collection.Fields.Add(&core.TextField{
+			Name: "note",
+		})
+		collection.Fields.Add(&core.AutodateField{
+			Name:     "created",
+			OnCreate: true,
+		})
+		collection.Fields.Add(&core.AutodateField{
+			Name:     "updated",
+			OnCreate: true,
+			OnUpdate: true,
 		})
 		collection.AddIndex("idx_"+models.CHARACTER_PLANS_COLLECTION_NAME+"_user", false, "`user`", "")
 		rule := `@request.auth.id != "" && user = @request.auth.id`

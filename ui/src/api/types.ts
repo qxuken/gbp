@@ -65,6 +65,7 @@ export interface ArtifactSets extends RecordModel {
 
 export interface ArtifactTypes extends RecordModel {
   id: string;
+  order: number;
   name: string;
   icon: string;
   specials: string[];
@@ -77,6 +78,7 @@ export interface CharacterPlans extends RecordModel {
   user: string;
   character: string;
   characterRole?: string;
+  order: number;
   constellationCurrent: number;
   constellationTarget: number;
   levelCurrent: number;
@@ -88,6 +90,7 @@ export interface CharacterPlans extends RecordModel {
   talentBurstCurrent: number;
   talentBurstTarget: number;
   substats: string[];
+  notes?: string;
 }
 
 export interface TeamPlans extends RecordModel {

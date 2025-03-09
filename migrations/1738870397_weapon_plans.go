@@ -60,6 +60,15 @@ func init() {
 			Min:      types.Pointer(float64(1)),
 			Max:      types.Pointer(float64(5)),
 		})
+		collection.Fields.Add(&core.AutodateField{
+			Name:     "created",
+			OnCreate: true,
+		})
+		collection.Fields.Add(&core.AutodateField{
+			Name:     "updated",
+			OnCreate: true,
+			OnUpdate: true,
+		})
 		collection.AddIndex("idx_"+models.WEAPON_PLANS_COLLECTION_NAME+"_characterPlan", false, "`characterPlan`", "")
 		rule := `@request.auth.id != "" && characterPlan.user = @request.auth.id`
 		collection.ListRule = types.Pointer(rule)

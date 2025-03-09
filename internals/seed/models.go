@@ -89,6 +89,7 @@ func (s ArtifactSet) Save(app core.App) error {
 type ArtifactType struct {
 	Name         string                  `db:"name"`
 	Specials     types.JSONArray[string] `db:"specials"`
+	Order        int                     `db:"order"`
 	IconContent  Icon                    `db:"iconContent"`
 	IconFilename string                  `db:"iconFilename"`
 }
@@ -107,6 +108,7 @@ func (s ArtifactType) Save(app core.App) error {
 		specials = append(specials, special.Id)
 	}
 	record.Set("specials", specials)
+	record.Set("order", s.Order)
 	file, err := filesystem.NewFileFromBytes(s.IconContent, s.IconFilename)
 	if err != nil {
 		return err
