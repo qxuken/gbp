@@ -25,9 +25,9 @@ function newCharacterPlan(
     talentAtkCurrent: 0,
     talentAtkTarget: 10,
     talentSkillCurrent: 0,
-    talentSkillTarget: 13,
+    talentSkillTarget: 10,
     talentBurstCurrent: 0,
-    talentBurstTarget: 13,
+    talentBurstTarget: 10,
     substats: [],
   };
 }
