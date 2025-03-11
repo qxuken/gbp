@@ -7,6 +7,7 @@ import {
 import { create } from 'zustand';
 
 import { pbClient } from '@/api/pocketbase';
+import { queryClient } from '@/main';
 
 export interface Auth {
   initCheckComplete: boolean;
@@ -73,6 +74,7 @@ export const auth = create<Auth>((set) => ({
 
   logout() {
     pbClient.authStore.clear();
+    queryClient.clear();
     set({
       isAuthenticated: false,
       record: null,
