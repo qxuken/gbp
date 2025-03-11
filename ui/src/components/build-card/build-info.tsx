@@ -24,6 +24,7 @@ import { queryClient } from '@/main';
 
 import { AutoTextarea } from '../ui/auto-textarea';
 import { Label } from '../ui/label';
+import { Skeleton } from '../ui/skeleton';
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactStats } from './ui/artifact-stats';
 import { ArtifactSubstats } from './ui/artifact-substats';
@@ -79,8 +80,7 @@ export function BuildInfo({ buildId, reorderIsPending }: Props) {
       pbClient.collection<CharacterPlans>('characterPlans').delete(buildId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ['characterPlans'],
-        exact: true,
+        queryKey: ['characterPlans', 'page'],
       });
       queryClient.removeQueries({ queryKey });
     },
@@ -236,4 +236,8 @@ export function BuildInfo({ buildId, reorderIsPending }: Props) {
       </CardContent>
     </Card>
   );
+}
+
+function BuildInfoSkeleton() {
+  return <Skeleton className="w-full h-10" />;
 }

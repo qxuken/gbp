@@ -99,9 +99,9 @@ function createPlans({ characterPlans, sentPlans }: NewCharacterPlans) {
           .create(plan);
         queryClient.setQueryData(['characterPlans', res.id], res);
         await queryClient.invalidateQueries({
-          queryKey: ['characterPlans'],
-          exact: true,
+          queryKey: ['characterPlans', 'page'],
         });
+        toast.success('Plan successfuly created');
         newCharacterPlans.getState().planReady(pendingPlan);
       } catch (e) {
         if (!(e instanceof ClientResponseError)) {

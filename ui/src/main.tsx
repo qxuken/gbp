@@ -21,7 +21,13 @@ export interface AppContext {
   theme: Theme;
 }
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+    },
+  },
+});
 
 function App() {
   const theme = useTheme();

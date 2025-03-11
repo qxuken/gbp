@@ -14,7 +14,7 @@ export function CreateBuild({ size, disabled }: Props) {
   };
 
   return (
-    <Card className="w-full opacity-80 self-start">
+    <Card className="opacity-80 self-start">
       <CardContent className="size-full p-0">
         <CharacterPicker title="Create new build" onSelect={createNewPlan}>
           <Button

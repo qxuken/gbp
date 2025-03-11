@@ -23,8 +23,8 @@ export const router = createRouter({
     theme: theme.getState(),
   },
   defaultPendingComponent: () => {
-    <div className="p-2 text-2xl">
-      <Icons.Spinner />
+    <div className="w-full p-2 flex justify-center">
+      <Icons.Spinner className="animate-spin size-12" />
     </div>;
   },
 });
