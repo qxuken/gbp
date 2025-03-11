@@ -53,7 +53,7 @@ export const Route = createFileRoute('/_protected/')({
 
 function HomeComponent() {
   const query = Route.useLoaderDeps();
-  const data = useSuspenseQuery(query);
+  const { data: queryData } = useSuspenseQuery(query);
   const { characterPlans } = useNewCharacterPlans();
 
   const sensors = useSensors(
@@ -67,6 +67,7 @@ function HomeComponent() {
     variables,
     mutate: reorderItems,
     isPending: reorderIsPending,
+    reset,
   } = useMutation({
     mutationFn(items: Item[]) {
       const batch = pbClient.createBatch();
@@ -78,18 +79,16 @@ function HomeComponent() {
       return batch.send();
     },
     onSuccess: async (data) => {
-      queryClient.setQueryData(QUERY_KEY, data);
-      return queryClient.invalidateQueries({
-        queryKey: QUERY_KEY,
-        exact: true,
-      });
+      const items = data.map((it) => it.body);
+      await queryClient.setQueryData(QUERY_KEY, { ...queryData, items });
+      reset();
     },
     onError: notifyWithRetry((v) => {
       reorderItems(v);
     }),
   });
 
-  const items = variables || data.data.items;
+  const items = variables || queryData.items;
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
