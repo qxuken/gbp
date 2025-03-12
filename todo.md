@@ -6,7 +6,7 @@ Tasks:
 [?] Reordering on non zero page
 [x] Logout loading
 [x] Specials ordering
-[ ] Hidden note if empty
+[x] Hidden note if empty
 [ ] Teams divider
 [ ] Skeletons and lazy loaders
 [ ] Footer / Header

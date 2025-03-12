@@ -22,14 +22,13 @@ import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
 
-import { AutoTextarea } from '../ui/auto-textarea';
-import { Label } from '../ui/label';
 import { Skeleton } from '../ui/skeleton';
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactStats } from './ui/artifact-stats';
 import { ArtifactSubstats } from './ui/artifact-substats';
 import { CharacterInfo } from './ui/character-info';
 import { DoubleInputLabeled } from './ui/double-input-labeled';
+import { Note } from './ui/note';
 import { Teams } from './ui/teams';
 import { Weapons } from './ui/weapons';
 
@@ -222,17 +221,11 @@ export function BuildInfo({ buildId, reorderIsPending }: Props) {
           mutate={mutateField(mutate, build, 'substats')}
         />
         <Teams buildId={build.id} characterId={build.character} />
-        <div className="mt-1 w-full grid gap-2">
-          <Label htmlFor={buildId + '_note'} className="text-muted-foreground">
-            Notes
-          </Label>
-          <AutoTextarea
-            id={buildId + '_note'}
-            placeholder="Additional build notes"
-            value={build.note}
-            onChange={(e) => mutateField(mutate, build, 'note')(e.target.value)}
-          />
-        </div>
+        <Note
+          buildId={build.id}
+          note={build.note}
+          mutate={mutateField(mutate, build, 'note')}
+        />
       </CardContent>
     </Card>
   );
