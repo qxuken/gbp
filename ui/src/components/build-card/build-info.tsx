@@ -108,11 +108,7 @@ export function BuildInfo({ buildId, reorderIsPending }: Props) {
   const build = variables || query.data;
 
   return (
-    <Card
-      className="w-full bg-accent text-accent-foreground overflow-hidden"
-      ref={setNodeRef}
-      style={style}
-    >
+    <Card className="w-full overflow-hidden" ref={setNodeRef} style={style}>
       <div className="w-full flex justify-center pt-1">
         {reorderIsPending ? (
           <Icons.Drag
@@ -150,7 +146,7 @@ export function BuildInfo({ buildId, reorderIsPending }: Props) {
           </PopoverContent>
         </Popover>
       </CardTitle>
-      <CardContent className="w-full pt-4 flex flex-col gap-3 bg-accent">
+      <CardContent className="w-full pt-4 flex flex-col gap-3">
         <div className="flex items-start justify-around">
           <div className="grid grid-cols-[auto_1fr] items-center gap-1">
             <DoubleInputLabeled
