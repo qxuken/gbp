@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
-import { ArtifactSetsPlans, OnlyId } from '@/api/types';
+import { ArtifactSetsPlans } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -13,10 +13,105 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
+
+type ShortItem = Pick<ArtifactSetsPlans, 'id'>;
+type Props = { buildId: string; enabled?: boolean };
+export function ArtifactSets({ buildId, enabled }: Props) {
+  const queryKey = ['characterPlans', buildId, 'artifactSetsPlans'];
+  const query = useQuery({
+    queryKey,
+    queryFn: () =>
+      pbClient.collection<ShortItem>('artifactSetsPlans').getFullList({
+        filter: `characterPlan = '${buildId}'`,
+        fields: 'id',
+      }),
+    enabled,
+  });
+  const { mutate: addSetPlan } = useMutation({
+    mutationFn: (artifactSetsId: string) =>
+      pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').create({
+        characterPlan: buildId,
+        artifactSets: [artifactSetsId],
+      }),
+    onSuccess(data) {
+      queryClient.setQueryData([...queryKey, data.id], data);
+      return queryClient.invalidateQueries({ queryKey });
+    },
+    onError: notifyWithRetry((v) => {
+      addSetPlan(v);
+    }),
+  });
+
+  const artifactSets = query.data;
+
+  if (query.isPending || !artifactSets) {
+    return <ArtifactSetsSkeleton />;
+  }
+
+  return (
+    <ArtifactSetsLoaded
+      buildId={buildId}
+      queryKey={queryKey}
+      artifactSets={artifactSets}
+    />
+  );
+}
+
+type PropsLoaded = Omit<Props, 'enabled'> & {
+  artifactSets: ShortItem[];
+  queryKey: string[];
+};
+function ArtifactSetsLoaded({ buildId, queryKey, artifactSets }: PropsLoaded) {
+  const { mutate: addSetPlan } = useMutation({
+    mutationFn: (artifactSetsId: string) =>
+      pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').create({
+        characterPlan: buildId,
+        artifactSets: [artifactSetsId],
+      }),
+    onSuccess(data) {
+      queryClient.setQueryData([...queryKey, data.id], data);
+      return queryClient.invalidateQueries({ queryKey });
+    },
+    onError: notifyWithRetry((v) => {
+      addSetPlan(v);
+    }),
+  });
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-1">
+        <span className="text-sm">Artifacts</span>
+        <ArtifactSetPicker
+          title="New artifact set"
+          onSelect={(as) => addSetPlan(as)}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+          >
+            <Icons.Add />
+          </Button>
+        </ArtifactSetPicker>
+      </div>
+      <div className="grid gap-1 w-full">
+        {artifactSets.map((as, i) => (
+          <div key={as.id}>
+            <ArtifactSet buildId={buildId} artifactSetPlanId={as.id} />
+            {artifactSets.length - 1 !== i && (
+              <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 type ArtifactSetProps = { buildId: string; artifactSetPlanId: string };
 function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
@@ -159,59 +254,34 @@ function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
   );
 }
 
-type Props = { buildId: string };
-export function ArtifactSets({ buildId }: Props) {
-  const queryKey = ['characterPlans', buildId, 'artifactSetsPlans'];
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      pbClient.collection<OnlyId>('artifactSetsPlans').getFullList({
-        filter: `characterPlan = '${buildId}'`,
-        fields: 'id',
-      }),
-  });
-  const { mutate: addSetPlan } = useMutation({
-    mutationFn: (artifactSetsId: string) =>
-      pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').create({
-        characterPlan: buildId,
-        artifactSets: [artifactSetsId],
-      }),
-    onSuccess(data) {
-      queryClient.setQueryData([...queryKey, data.id], data);
-      return queryClient.invalidateQueries({ queryKey });
-    },
-    onError: notifyWithRetry((v) => {
-      addSetPlan(v);
-    }),
-  });
-
-  const artifactSets = query.data;
+export function ArtifactSetsSkeleton() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
-        <span className="text-sm">Artifacts</span>
-        <ArtifactSetPicker
-          title="New artifact set"
-          onSelect={(as) => addSetPlan(as)}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100"
-          >
-            <Icons.Add />
-          </Button>
-        </ArtifactSetPicker>
+        <Skeleton className="h-5 w-15 rounded-md" />
+        <Skeleton className="size-5 rounded-md" />
       </div>
       <div className="grid gap-1 w-full">
-        {artifactSets?.map((as, i) => (
-          <div key={as.id}>
-            <ArtifactSet buildId={buildId} artifactSetPlanId={as.id} />
-            {artifactSets.length - 1 !== i && (
-              <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
-            )}
-          </div>
-        ))}
+        <ArtifactSetSkeleton />
+      </div>
+    </div>
+  );
+}
+
+function ArtifactSetSkeleton() {
+  return (
+    <div className="w-full flex gap-2">
+      <div className="px-1.5 w-12 h-9">
+        <Skeleton className="size-full rounded-4xl" />
+      </div>
+      <div className="flex-1 grid">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <Skeleton className="h-4 w-24 rounded-md" />
+          <Skeleton className="size-6 rounded-md" />
+        </div>
+        <div className="flex items-center justify-between gap-1">
+          <Skeleton className="h-4 w-8 rounded-md" />
+        </div>
       </div>
     </div>
   );

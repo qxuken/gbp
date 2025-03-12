@@ -5,22 +5,114 @@ import { useMemo } from 'react';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
-import { OnlyId, WeaponPlans } from '@/api/types';
+import { WeaponPlans } from '@/api/types';
 import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Skeleton } from '@/components/ui/skeleton';
 import { AsyncDebounce } from '@/lib/async-debounce';
 import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
-import { DoubleInputLabeled } from './double-input-labeled';
+import {
+  DoubleInputLabeled,
+  DoubleInputLabeledSkeleton,
+} from './double-input-labeled';
 import { WeaponPicker } from './weapon-picker';
 
+type ShortItem = Pick<WeaponPlans, 'id' | 'weapon'>;
+type Props = { buildId: string; weaponType: string; enabled?: boolean };
+export function Weapons({ buildId, weaponType, enabled }: Props) {
+  const queryKey = ['characterPlans', buildId, 'weapons'];
+  const query = useQuery({
+    queryKey,
+    queryFn: () =>
+      pbClient.collection<ShortItem>('weaponPlans').getFullList({
+        filter: `characterPlan = '${buildId}'`,
+        fields: 'id, weapon',
+      }),
+    enabled,
+  });
+  const weapons = query.data;
+
+  if (query.isPending || !weapons) {
+    return <WeaponsSkeleton />;
+  }
+
+  return (
+    <WeaponsLoaded
+      buildId={buildId}
+      weaponType={weaponType}
+      queryKey={queryKey}
+      weapons={weapons}
+    />
+  );
+}
+
+type PropsLoaded = Omit<Props, 'enabled'> & {
+  weapons: ShortItem[];
+  queryKey: string[];
+};
+function WeaponsLoaded({
+  buildId,
+  weaponType,
+  weapons,
+  queryKey,
+}: PropsLoaded) {
+  const ignoreWeapons = new Set(weapons.map((it) => it.weapon));
+
+  const { mutate } = useMutation({
+    mutationFn: (weaponId: string) =>
+      pbClient.collection<WeaponPlans>('weaponPlans').create({
+        characterPlan: buildId,
+        weapon: weaponId,
+        levelCurrent: 0,
+        levelTarget: 90,
+        refinementCurrent: 1,
+        refinementTarget: 5,
+      }),
+    onSuccess(data) {
+      queryClient.setQueryData([...queryKey, data.id], data);
+      return queryClient.invalidateQueries({ queryKey });
+    },
+    onError: notifyWithRetry((v) => {
+      mutate(v);
+    }),
+  });
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-1">
+        <span className="text-sm">Weapons</span>
+        <WeaponPicker
+          title="New weapon"
+          onSelect={mutate}
+          weaponTypeId={weaponType}
+          ignoreWeapons={ignoreWeapons}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+          >
+            <Icons.Add />
+          </Button>
+        </WeaponPicker>
+      </div>
+      <div className="grid gap-2 w-full">
+        {weapons.map((wp) => (
+          <Weapon key={wp.id} buildId={buildId} weaponPlanId={wp.id} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type WeaponProps = { weaponPlanId: string; buildId: string };
-export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
+function Weapon({ weaponPlanId, buildId }: WeaponProps) {
   const queryKey = ['characterPlans', buildId, 'weapons', weaponPlanId];
   const query = useQuery({
     queryKey,
@@ -69,7 +161,7 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
     }),
   });
   if (!weapon || !query.data || isDeleted) {
-    return null;
+    return <Skeleton className="w-full h-8"></Skeleton>;
   }
 
   const weaponPlan = variables || query.data;
@@ -154,63 +246,35 @@ export function Weapon({ weaponPlanId, buildId }: WeaponProps) {
   );
 }
 
-type Props = { buildId: string; weaponType: string };
-export function Weapons({ buildId, weaponType }: Props) {
-  const queryKey = ['characterPlans', buildId, 'weapons'];
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      pbClient
-        .collection<OnlyId & { weapon: string }>('weaponPlans')
-        .getFullList({
-          filter: `characterPlan = '${buildId}'`,
-          fields: 'id, weapon',
-        }),
-  });
-  const { mutate } = useMutation({
-    mutationFn: (weaponId: string) =>
-      pbClient.collection<WeaponPlans>('weaponPlans').create({
-        characterPlan: buildId,
-        weapon: weaponId,
-        levelCurrent: 0,
-        levelTarget: 90,
-        refinementCurrent: 1,
-        refinementTarget: 5,
-      }),
-    onSuccess(data) {
-      queryClient.setQueryData([...queryKey, data.id], data);
-      return queryClient.invalidateQueries({ queryKey });
-    },
-    onError: notifyWithRetry((v) => {
-      mutate(v);
-    }),
-  });
-
-  const ignoreWeapons = new Set(query.data?.map((it) => it.weapon));
-
+export function WeaponsSkeleton() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
-        <span className="text-sm">Weapons</span>
-        <WeaponPicker
-          title="New weapon"
-          onSelect={mutate}
-          weaponTypeId={weaponType}
-          ignoreWeapons={ignoreWeapons}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100"
-          >
-            <Icons.Add />
-          </Button>
-        </WeaponPicker>
+        <Skeleton className="h-5 w-16 rounded-md" />
+        <Skeleton className="size-5 rounded-md" />
       </div>
       <div className="grid gap-2 w-full">
-        {query.data?.map((wp) => (
-          <Weapon key={wp.id} buildId={buildId} weaponPlanId={wp.id} />
-        ))}
+        <WeaponSkeleton />
+      </div>
+    </div>
+  );
+}
+
+function WeaponSkeleton() {
+  return (
+    <div className="w-full flex gap-2">
+      <div className="px-1.5 w-12 h-9">
+        <Skeleton className="size-full rounded-4xl" />
+      </div>
+      <div className="flex-1 grid">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <Skeleton className="h-4 w-24 rounded-md" />
+          <Skeleton className="size-6 rounded-md" />
+        </div>
+        <div className="flex items-center justify-between gap-1">
+          <DoubleInputLabeledSkeleton labelLength="w-8" />
+          <DoubleInputLabeledSkeleton labelLength="w-18" />
+        </div>
       </div>
     </div>
   );

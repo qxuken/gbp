@@ -8,13 +8,14 @@ Tasks:
 [x] Specials ordering
 [x] Hidden note if empty
 [x] Teams divider
-[ ] Skeletons and lazy loaders
+[x] Skeletons and lazy loaders
 [ ] Footer / Header
 [ ] User management
 
 Nice to have:
 [ ] Ugly jump on reordering
 [ ] Modal window scroll padding
+[ ] Page loaders
 
 Next big thing:
 [ ] Farm planned

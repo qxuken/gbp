@@ -32,9 +32,7 @@ function RouteComponent() {
         </Tooltip>
         <UserInfo />
       </header>
-      <div>
-        <Outlet />
-      </div>
+      <Outlet />
     </div>
   );
 }

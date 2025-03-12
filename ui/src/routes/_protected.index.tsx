@@ -28,7 +28,10 @@ import { z } from 'zod';
 
 import { pbClient } from '@/api/pocketbase';
 import { CharacterPlans } from '@/api/types';
-import { BuildInfo } from '@/components/build-card/build-info';
+import {
+  BuildInfo,
+  BuildInfoSkeleton,
+} from '@/components/build-card/build-info';
 import { CreateBuild } from '@/components/build-card/create-build';
 import { PendingBuildInfo } from '@/components/build-card/pending-build-info';
 import { Icons } from '@/components/icons';
@@ -184,6 +187,7 @@ function HomeComponent() {
               <BuildInfo
                 key={build.id}
                 buildId={build.id}
+                characterId={build.character}
                 reorderIsPending={reorderIsPending}
               />
             ))}
@@ -314,7 +318,7 @@ function PerPagePagination() {
           <SelectItem value="20">20</SelectItem>
           <SelectItem value="30">30</SelectItem>
           <SelectItem value="50">50</SelectItem>
-          <SelectItem value="100">100</SelectItem>
+          <SelectItem value="80">80</SelectItem>
         </SelectContent>
       </Select>
     </div>

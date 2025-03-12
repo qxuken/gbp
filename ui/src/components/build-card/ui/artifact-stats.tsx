@@ -14,12 +14,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
-type Props = { buildId: string };
-export function ArtifactStats({ buildId }: Props) {
+type Props = { buildId: string; enabled?: boolean };
+export function ArtifactStats({ buildId, enabled }: Props) {
   const queryKey = ['characterPlans', buildId, 'artifactTypePlans'];
   const query = useQuery({
     queryKey,
@@ -27,17 +28,32 @@ export function ArtifactStats({ buildId }: Props) {
       pbClient.collection<ArtifactTypePlans>('artifactTypePlans').getFullList({
         filter: `characterPlan = '${buildId}'`,
       }),
+    enabled,
   });
 
+  const items = query.data;
+
+  if (query.isPending || !items) {
+    return <ArtifactStatsSkeleton />;
+  }
+
+  return (
+    <ArtifactStatsLoaded buildId={buildId} items={items} queryKey={queryKey} />
+  );
+}
+
+type AddArtifactType = { type: 'add' } & Pick<
+  ArtifactTypePlans,
+  'special' | 'artifactType'
+>;
+type DeleteArtifactType = { type: 'delete' } & Pick<ArtifactTypePlans, 'id'>;
+type PropsLoaded = Omit<Props, 'enabled'> & {
+  items: ArtifactTypePlans[];
+  queryKey: string[];
+};
+function ArtifactStatsLoaded({ buildId, items, queryKey }: PropsLoaded) {
   const { mutate } = useMutation({
-    mutationFn: async (
-      variables:
-        | ({ type: 'add' } & Pick<
-            ArtifactTypePlans,
-            'special' | 'artifactType'
-          >)
-        | ({ type: 'delete' } & Pick<ArtifactTypePlans, 'id'>),
-    ) => {
+    mutationFn: async (variables: AddArtifactType | DeleteArtifactType) => {
       switch (variables.type) {
         case 'add':
           await pbClient
@@ -76,7 +92,7 @@ export function ArtifactStats({ buildId }: Props) {
     [],
   );
 
-  const artifactTypesPlans = query.data?.reduce((acc, it) => {
+  const artifactTypesPlans = items.reduce((acc, it) => {
     let types = acc.get(it.artifactType);
     if (!types) {
       types = new Set();
@@ -91,7 +107,7 @@ export function ArtifactStats({ buildId }: Props) {
   };
 
   const deleteSpecial = (artifactType: string, special: string) => {
-    const id = query.data?.find(
+    const id = items.find(
       (at) => at.special === special && at.artifactType === artifactType,
     )?.id;
     if (!id) {
@@ -177,6 +193,33 @@ export function ArtifactStats({ buildId }: Props) {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+export function ArtifactStatsSkeleton() {
+  return (
+    <div className="flex flex-col gap-2">
+      <Skeleton className="h-3 w-9 rounded-md" />
+      <div className="grid gap-2 w-full">
+        <ArtifactStatSkeleton />
+        <ArtifactStatSkeleton />
+        <ArtifactStatSkeleton />
+      </div>
+    </div>
+  );
+}
+
+function ArtifactStatSkeleton() {
+  return (
+    <div className="w-full flex gap-2">
+      <div className="px-1.5 w-12 h-9">
+        <Skeleton className="size-full rounded-4xl" />
+      </div>
+      <div className="flex flex-wrap gap-2 items-start">
+        <Skeleton className="h-4 w-10 rounded-md" />
+        <Skeleton className="size-4 rounded-md" />
       </div>
     </div>
   );
