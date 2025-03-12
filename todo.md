@@ -2,8 +2,9 @@ Tasks:
 [x] Fix new plan not updated
 [x] Implement substat for specials in seed
 [x] Requests fired on reordering
-[ ] Per page
-[ ] Logout loading
+[x] Per page
+[?] Reordering on non zero page
+[x] Logout loading
 [ ] Specials ordering
 [ ] Skeletons and lazy loaders
 [ ] Teams divider

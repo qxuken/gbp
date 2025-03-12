@@ -56,6 +56,7 @@ export const auth = create<Auth>((set) => ({
       const res = await pbClient
         .collection('users')
         .authWithPassword(email, password);
+      queryClient.clear();
       set({
         isAuthenticated: pbClient.authStore.isValid,
         record: res.record,
@@ -74,7 +75,6 @@ export const auth = create<Auth>((set) => ({
 
   logout() {
     pbClient.authStore.clear();
-    queryClient.clear();
     set({
       isAuthenticated: false,
       record: null,
