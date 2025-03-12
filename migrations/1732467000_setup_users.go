@@ -14,6 +14,19 @@ func init() {
 			return err
 		}
 		users.AuthRule = types.Pointer("verified = true")
-		return app.Save(users)
+		if err := app.Save(users); err != nil {
+			return err
+		}
+
+		if !app.IsDev() {
+			return nil
+		}
+
+		record := core.NewRecord(users)
+		record.Set("name", "Qest Testovich")
+		record.Set("email", "test@test.com")
+		record.Set("password", "testtest")
+		record.Set("verified", true)
+		return app.Save(record)
 	}, nil)
 }

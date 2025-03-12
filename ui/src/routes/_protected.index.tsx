@@ -32,6 +32,7 @@ import { BuildInfo } from '@/components/build-card/build-info';
 import { CreateBuild } from '@/components/build-card/create-build';
 import { PendingBuildInfo } from '@/components/build-card/pending-build-info';
 import { Icons } from '@/components/icons';
+import { Label } from '@/components/ui/label';
 import {
   Pagination,
   PaginationContent,
@@ -41,6 +42,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
 import { useNewCharacterPlans } from '@/stores/newCharacterPlans';
@@ -67,7 +75,7 @@ const queryParams = ({ page, perPage, queryKey }: Deps) =>
 export const Route = createFileRoute('/_protected/')({
   component: HomeComponent,
   validateSearch: SEARCH_SCHEMA,
-  loaderDeps: ({ search: { page = 1, perPage = 20 } }) => ({
+  loaderDeps: ({ search: { page = 1, perPage = 30 } }) => ({
     page,
     perPage,
     queryKey: ['characterPlans', 'page', `${page}:${perPage}`],
@@ -82,15 +90,18 @@ export const Route = createFileRoute('/_protected/')({
   ),
 });
 
+function generatePaginationLink(page: number, perPage?: number) {
+  return linkOptions({
+    to: Route.to,
+    search: {
+      page,
+      perPage,
+    },
+  });
+}
+
 function usePageLink(perPage?: number) {
-  const generateLink = (page: number) =>
-    linkOptions({
-      to: Route.to,
-      search: {
-        page,
-        perPage,
-      },
-    });
+  const generateLink = (page: number) => generatePaginationLink(page, perPage);
   return generateLink;
 }
 
@@ -185,9 +196,17 @@ function HomeComponent() {
           />
         ))}
       </div>
-      <div className="mt-2 flex flex-wrap gap-1 justify-between">
-        <PagePagination totalPages={queryData.totalPages} />
-        <CreateBuild size={queryData.totalItems} disabled={reorderIsPending} />
+      <div className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3">
+        <div className="flex flex-wrap-reverse items-start gap-3">
+          <PerPagePagination />
+          <PagePagination totalPages={queryData.totalPages} />
+        </div>
+        <div className="h-fit">
+          <CreateBuild
+            size={queryData.totalItems}
+            disabled={reorderIsPending}
+          />
+        </div>
       </div>
     </div>
   );
@@ -209,8 +228,8 @@ function useLinkToDisplay(page: number, totalPages: number, perPage?: number) {
   return res;
 }
 
-type Props = { totalPages: number };
-function PagePagination({ totalPages }: Props) {
+type PagePaginationProps = { totalPages: number };
+function PagePagination({ totalPages }: PagePaginationProps) {
   const { page: currentPage } = Route.useLoaderDeps();
   const { perPage } = Route.useSearch();
   const generateLink = usePageLink(perPage);
@@ -222,7 +241,7 @@ function PagePagination({ totalPages }: Props) {
   }
 
   return (
-    <div className="flex justify-end">
+    <div>
       <Pagination>
         <PaginationContent>
           <PaginationItem>
@@ -267,6 +286,37 @@ function PagePagination({ totalPages }: Props) {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
+    </div>
+  );
+}
+
+function PerPagePagination() {
+  const { perPage } = Route.useLoaderDeps();
+  const navigate = Route.useNavigate();
+  const pageChange = (perPage: number) => {
+    const link = generatePaginationLink(1, perPage);
+    navigate(link);
+    queryClient.invalidateQueries({ queryKey: ['characterPlans', 'page'] });
+  };
+
+  return (
+    <div>
+      <Label>Per Page</Label>
+      <Select
+        value={String(perPage)}
+        onValueChange={(perPage) => pageChange(Number(perPage))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Per Page" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="10">10</SelectItem>
+          <SelectItem value="20">20</SelectItem>
+          <SelectItem value="30">30</SelectItem>
+          <SelectItem value="50">50</SelectItem>
+          <SelectItem value="100">100</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }
