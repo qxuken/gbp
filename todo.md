@@ -5,9 +5,10 @@ Tasks:
 [x] Per page
 [?] Reordering on non zero page
 [x] Logout loading
-[ ] Specials ordering
-[ ] Skeletons and lazy loaders
+[x] Specials ordering
+[ ] Hidden note if empty
 [ ] Teams divider
+[ ] Skeletons and lazy loaders
 [ ] Footer / Header
 [ ] User management
 

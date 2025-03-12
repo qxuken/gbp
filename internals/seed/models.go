@@ -21,6 +21,7 @@ func (s Icon) GoString() string {
 type Special struct {
 	Name    string `db:"name"`
 	Substat int    `db:"substat"`
+	Order   int    `db:"order"`
 }
 
 func (s Special) Save(app core.App) error {
@@ -29,6 +30,7 @@ func (s Special) Save(app core.App) error {
 		return err
 	}
 	record.Set("substat", s.Substat)
+	record.Set("order", s.Order)
 	return app.Save(record)
 }
 

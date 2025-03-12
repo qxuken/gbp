@@ -12,6 +12,10 @@ import {
 } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 
+function isSubstatSpecial(special: Specials) {
+  return special.substat === 1;
+}
+
 type Props = { substats: string[]; mutate(v: string[]): void };
 export function ArtifactSubstats({ substats, mutate }: Props) {
   const selected = useLiveQuery(
@@ -23,7 +27,7 @@ export function ArtifactSubstats({ substats, mutate }: Props) {
     [] as Specials[],
   );
   const specials = useLiveQuery(
-    () => db.specials.where('substat').equals(1).toArray(),
+    () => db.specials.orderBy('order').filter(isSubstatSpecial).toArray(),
     [],
   );
   const selectedIds = new Set(selected.map((s) => s.id));
