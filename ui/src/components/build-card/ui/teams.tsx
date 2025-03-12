@@ -12,6 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
 
@@ -239,13 +240,18 @@ export function Teams({ buildId, characterId }: Props) {
       </div>
       {teams && teams.length > 0 && (
         <div className="grid gap-4 w-full">
-          {teams.map((tp) => (
-            <Team
-              key={tp.id}
-              buildId={buildId}
-              teamId={tp.id}
-              characterId={characterId}
-            />
+          {teams.map((tp, i) => (
+            <>
+              <Team
+                key={tp.id}
+                buildId={buildId}
+                teamId={tp.id}
+                characterId={characterId}
+              />
+              {teams.length - 1 !== i && (
+                <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
+              )}
+            </>
           ))}
         </div>
       )}

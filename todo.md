@@ -7,7 +7,7 @@ Tasks:
 [x] Logout loading
 [x] Specials ordering
 [x] Hidden note if empty
-[ ] Teams divider
+[x] Teams divider
 [ ] Skeletons and lazy loaders
 [ ] Footer / Header
 [ ] User management
