@@ -1,8 +1,6 @@
 package migrations
 
 import (
-	"time"
-
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
 )
@@ -15,7 +13,7 @@ func init() {
 		settings.Meta.HideControls = !app.IsDev()
 		settings.Batch.Enabled = true
 		settings.Batch.MaxRequests = 100
-		settings.Batch.Timeout = int64(5 * time.Second)
+		settings.Batch.Timeout = 20
 		return app.Save(settings)
 	}, nil)
 }
