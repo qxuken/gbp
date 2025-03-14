@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { CharacterPlans } from '@/api/types';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,6 +11,17 @@ import {
 } from './double-input-labeled';
 
 type Props = { build?: CharacterPlans; mutate(v: CharacterPlans): void };
+
+function getTalentMins(constellation: number): [number, number] {
+  if (constellation < 3) {
+    return [1, 1];
+  }
+  if (constellation < 6) {
+    return [4, 1];
+  }
+  return [4, 4];
+}
+
 export function MainStat({ build, mutate }: Props) {
   if (!build) {
     return <MainStatSkeleton />;
@@ -18,6 +31,17 @@ export function MainStat({ build, mutate }: Props) {
 
 type PropsLoaded = Required<Props>;
 function MainStatLoaded({ build, mutate }: PropsLoaded) {
+  const [skillMin, burstMin] = getTalentMins(build.constellationCurrent);
+
+  useEffect(() => {
+    if (build.talentSkillCurrent < skillMin) {
+      mutateField(mutate, build, 'talentSkillCurrent')(skillMin);
+    }
+    if (build.talentBurstCurrent < burstMin) {
+      mutateField(mutate, build, 'talentBurstCurrent')(burstMin);
+    }
+  }, [build.talentSkillCurrent, build.talentBurstCurrent, skillMin, burstMin]);
+
   return (
     <div className="grid grid-cols-[auto_min-content] items-center justify-end gap-1">
       <DoubleInputLabeled
@@ -30,7 +54,7 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
         onTargetChange={mutateField(mutate, build, 'levelTarget')}
       />
       <DoubleInputLabeled
-        name="Constelation"
+        name="Constellation"
         min={0}
         max={6}
         current={build.constellationCurrent}
@@ -41,7 +65,7 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
       <Separator className="col-span-2 bg-muted-foreground rounded-lg opacity-50" />
       <DoubleInputLabeled
         name="Attack"
-        min={0}
+        min={1}
         max={10}
         current={build.talentAtkCurrent}
         target={build.talentAtkTarget}
@@ -50,7 +74,7 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
       />
       <DoubleInputLabeled
         name="Skill"
-        min={0}
+        min={skillMin}
         max={13}
         current={build.talentSkillCurrent}
         target={build.talentSkillTarget}
@@ -59,7 +83,7 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
       />
       <DoubleInputLabeled
         name="Burst"
-        min={0}
+        min={burstMin}
         max={13}
         current={build.talentBurstCurrent}
         target={build.talentBurstTarget}
