@@ -10,7 +10,7 @@
 [x] Hidden note if empty
 [x] Teams divider
 [x] Skeletons and lazy loaders
-[ ] Footer / Header
+[x] Footer / Header
 [ ] User management
 
 Nice to have:
