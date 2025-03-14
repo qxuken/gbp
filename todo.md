@@ -17,7 +17,7 @@ Nice to have:
 [ ] Ugly jump on reordering
 [x] Limit Per page to item count
 [x] Check spinner animations
-[ ] Modal window scroll padding
+[x] Modal window scroll padding
 [ ] Page loaders
 
 Next big thing:
