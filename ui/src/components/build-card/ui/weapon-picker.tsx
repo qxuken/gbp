@@ -5,15 +5,8 @@ import { PropsWithChildren, useState } from 'react';
 import { db } from '@/api/dictionaries-db';
 import { CollectionAvatar } from '@/components/collection-avatar';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -157,19 +150,19 @@ export function WeaponPicker({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="md:max-w-3xl max-h-[calc(100%-4rem)] top-8 translate-y-0 overflow-hidden p-5">
-        <DialogHeader className="p-2">
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Pick Weapon</DialogDescription>
-        </DialogHeader>
-        <Picker
-          onSelect={select}
-          weaponTypeId={weaponTypeId}
-          ignoreWeapons={ignoreWeapons}
-        />
-      </DialogContent>
-    </Dialog>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={setOpen}
+      trigger={children}
+      title={title}
+      description="Pick Weapon"
+      contentClassName="md:max-w-3xl max-h-[calc(100%-4rem)] top-8 translate-y-0 overflow-hidden p-5"
+    >
+      <Picker
+        onSelect={select}
+        weaponTypeId={weaponTypeId}
+        ignoreWeapons={ignoreWeapons}
+      />
+    </ResponsiveDialog>
   );
 }
