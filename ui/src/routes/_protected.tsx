@@ -29,11 +29,16 @@ function RouteComponent() {
             <TooltipTrigger>
               <h1 className="text-xl font-medium flex items-center gap-2">
                 <Icons.Note className="size-6" />
-                GBP
+                <span className="flex items-center gap-1">
+                  <span>GBP</span>
+                  <span className="text-muted-foreground text-sm hidden sm:inline">
+                    — Genshin Build Planner
+                  </span>
+                </span>
               </h1>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Genshin build planner</p>
+              <p>Genshin Build Planner</p>
             </TooltipContent>
           </Tooltip>
           <UserInfo />
