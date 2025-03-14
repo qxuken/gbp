@@ -28,10 +28,7 @@ import { z } from 'zod';
 
 import { pbClient } from '@/api/pocketbase';
 import { CharacterPlans } from '@/api/types';
-import {
-  BuildInfo,
-  BuildInfoSkeleton,
-} from '@/components/build-card/build-info';
+import { BuildInfo } from '@/components/build-card/build-info';
 import { CreateBuild } from '@/components/build-card/create-build';
 import { PendingBuildInfo } from '@/components/build-card/pending-build-info';
 import { Icons } from '@/components/icons';
@@ -59,6 +56,8 @@ import { useNewCharacterPlans } from '@/stores/newCharacterPlans';
 type Item = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
 const FIELDS = 'id, order, character';
 
+const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
+
 const SEARCH_SCHEMA = z.object({
   page: z.number().optional(),
   perPage: z.number().optional(),
@@ -78,7 +77,7 @@ const queryParams = ({ page, perPage, queryKey }: Deps) =>
 export const Route = createFileRoute('/_protected/')({
   component: HomeComponent,
   validateSearch: SEARCH_SCHEMA,
-  loaderDeps: ({ search: { page = 1, perPage = 30 } }) => ({
+  loaderDeps: ({ search: { page = 1, perPage = PAGE_SIZE_OPTIONS[0] } }) => ({
     page,
     perPage,
     queryKey: ['characterPlans', 'page', `${page}:${perPage}`],
@@ -241,7 +240,7 @@ function PagePagination({ totalPages }: PagePaginationProps) {
   const pagesToDisplay = useLinkToDisplay(currentPage, totalPages, perPage);
 
   if (totalPages < 2) {
-    return <div />;
+    return null;
   }
 
   return (
@@ -295,30 +294,36 @@ function PagePagination({ totalPages }: PagePaginationProps) {
 }
 
 function PerPagePagination() {
-  const { perPage } = Route.useLoaderDeps();
+  const deps = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
+  const { data: queryData } = useSuspenseQuery(queryParams(deps));
+
   const pageChange = (perPage: number) => {
     const link = generatePaginationLink(1, perPage);
     navigate(link);
     queryClient.invalidateQueries({ queryKey: ['characterPlans', 'page'] });
   };
 
+  if (queryData.totalItems < PAGE_SIZE_OPTIONS[0] + 1) {
+    return null;
+  }
+
   return (
     <div>
       <Label>Per Page</Label>
       <Select
-        value={String(perPage)}
+        value={String(deps.perPage)}
         onValueChange={(perPage) => pageChange(Number(perPage))}
       >
         <SelectTrigger>
           <SelectValue placeholder="Per Page" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="10">10</SelectItem>
-          <SelectItem value="20">20</SelectItem>
-          <SelectItem value="30">30</SelectItem>
-          <SelectItem value="50">50</SelectItem>
-          <SelectItem value="80">80</SelectItem>
+          {PAGE_SIZE_OPTIONS.map((size) => (
+            <SelectItem key={size} value={String(size)}>
+              {size}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

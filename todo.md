@@ -1,4 +1,5 @@
-Tasks:
+# Tasks
+
 [x] Fix new plan not updated
 [x] Implement substat for specials in seed
 [x] Requests fired on reordering
@@ -14,7 +15,7 @@ Tasks:
 
 Nice to have:
 [ ] Ugly jump on reordering
-[ ] Limit Per page to item count
+[x] Limit Per page to item count
 [ ] Check spinner animations
 [ ] Modal window scroll padding
 [ ] Page loaders
