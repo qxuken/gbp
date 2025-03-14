@@ -199,12 +199,14 @@ function SignupComponent() {
                   className="w-full"
                   disabled={form.formState.isSubmitting}
                 >
-                  {form.formState.isSubmitting && (
+                  {form.formState.isSubmitting ? (
                     <>
-                      <Icons.Spinner />{' '}
+                      <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
                     </>
+                  ) : (
+                    'Sign Up'
                   )}
-                  Sign Up
                 </Button>
                 <div className="mt-4 text-center text-sm">
                   Already have an account?{' '}

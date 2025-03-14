@@ -14,6 +14,8 @@ Tasks:
 
 Nice to have:
 [ ] Ugly jump on reordering
+[ ] Limit Per page to item count
+[ ] Check spinner animations
 [ ] Modal window scroll padding
 [ ] Page loaders
 
