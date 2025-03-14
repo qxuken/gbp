@@ -152,19 +152,27 @@ function HomeComponent() {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = items.findIndex((it) => it.id === active.id);
-      const newIndex = items.findIndex((it) => it.id === over.id);
-      if (oldIndex < 0 || newIndex < 0) {
-        return;
-      }
-      reorderItems(
-        arrayMove(items, oldIndex, newIndex).map((it, i) => ({
-          ...it,
-          order: queryData.perPage * (queryData.page - 1) + 1 + i,
-        })),
-      );
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = items.findIndex((it) => it.id === active.id);
+    const newIndex = items.findIndex((it) => it.id === over.id);
+
+    if (oldIndex < 0 || newIndex < 0) {
+      console.error('Invalid drag indices:', {
+        oldIndex,
+        newIndex,
+        active,
+        over,
+      });
+      return;
     }
+
+    reorderItems(
+      arrayMove(items, oldIndex, newIndex).map((it, i) => ({
+        ...it,
+        order: queryData.perPage * (queryData.page - 1) + 1 + i,
+      })),
+    );
   }
 
   useEffect(() => {
@@ -217,18 +225,20 @@ function HomeComponent() {
 
 function useLinkToDisplay(page: number, totalPages: number, perPage?: number) {
   const generateLink = usePageLink(perPage);
+
   const items: [number, LinkOptions][] = [];
   const start = Math.max(2, page - 1);
   const end = Math.min(start + 3, totalPages);
+
   for (let i = start; i < end; i++) {
     items.push([i, generateLink(i)]);
   }
-  const res = {
+
+  return {
     items,
     leftDots: start > 2,
     rightDots: end < totalPages,
   };
-  return res;
 }
 
 type PagePaginationProps = { totalPages: number };
