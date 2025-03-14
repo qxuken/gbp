@@ -32,6 +32,7 @@ import { BuildInfo } from '@/components/build-card/build-info';
 import { CreateBuild } from '@/components/build-card/create-build';
 import { PendingBuildInfo } from '@/components/build-card/pending-build-info';
 import { Icons } from '@/components/icons';
+import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
   Pagination,
@@ -56,7 +57,7 @@ import { useNewCharacterPlans } from '@/stores/newCharacterPlans';
 type Item = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
 const FIELDS = 'id, order, character';
 
-const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
+const PAGE_SIZE_OPTIONS = [5, 30, 50, 80] as const;
 
 const SEARCH_SCHEMA = z.object({
   page: z.number().optional(),
@@ -206,18 +207,18 @@ function HomeComponent() {
             characterId={pending.characterId}
           />
         ))}
+        <Card className="w-full border-2 border-dashed border-muted bg-muted/5">
+          <div className="w-full h-full flex items-center justify-center p-12">
+            <CreateBuild
+              size={queryData.totalItems}
+              disabled={reorderIsPending}
+            />
+          </div>
+        </Card>
       </div>
       <div className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3">
-        <div className="flex flex-wrap-reverse items-start gap-3">
-          <PerPagePagination />
-          <PagePagination totalPages={queryData.totalPages} />
-        </div>
-        <div className="h-fit">
-          <CreateBuild
-            size={queryData.totalItems}
-            disabled={reorderIsPending}
-          />
-        </div>
+        <PerPagePagination />
+        <PagePagination totalPages={queryData.totalPages} />
       </div>
     </div>
   );
@@ -319,14 +320,16 @@ function PerPagePagination() {
   }
 
   return (
-    <div>
-      <Label>Per Page</Label>
+    <div className="flex items-center gap-2">
+      <Label className="text-sm text-muted-foreground whitespace-nowrap">
+        Show:
+      </Label>
       <Select
         value={String(deps.perPage)}
         onValueChange={(perPage) => pageChange(Number(perPage))}
       >
-        <SelectTrigger>
-          <SelectValue placeholder="Per Page" />
+        <SelectTrigger className="w-[4.5rem] h-9">
+          <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {PAGE_SIZE_OPTIONS.map((size) => (
