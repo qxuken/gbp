@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { Icons } from '@/components/icons';
 import { ShortNumberInput } from '@/components/short-number-input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +17,12 @@ type Props = {
   disabled?: boolean;
 };
 export function DoubleInputLabeled(props: Props) {
+  useEffect(() => {
+    if (props.current > props.target) {
+      props.onTargetChange(props.current);
+    }
+  }, [props.current, props.target, props.onTargetChange]);
+
   return (
     <>
       <Label className="justify-self-end text-xs text-muted-foreground">
