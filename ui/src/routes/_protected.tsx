@@ -2,6 +2,7 @@ import { Tooltip } from '@radix-ui/react-tooltip';
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
 
 import { Icons } from '@/components/icons';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserInfo } from '@/components/user-info';
@@ -41,7 +42,10 @@ function RouteComponent() {
               <p>Genshin Build Planner</p>
             </TooltipContent>
           </Tooltip>
-          <UserInfo />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <UserInfo />
+          </div>
         </div>
       </header>
 

@@ -5,6 +5,7 @@ export type ThemeValue = 'dark' | 'light' | 'system';
 
 export interface Theme {
   theme: ThemeValue;
+  displayTheme: 'dark' | 'light';
   setTheme(theme: ThemeValue): void;
 }
 
@@ -13,6 +14,7 @@ export const theme = create(
     persist<Theme>(
       (set, get) => ({
         theme: get()?.theme ?? 'system',
+        displayTheme: 'light',
         setTheme(theme: ThemeValue) {
           set(() => ({ theme }));
         },
@@ -27,29 +29,35 @@ export const theme = create(
 let systemSub: AbortController | null;
 theme.subscribe(
   (state) => state.theme,
-  (theme) => {
+  (themeValue) => {
     systemSub?.abort();
 
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
 
-    if (theme === 'system') {
+    if (themeValue === 'system') {
       const query = window.matchMedia('(prefers-color-scheme: dark)');
+      const setSystemTheme = (isDark: boolean) => {
+        const displayTheme = isDark ? 'dark' : 'light';
+        root.classList.add(displayTheme);
+        theme.setState({ displayTheme });
+      };
 
-      root.classList.add(query.matches ? 'dark' : 'light');
+      setSystemTheme(query.matches);
 
       systemSub = new AbortController();
       query.addEventListener(
         'change',
         (e) => {
           root.classList.remove('light', 'dark');
-          root.classList.add(e.matches ? 'dark' : 'light');
+          setSystemTheme(e.matches);
         },
         { signal: systemSub.signal },
       );
     } else {
       systemSub = null;
-      root.classList.add(theme);
+      root.classList.add(themeValue);
+      theme.setState({ displayTheme: themeValue });
     }
   },
   { fireImmediately: true },
