@@ -27,6 +27,7 @@ function Picker({ onSelect, ignoreArifacts }: PickerProps) {
         .orderBy('rarity')
         .filter(
           (as) =>
+            as.rarity > 3 &&
             (ignoreArifacts === undefined || !ignoreArifacts.has(as.id)) &&
             (filter.name.length === 0 ||
               fuzzysearch(filter.name.toLowerCase(), as.name.toLowerCase())),

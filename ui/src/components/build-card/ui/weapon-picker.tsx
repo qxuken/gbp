@@ -31,6 +31,7 @@ function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
         .orderBy('rarity')
         .filter(
           (w) =>
+            w.rarity >= 3 &&
             (ignoreWeapons === undefined || !ignoreWeapons.has(w.id)) &&
             (weaponTypeId === undefined || w.weaponType === weaponTypeId) &&
             (filter.weaponTypes.size === 0 ||
