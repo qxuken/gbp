@@ -5,7 +5,7 @@ import { Icons } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { UserInfo } from '@/components/user-info';
+import { UserManagement } from '@/components/user-management';
 
 export const Route = createFileRoute('/_protected')({
   beforeLoad({ context, location }) {
@@ -44,7 +44,7 @@ function RouteComponent() {
           </Tooltip>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <UserInfo />
+            <UserManagement />
           </div>
         </div>
       </header>

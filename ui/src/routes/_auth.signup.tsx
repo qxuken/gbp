@@ -1,12 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { ClientResponseError } from 'pocketbase';
-import { BaseSyntheticEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { Icons } from '@/components/icons';
+import { AvatarInput } from '@/components/ui/avatar-input';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -37,7 +37,7 @@ const serverValueErrorSchema = z.object({
 
 const formSchema = z
   .object({
-    avatar: z.any().optional(),
+    avatar: z.instanceof(FileList).optional(),
     email: z.string().email({
       message: 'Please enter a valid email address.',
     }),
@@ -63,15 +63,17 @@ function SignupComponent() {
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit = async (
-    values: z.infer<typeof formSchema>,
-    e?: BaseSyntheticEvent,
-  ) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      if (!e || !(e.target instanceof HTMLFormElement)) {
-        throw new Error('Submit error');
+      const formData = new FormData();
+      formData.append('name', values.name);
+      formData.append('email', values.email);
+      formData.append('password', values.password);
+      formData.append('passwordConfirm', values.passwordConfirm);
+      if (values.avatar?.[0]) {
+        formData.append('avatar', values.avatar[0]);
       }
-      const formData = new FormData(e.target);
+
       await auth.register(formData);
       await auth.requestVerification(values.email);
 
@@ -120,13 +122,11 @@ function SignupComponent() {
                   control={form.control}
                   name="avatar"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Profile Picture</FormLabel>
-                      <FormControl>
-                        <Input type="file" accept="image/*" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                    <AvatarInput
+                      field={field}
+                      name={form.watch('name') || 'John Doe'}
+                      className="h-24 w-24"
+                    />
                   )}
                 />
                 <FormField

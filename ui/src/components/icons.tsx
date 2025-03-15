@@ -3,6 +3,7 @@ import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
+  Camera,
   ChevronsUpDown,
   Info,
   LoaderCircle,
@@ -19,6 +20,9 @@ import {
   Slash,
   GripHorizontal,
   NotebookPen,
+  User,
+  Mail,
+  KeyRound,
 } from 'lucide-react';
 
 export type Icon = typeof LucideIcon;
@@ -44,4 +48,8 @@ export const Icons = {
   LightTheme: Sun,
   DarkTheme: Moon,
   SystemTheme: Monitor,
+  Camera: Camera,
+  Profile: User,
+  Email: Mail,
+  Password: KeyRound,
 };

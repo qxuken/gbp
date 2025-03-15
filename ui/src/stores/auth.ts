@@ -22,6 +22,13 @@ export interface Auth {
   passwordReset(email: string): Promise<boolean>;
   register(data: FormData): Promise<RecordAuthResponse<RecordModel>>;
   requestVerification(email: string): Promise<boolean>;
+  updateProfile(data: FormData): Promise<AuthRecord>;
+  updateEmail(newEmail: string): Promise<boolean>;
+  updatePassword(
+    oldPassword: string,
+    password: string,
+    passwordConfirm: string,
+  ): Promise<AuthRecord>;
 }
 
 export const auth = create<Auth>((set) => ({
@@ -92,6 +99,40 @@ export const auth = create<Auth>((set) => ({
 
   requestVerification(email: string) {
     return pbClient.collection('users').requestVerification(email);
+  },
+
+  async updateProfile(data: FormData) {
+    if (!pbClient.authStore.record?.id) {
+      throw new Error('Not authenticated');
+    }
+    const record = await pbClient
+      .collection('users')
+      .update(pbClient.authStore.record.id, data);
+    set({ record });
+    return record;
+  },
+
+  async updateEmail(newEmail: string) {
+    return pbClient.collection('users').requestEmailChange(newEmail);
+  },
+
+  async updatePassword(
+    oldPassword: string,
+    password: string,
+    passwordConfirm: string,
+  ) {
+    if (!pbClient.authStore.record?.id) {
+      throw new Error('Not authenticated');
+    }
+    const record = await pbClient
+      .collection('users')
+      .update(pbClient.authStore.record.id, {
+        oldPassword,
+        password,
+        passwordConfirm,
+      });
+    set({ record });
+    return record;
   },
 }));
 

@@ -2,15 +2,7 @@ import { RecordModel } from 'pocketbase';
 
 import { pbClient } from '@/api/pocketbase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-export function getShortName(name?: string) {
-  return (
-    name
-      ?.split(' ')
-      .map((p: string) => p[0]?.toUpperCase())
-      .join('') ?? '??'
-  );
-}
+import { getShortName } from '@/lib/utils';
 
 type Props = Parameters<typeof Avatar>[0] & {
   record: RecordModel;
