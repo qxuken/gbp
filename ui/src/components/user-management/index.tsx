@@ -13,6 +13,7 @@ import {
 import { getShortName } from '@/lib/utils';
 import { useAuth } from '@/stores/auth';
 
+import { DeleteAccountDialog } from './delete-account-dialog';
 import { EmailEditDialog } from './email-edit-dialog';
 import { LogoutDialog } from './logout-dialog';
 import { PasswordEditDialog } from './password-edit-dialog';
@@ -58,6 +59,8 @@ export function UserManagement() {
         <PasswordEditDialog onSuccess={closeDropdown} />
         <DropdownMenuSeparator />
         <LogoutDialog onLogout={closeDropdown} />
+        <DropdownMenuSeparator />
+        <DeleteAccountDialog onDelete={closeDropdown} />
       </DropdownMenuContent>
     </DropdownMenu>
   );
