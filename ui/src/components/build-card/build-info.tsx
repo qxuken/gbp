@@ -3,7 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useInView } from 'motion/react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
@@ -170,7 +170,6 @@ export function BuildInfo({ buildId, reorderIsPending, characterId }: Props) {
           <div className="flex items-start justify-around">
             <MainStat build={build} mutate={mutate} />
             <CollectionAvatar
-              size={140}
               className="size-35 rounded-2xl ml-6"
               record={character}
               fileName={character.icon}

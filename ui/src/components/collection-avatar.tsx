@@ -8,19 +8,10 @@ type Props = Parameters<typeof Avatar>[0] & {
   record: RecordModel;
   fileName: string;
   name: string;
-  size?: number;
 };
 
-export function CollectionAvatar({
-  record,
-  fileName,
-  name,
-  size = 9,
-  ...props
-}: Props) {
-  const imgSrc = pbClient.files.getURL(record, fileName, {
-    thumb: `${size}x${size}`,
-  });
+export function CollectionAvatar({ record, fileName, name, ...props }: Props) {
+  const imgSrc = pbClient.files.getURL(record, fileName);
   const shortName: string = getShortName(name);
 
   return (

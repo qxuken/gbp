@@ -90,7 +90,6 @@ function Picker({ onSelect, ignoreCharacters }: PickerProps) {
                 record={element}
                 fileName={element.icon}
                 name={element.name}
-                size={16}
                 className="size-4"
               />
               {element.name}
@@ -125,7 +124,6 @@ function Picker({ onSelect, ignoreCharacters }: PickerProps) {
                 record={weaponType}
                 fileName={weaponType.icon}
                 name={weaponType.name}
-                size={16}
                 className="size-4 not-dark:bg-black"
               />
               {weaponType.name}
@@ -144,7 +142,6 @@ function Picker({ onSelect, ignoreCharacters }: PickerProps) {
                 record={ch}
                 fileName={ch.icon}
                 name={ch.name}
-                size={104}
                 className="size-26"
               />
               <span className="text-xs text-wrap">{ch.name}</span>

@@ -198,7 +198,6 @@ function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
             record={artifactSet}
             fileName={artifactSet.icon}
             name={artifactSet.name}
-            size={48}
             className="size-12"
           />
           <div className="flex-1">

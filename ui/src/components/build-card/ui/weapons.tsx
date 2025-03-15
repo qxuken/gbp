@@ -177,7 +177,6 @@ function Weapon({ weaponPlanId, buildId }: WeaponProps) {
           record={weapon}
           fileName={weapon.icon}
           name={weapon.name}
-          size={48}
           className="size-12"
         />
         <div className="flex-1">

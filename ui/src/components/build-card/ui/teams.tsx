@@ -252,7 +252,6 @@ function Character({
         record={character}
         fileName={character.icon}
         name={character.name}
-        size={40}
         className="size-10 my-1"
       />
       <span className="text-center text-xs opacity-85">{character.name}</span>

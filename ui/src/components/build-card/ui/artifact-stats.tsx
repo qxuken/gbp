@@ -134,7 +134,6 @@ function ArtifactStatsLoaded({ buildId, items, queryKey }: PropsLoaded) {
                 record={at}
                 fileName={at.icon}
                 name={at.name}
-                size={32}
                 className={cn('size-8', {
                   ['opacity-50']: selected.length === 0,
                 })}

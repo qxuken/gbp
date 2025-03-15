@@ -69,7 +69,6 @@ function Picker({ onSelect, ignoreArifacts }: PickerProps) {
                 record={w}
                 fileName={w.icon}
                 name={w.name}
-                size={104}
                 className="size-26"
               />
               <span className="text-xs text-wrap">{w.name}</span>

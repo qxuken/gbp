@@ -18,7 +18,6 @@ func init() {
 			Name:      "icon",
 			Required:  true,
 			MimeTypes: []string{"image/png", "image/webp"},
-			Thumbs:    []string{"16x16", "32x32", "64x64", "128x128"},
 			MaxSelect: 1,
 		})
 		collection.Fields.Add(&core.NumberField{

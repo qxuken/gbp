@@ -47,7 +47,6 @@ function Info({ character }: InfoProps) {
           record={element}
           fileName={element.icon}
           name={element.name}
-          size={16}
           className="size-4"
         />
         {element.name}
@@ -58,7 +57,6 @@ function Info({ character }: InfoProps) {
           record={weaponType}
           fileName={weaponType.icon}
           name={weaponType.name}
-          size={16}
           className="size-4 not-dark:bg-black"
         />
         {weaponType.name}

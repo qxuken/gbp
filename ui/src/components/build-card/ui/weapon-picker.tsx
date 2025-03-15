@@ -91,7 +91,6 @@ function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
                   record={weaponType}
                   fileName={weaponType.icon}
                   name={weaponType.name}
-                  size={16}
                   className="size-4"
                 />
                 {weaponType.name}
@@ -111,7 +110,6 @@ function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
                 record={w}
                 fileName={w.icon}
                 name={w.name}
-                size={104}
                 className="size-26"
               />
               <span className="text-xs text-wrap">{w.name}</span>

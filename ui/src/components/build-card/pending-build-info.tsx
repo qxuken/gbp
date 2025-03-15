@@ -23,7 +23,6 @@ export function PendingBuildInfo({ characterId }: Props) {
             record={character}
             fileName={character.icon}
             name={character.name}
-            size={64}
             className="size-16"
           />
           <span className="truncate font-semibold text-4xl">
