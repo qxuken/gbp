@@ -1,10 +1,8 @@
-import { Tooltip } from '@radix-ui/react-tooltip';
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
 
 import { Icons } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Separator } from '@/components/ui/separator';
-import { TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserManagement } from '@/components/user-management';
 
 export const Route = createFileRoute('/_protected')({
@@ -26,22 +24,15 @@ function RouteComponent() {
     <div className="min-h-svh flex flex-col">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto p-4 flex justify-between items-center gap-4">
-          <Tooltip>
-            <TooltipTrigger>
-              <h1 className="text-xl font-medium flex items-center gap-2">
-                <Icons.Note className="size-6" />
-                <span className="flex items-center gap-1">
-                  <span>GBP</span>
-                  <span className="text-muted-foreground text-sm hidden sm:inline">
-                    — Genshin Build Planner
-                  </span>
-                </span>
-              </h1>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Genshin Build Planner</p>
-            </TooltipContent>
-          </Tooltip>
+          <h1 className="text-xl font-medium flex items-center gap-2">
+            <Icons.Note className="size-6" />
+            <span className="flex items-center gap-1">
+              <span>GBP</span>
+              <span className="text-muted-foreground text-sm hidden sm:inline">
+                — Genshin Build Planner
+              </span>
+            </span>
+          </h1>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <UserManagement />
