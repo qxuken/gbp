@@ -11,7 +11,8 @@
 [x] Teams divider
 [x] Skeletons and lazy loaders
 [x] Footer / Header
-[ ] User management
+[x] User management
+[x] Add text confirmation to account deletion
 
 Nice to have:
 [ ] Ugly jump on reordering

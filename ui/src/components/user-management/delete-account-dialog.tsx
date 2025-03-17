@@ -1,4 +1,5 @@
 import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { pbClient } from '@/api/pocketbase';
@@ -15,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/stores/auth';
 
 interface DeleteAccountDialogProps {
@@ -25,11 +27,17 @@ export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
   const router = useRouter();
   const navigate = useNavigate();
   const auth = useAuth();
+  const [emailConfirmation, setEmailConfirmation] = useState('');
 
   const handleDeleteAccount = async () => {
     try {
       if (!auth.record?.id) {
         throw new Error('Not authenticated');
+      }
+
+      if (emailConfirmation !== auth.record.email) {
+        toast.error('Email confirmation does not match your account email');
+        return;
       }
 
       // Delete the user account
@@ -67,11 +75,26 @@ export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
             your account and remove all of your data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-muted-foreground mb-2">
+            Please type your email address to confirm account deletion:
+          </p>
+          <Input
+            type="email"
+            placeholder={auth.record?.email}
+            value={emailConfirmation}
+            onChange={(e) => setEmailConfirmation(e.target.value)}
+            className="w-full"
+          />
+        </div>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={() => setEmailConfirmation('')}>
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDeleteAccount}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={emailConfirmation !== auth.record?.email}
           >
             Delete Account
           </AlertDialogAction>
