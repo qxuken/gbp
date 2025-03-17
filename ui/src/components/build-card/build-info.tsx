@@ -20,6 +20,7 @@ import {
 import { AsyncDebounce } from '@/lib/async-debounce';
 import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
+import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
 import { Skeleton } from '../ui/skeleton';
@@ -99,8 +100,14 @@ export function BuildInfo({ buildId, reorderIsPending, characterId }: Props) {
     }),
   });
 
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: buildId });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: buildId });
 
   const isPending = updateIsPending || deleteIsPending;
 
@@ -128,7 +135,11 @@ export function BuildInfo({ buildId, reorderIsPending, characterId }: Props) {
 
   return (
     <div id={buildId} ref={cardRef}>
-      <Card ref={setNodeRef} className="w-full overflow-hidden" style={style}>
+      <Card
+        ref={setNodeRef}
+        className={cn('w-full overflow-hidden', { 'opacity-50': isDragging })}
+        style={style}
+      >
         <div className="w-full flex justify-center pt-1">
           {reorderIsPending ? (
             <Icons.Drag

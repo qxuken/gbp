@@ -113,6 +113,8 @@ export interface WeaponPlans extends RecordModel {
   levelTarget: number;
   refinementCurrent: number;
   refinementTarget: number;
+  tag?: 'now' | 'need';
+  order: number;
 }
 
 export interface ArtifactTypePlans extends RecordModel {
