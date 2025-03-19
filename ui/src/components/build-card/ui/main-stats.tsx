@@ -43,6 +43,9 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
     if (build.talentSkillCurrent < currentBounds.skill.min) {
       buildCopy.talentSkillCurrent = currentBounds.skill.min;
       somethingChanged = true;
+    } else if (build.talentSkillCurrent > targetBounds.skill.max) {
+      buildCopy.talentSkillCurrent = targetBounds.skill.max;
+      somethingChanged = true;
     }
     if (
       (MIN_BOUNDS.skill.max !== targetBounds.skill.max &&
@@ -54,6 +57,9 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
     }
     if (build.talentBurstCurrent < currentBounds.burst.min) {
       buildCopy.talentBurstCurrent = currentBounds.burst.min;
+      somethingChanged = true;
+    } else if (build.talentBurstCurrent > targetBounds.burst.max) {
+      buildCopy.talentBurstCurrent = currentBounds.burst.max;
       somethingChanged = true;
     }
     if (

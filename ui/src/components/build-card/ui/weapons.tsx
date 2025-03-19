@@ -458,12 +458,14 @@ function WeaponTag({ value, mutate }: WeaponTagProps) {
     x: 0,
     width: 14,
     height: 14,
+    scale: 1,
   };
   const activeStyles = {
     top: -3,
     x: -19,
     width: 52,
     height: 20,
+    scale: 1.25,
   };
   return (
     <motion.div
