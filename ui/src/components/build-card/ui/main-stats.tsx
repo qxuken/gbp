@@ -12,14 +12,17 @@ import {
 
 type Props = { build?: CharacterPlans; mutate(v: CharacterPlans): void };
 
-function getTalentMins(constellation: number): [number, number] {
+const MIN_BOUNDS = { skill: { min: 1, max: 10 }, burst: { min: 1, max: 10 } };
+const MED_BOUNDS = { skill: { min: 4, max: 13 }, burst: { min: 1, max: 10 } };
+const MAX_BOUNDS = { skill: { min: 4, max: 13 }, burst: { min: 4, max: 13 } };
+function getTalentBounds(constellation: number) {
   if (constellation < 3) {
-    return [1, 1];
+    return MIN_BOUNDS;
   }
   if (constellation < 6) {
-    return [4, 1];
+    return MED_BOUNDS;
   }
-  return [4, 4];
+  return MAX_BOUNDS;
 }
 
 export function MainStat({ build, mutate }: Props) {
@@ -31,16 +34,45 @@ export function MainStat({ build, mutate }: Props) {
 
 type PropsLoaded = Required<Props>;
 function MainStatLoaded({ build, mutate }: PropsLoaded) {
-  const [skillMin, burstMin] = getTalentMins(build.constellationCurrent);
+  const currentBounds = getTalentBounds(build.constellationCurrent);
+  const targetBounds = getTalentBounds(build.constellationTarget);
 
   useEffect(() => {
-    if (build.talentSkillCurrent < skillMin) {
-      mutateField(mutate, build, 'talentSkillCurrent')(skillMin);
+    const buildCopy = { ...build };
+    let somethingChanged = false;
+    if (build.talentSkillCurrent < currentBounds.skill.min) {
+      buildCopy.talentSkillCurrent = currentBounds.skill.min;
+      somethingChanged = true;
     }
-    if (build.talentBurstCurrent < burstMin) {
-      mutateField(mutate, build, 'talentBurstCurrent')(burstMin);
+    if (
+      (MIN_BOUNDS.skill.max !== targetBounds.skill.max &&
+        build.talentSkillTarget == MIN_BOUNDS.skill.max) ||
+      build.talentSkillTarget > targetBounds.skill.max
+    ) {
+      buildCopy.talentSkillTarget = targetBounds.skill.max;
+      somethingChanged = true;
     }
-  }, [build.talentSkillCurrent, build.talentBurstCurrent, skillMin, burstMin]);
+    if (build.talentBurstCurrent < currentBounds.burst.min) {
+      buildCopy.talentBurstCurrent = currentBounds.burst.min;
+      somethingChanged = true;
+    }
+    if (
+      (MIN_BOUNDS.burst.max !== targetBounds.burst.max &&
+        build.talentBurstTarget == MIN_BOUNDS.burst.max) ||
+      build.talentBurstTarget > targetBounds.burst.max
+    ) {
+      buildCopy.talentBurstTarget = targetBounds.burst.max;
+      somethingChanged = true;
+    }
+    if (somethingChanged) {
+      mutate(buildCopy);
+    }
+  }, [
+    currentBounds.skill.min,
+    currentBounds.burst.min,
+    targetBounds.skill.max,
+    targetBounds.burst.max,
+  ]);
 
   return (
     <div className="grid grid-cols-[auto_min-content] items-center justify-end gap-1">
@@ -74,8 +106,8 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
       />
       <DoubleInputLabeled
         name="Skill"
-        min={skillMin}
-        max={13}
+        min={currentBounds.skill.min}
+        max={targetBounds.skill.max}
         current={build.talentSkillCurrent}
         target={build.talentSkillTarget}
         onCurrentChange={mutateField(mutate, build, 'talentSkillCurrent')}
@@ -83,8 +115,8 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
       />
       <DoubleInputLabeled
         name="Burst"
-        min={burstMin}
-        max={13}
+        min={currentBounds.burst.min}
+        max={targetBounds.burst.max}
         current={build.talentBurstCurrent}
         target={build.talentBurstTarget}
         onCurrentChange={mutateField(mutate, build, 'talentBurstCurrent')}

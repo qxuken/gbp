@@ -50,9 +50,5 @@ const rootElement = document.getElementById('app')!;
 
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
+  root.render(<App />);
 }
