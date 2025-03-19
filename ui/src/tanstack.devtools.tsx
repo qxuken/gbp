@@ -1,5 +1,5 @@
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import ReactDOM from 'react-dom/client';
 
 import { queryClient } from '@/main';
@@ -12,7 +12,11 @@ function TanstackDevTools() {
       <TanStackRouterDevtools
         position="bottom-left"
         router={router}
-        toggleButtonProps={{ style: { left: 64 } }}
+        toggleButtonProps={{
+          ref: (el) => {
+            el.style.left = '64px';
+          },
+        }}
       />
     </>
   );
