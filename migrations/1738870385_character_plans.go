@@ -42,10 +42,9 @@ func init() {
 			Presentable:  true,
 		})
 		collection.Fields.Add(&core.NumberField{
-			Name:     "order",
-			Required: true,
-			OnlyInt:  true,
-			Min:      types.Pointer(float64(1)),
+			Name:    "order",
+			OnlyInt: true,
+			Min:     types.Pointer(float64(1)),
 		})
 		collection.Fields.Add(&core.RelationField{
 			Name:         "characterRole",

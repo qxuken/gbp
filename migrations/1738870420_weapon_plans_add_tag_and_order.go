@@ -18,10 +18,9 @@ func init() {
 			Values: []string{"now", "need"},
 		})
 		collection.Fields.AddAt(3, &core.NumberField{
-			Name:     "order",
-			Required: true,
-			OnlyInt:  true,
-			Min:      types.Pointer(float64(1)),
+			Name:    "order",
+			OnlyInt: true,
+			Min:     types.Pointer(float64(1)),
 		})
 		return app.Save(collection)
 	}, func(app core.App) error {
