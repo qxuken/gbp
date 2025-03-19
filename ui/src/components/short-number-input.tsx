@@ -1,6 +1,10 @@
+import { clamp } from 'motion';
 import { ChangeEvent, KeyboardEvent, useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+
+const HARD_MAX = 99;
 
 type Props = Omit<
   React.ComponentProps<'input'>,
@@ -16,54 +20,64 @@ export function ShortNumberInput({ max = 99, min = 0, ...props }: Props) {
   useEffect(() => {
     setValue(String(props.value));
   }, [props.value]);
-
-  const setNewValue = (v: number) => {
-    if (v < min || v > max) {
+  const isValid = (v: number) => min <= v && v <= max;
+  const dec = () => {
+    if (!isValid(props.value - 1)) {
       return;
     }
-    props.onChange(v);
-    if (v === props.value) {
-      setValue(String(v));
-    }
-  };
-  const dec = () => {
-    setNewValue(props.value - 1);
+    props.onChange(props.value - 1);
   };
   const inc = () => {
-    setNewValue(props.value + 1);
+    if (!isValid(props.value + 1)) {
+      return;
+    }
+    props.onChange(props.value + 1);
   };
-
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const eventValue = e.target.value;
-    if (eventValue === '') {
-      setValue('');
+    const evVal = e.target.value;
+    const val = Number(evVal);
+    if (evVal === '') {
+      return setValue(evVal);
+    }
+    if (isNaN(val) || val > HARD_MAX) {
       return;
     }
-    const val = Number(eventValue);
-    if (isNaN(val)) {
-      return;
+    if (val != props.value && isValid(val)) {
+      props.onChange(val);
+    } else {
+      setValue(evVal);
     }
-    setNewValue(val);
   };
   const onBlur = () => {
     if (value === '') {
       return setValue(String(props.value));
+    }
+    const val = Number(value);
+    if (!isValid(val)) {
+      props.onChange(clamp(min, val, max));
     }
   };
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case 'ArrowUp':
       case 'k':
+        e.preventDefault();
         return inc();
       case 'ArrowDown':
       case 'j':
+        e.preventDefault();
         return dec();
     }
   };
 
   return (
     <Input
-      className="size-6 text-xs md:text-xs leading-1/1 p-0 font-medium text-center shadow-none border-0 hover:outline"
+      className={cn(
+        'size-6 text-xs md:text-xs leading-1/1 p-0 font-medium text-center shadow-none border-0 hover:outline',
+        {
+          'focus-visible:ring-red-600': !isValid(Number(value)),
+        },
+      )}
       {...props}
       value={value}
       onChange={onChange}
