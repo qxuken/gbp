@@ -4,28 +4,25 @@ import { toast } from 'sonner';
 
 import { AppContext } from '@/main';
 import { router } from '@/router';
-import { useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/stores/auth';
 
 export const Route = createRootRouteWithContext<AppContext>()({
   component: RootComponent,
   beforeLoad(ctx) {
-    if (
-      ctx.context.auth.isAuthenticated &&
-      !ctx.context.auth.initCheckComplete
-    ) {
-      ctx.context.auth.authRefresh().catch(() => {
-        toast.error('You have been unathorized');
+    if (ctx.context.isAuthenticated && !ctx.context.initCheckComplete) {
+      ctx.context.authRefresh().catch(() => {
+        toast.error('You have been unauthorized');
       });
     }
   },
 });
 
 function RootComponent() {
-  const auth = useAuth();
+  const isAuthenticated = useAuth((s) => s.isAuthenticated);
 
   useEffect(() => {
     router.invalidate();
-  }, [auth.isAuthenticated]);
+  }, [isAuthenticated]);
 
   return <Outlet />;
 }

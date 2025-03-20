@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
-import { useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/stores/auth';
 
 const profileFormSchema = z.object({
   name: z.string().min(2).max(50),
@@ -28,8 +28,8 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 function ProfileEditForm({ onSuccess }: { onSuccess(): void }) {
-  const auth = useAuth();
-  const user = auth.record;
+  const user = useAuth((s) => s.record);
+  const updateProfile = useAuth((s) => s.updateProfile);
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -48,7 +48,7 @@ function ProfileEditForm({ onSuccess }: { onSuccess(): void }) {
         formData.append('avatar', data.avatar[0]);
       }
 
-      await auth.updateProfile(formData);
+      await updateProfile(formData);
       toast.success('Profile updated successfully');
       onSuccess();
     } catch {

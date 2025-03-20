@@ -62,7 +62,3 @@ theme.subscribe(
   },
   { fireImmediately: true },
 );
-
-export function useTheme() {
-  return theme();
-}

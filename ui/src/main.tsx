@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
-import { StrictMode } from 'react';
+import { RecordModel } from 'pocketbase';
+import { RecordAuthResponse } from 'pocketbase';
 import ReactDOM from 'react-dom/client';
 
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { type Auth, useAuth } from '@/stores/auth';
-import { type Theme, useTheme } from '@/stores/theme';
+import { auth as useAuth } from '@/stores/auth';
 
 import { router } from './router';
 
@@ -17,8 +17,9 @@ if (!import.meta.env.PROD) {
 }
 
 export interface AppContext {
-  auth: Auth;
-  theme: Theme;
+  isAuthenticated: boolean;
+  initCheckComplete: boolean;
+  authRefresh: () => Promise<RecordAuthResponse<RecordModel>>;
 }
 
 export const queryClient = new QueryClient({
@@ -30,9 +31,12 @@ export const queryClient = new QueryClient({
 });
 
 function App() {
-  const theme = useTheme();
   const auth = useAuth();
-  const context = { theme, auth };
+  const context = {
+    isAuthenticated: auth.isAuthenticated,
+    initCheckComplete: auth.initCheckComplete,
+    authRefresh: auth.authRefresh,
+  };
 
   return (
     <>

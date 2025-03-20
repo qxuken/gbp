@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { useAuth } from '../stores/auth';
+import { auth as useAuth } from '../stores/auth';
 
 export const Route = createFileRoute('/_auth/forgot-password')({
   component: ForgotPassword,
@@ -36,7 +36,7 @@ const formSchema = z.object({
 });
 
 function ForgotPassword() {
-  const auth = useAuth();
+  const passwordReset = useAuth((s) => s.passwordReset);
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
 
@@ -49,7 +49,7 @@ function ForgotPassword() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await auth.passwordReset(values.email);
+      await passwordReset(values.email);
       toast.success('Check your inbox');
 
       await navigate({ search: search, to: '/login' });

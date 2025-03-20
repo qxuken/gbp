@@ -2,7 +2,6 @@ import { createRouteMask, createRouter } from '@tanstack/react-router';
 
 import { Icons } from '@/components/icons';
 import { auth } from '@/stores/auth';
-import { theme } from '@/stores/theme';
 
 import { routeTree } from './routeTree.gen';
 
@@ -19,8 +18,9 @@ export const router = createRouter({
   defaultPreload: 'intent',
   scrollRestoration: true,
   context: {
-    auth: auth.getState(),
-    theme: theme.getState(),
+    isAuthenticated: auth.getState().isAuthenticated,
+    initCheckComplete: auth.getState().initCheckComplete,
+    authRefresh: auth.getState().authRefresh,
   },
   defaultPendingComponent: () => {
     <div className="w-full p-2 flex justify-center">

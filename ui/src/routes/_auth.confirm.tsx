@@ -1,9 +1,4 @@
-import {
-  Link,
-  createFileRoute,
-  useNavigate,
-  useRouter,
-} from '@tanstack/react-router';
+import { Link, createFileRoute, useRouter } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -12,9 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTimeoutButton } from '@/hooks/useTimeoutButton';
-import { useAuth } from '@/stores/auth';
-
-const fallback = '/' as const;
+import { auth as useAuth } from '@/stores/auth';
 
 export const Route = createFileRoute('/_auth/confirm')({
   component: ConfirmComponent,
@@ -25,14 +18,15 @@ export const Route = createFileRoute('/_auth/confirm')({
 });
 
 function ConfirmComponent() {
-  const auth = useAuth();
+  const login = useAuth((s) => s.login);
+  const requestVerification = useAuth((s) => s.requestVerification);
   const router = useRouter();
   const search = Route.useSearch();
   const [resendTimeout, startResendTimeout] = useTimeoutButton();
 
-  const login = async () => {
+  const tryLogin = async () => {
     try {
-      await auth.login(search.email, search.password);
+      await login(search.email, search.password);
       await router.invalidate();
     } catch (e) {
       if (e instanceof Error) {
@@ -43,7 +37,7 @@ function ConfirmComponent() {
 
   const resendEmail = async () => {
     try {
-      await auth.requestVerification(search.email);
+      await requestVerification(search.email);
       startResendTimeout();
       toast.success('Check your inbox');
     } catch {
@@ -68,7 +62,7 @@ function ConfirmComponent() {
                 confirm your email to proceed.
               </AlertDescription>
             </Alert>
-            <Button size="lg" className="mt-2 w-full" onClick={login}>
+            <Button size="lg" className="mt-2 w-full" onClick={tryLogin}>
               I’ve Verified My Email
             </Button>
             <Button

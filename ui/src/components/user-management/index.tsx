@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getShortName } from '@/lib/utils';
-import { useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/stores/auth';
 
 import { DeleteAccountDialog } from './delete-account-dialog';
 import { EmailEditDialog } from './email-edit-dialog';
@@ -20,10 +20,8 @@ import { PasswordEditDialog } from './password-edit-dialog';
 import { ProfileEditDialog } from './profile-edit-dialog';
 
 export function UserManagement() {
-  const auth = useAuth();
+  const user = useAuth((s) => s.record);
   const [open, setOpen] = useState(false);
-
-  const user = auth.record;
 
   if (!user) {
     return null;

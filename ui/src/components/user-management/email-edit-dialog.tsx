@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
-import { useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/stores/auth';
 
 const emailFormSchema = z.object({
   email: z.string().email(),
@@ -25,8 +25,8 @@ const emailFormSchema = z.object({
 type EmailFormValues = z.infer<typeof emailFormSchema>;
 
 function EmailEditForm({ onSuccess }: { onSuccess(): void }) {
-  const auth = useAuth();
-  const user = auth.record;
+  const user = useAuth((s) => s.record);
+  const updateEmail = useAuth((s) => s.updateEmail);
   const form = useForm<EmailFormValues>({
     resolver: zodResolver(emailFormSchema),
     defaultValues: {
@@ -38,7 +38,7 @@ function EmailEditForm({ onSuccess }: { onSuccess(): void }) {
 
   async function onSubmit(data: EmailFormValues) {
     try {
-      await auth.updateEmail(data.email);
+      await updateEmail(data.email);
       toast.success('Email verification sent. Please check your inbox.');
       onSuccess();
     } catch {

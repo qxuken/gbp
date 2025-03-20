@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
-import { useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/stores/auth';
 
 const passwordFormSchema = z
   .object({
@@ -32,8 +32,8 @@ const passwordFormSchema = z
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 function PasswordEditForm({ onSuccess }: { onSuccess(): void }) {
-  const auth = useAuth();
-  const user = auth.record;
+  const user = useAuth((s) => s.record);
+  const updatePassword = useAuth((s) => s.updatePassword);
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
   });
@@ -42,7 +42,7 @@ function PasswordEditForm({ onSuccess }: { onSuccess(): void }) {
 
   async function onSubmit(data: PasswordFormValues) {
     try {
-      await auth.updatePassword(
+      await updatePassword(
         data.oldPassword,
         data.password,
         data.passwordConfirm,

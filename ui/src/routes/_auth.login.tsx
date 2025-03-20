@@ -23,9 +23,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { useAuth } from '../stores/auth';
-
-const fallback = '/' as const;
+import { auth as useAuth } from '../stores/auth';
 
 export const Route = createFileRoute('/_auth/login')({
   component: LoginComponent,
@@ -41,7 +39,7 @@ const formSchema = z.object({
 });
 
 function LoginComponent() {
-  const auth = useAuth();
+  const login = useAuth((s) => s.login);
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -54,7 +52,7 @@ function LoginComponent() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await auth.login(values.email, values.password);
+      await login(values.email, values.password);
       await router.invalidate();
     } catch (e) {
       if (e instanceof Error) {

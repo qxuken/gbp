@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useTheme } from '@/stores/theme';
+import { theme as useTheme } from '@/stores/theme';
 
 const iconAnimationProps = {
   active: { opacity: 1, scale: 1, rotate: 0 },
@@ -18,7 +18,8 @@ const iconAnimationProps = {
 };
 
 export function ThemeToggle() {
-  const { displayTheme, setTheme } = useTheme();
+  const displayTheme = useTheme((s) => s.displayTheme);
+  const setTheme = useTheme((s) => s.setTheme);
   const moonRef = useRef<SVGSVGElement>(null);
   const sunRef = useRef<SVGSVGElement>(null);
 

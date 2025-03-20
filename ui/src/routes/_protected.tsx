@@ -7,7 +7,7 @@ import { UserManagement } from '@/components/user-management';
 
 export const Route = createFileRoute('/_protected')({
   beforeLoad({ context, location }) {
-    if (!context.auth.isAuthenticated) {
+    if (!context.isAuthenticated) {
       throw redirect({
         search: {
           redirect: location.href,

@@ -13,7 +13,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/stores/auth';
 
 interface LogoutDialogProps {
   onLogout?(): void;
@@ -22,10 +22,10 @@ interface LogoutDialogProps {
 export function LogoutDialog({ onLogout }: LogoutDialogProps) {
   const router = useRouter();
   const navigate = useNavigate();
-  const auth = useAuth();
+  const logout = useAuth((s) => s.logout);
 
   const handleLogout = async () => {
-    auth.logout();
+    logout();
     await router.invalidate();
     await navigate({ to: '/login' });
     onLogout?.();

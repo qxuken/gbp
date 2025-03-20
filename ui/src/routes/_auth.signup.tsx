@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { useAuth } from '../stores/auth';
+import { auth as useAuth } from '../stores/auth';
 
 export const Route = createFileRoute('/_auth/signup')({
   component: SignupComponent,
@@ -55,7 +55,8 @@ const formSchema = z
   });
 
 function SignupComponent() {
-  const auth = useAuth();
+  const register = useAuth((s) => s.register);
+  const requestVerification = useAuth((s) => s.requestVerification);
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
 
@@ -74,8 +75,8 @@ function SignupComponent() {
         formData.append('avatar', values.avatar[0]);
       }
 
-      await auth.register(formData);
-      await auth.requestVerification(values.email);
+      await register(formData);
+      await requestVerification(values.email);
 
       await navigate({
         search: { ...search, email: values.email, password: values.password },

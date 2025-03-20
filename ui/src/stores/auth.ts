@@ -135,7 +135,3 @@ export const auth = create<Auth>((set) => ({
     return record;
   },
 }));
-
-export function useAuth() {
-  return auth();
-}

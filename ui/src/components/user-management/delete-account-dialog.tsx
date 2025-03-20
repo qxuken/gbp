@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/stores/auth';
 
 interface DeleteAccountDialogProps {
   onDelete?(): void;
@@ -26,25 +26,26 @@ interface DeleteAccountDialogProps {
 export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
   const router = useRouter();
   const navigate = useNavigate();
-  const auth = useAuth();
+  const user = useAuth((s) => s.record);
+  const logout = useAuth((s) => s.logout);
   const [emailConfirmation, setEmailConfirmation] = useState('');
 
   const handleDeleteAccount = async () => {
     try {
-      if (!auth.record?.id) {
+      if (!user?.id) {
         throw new Error('Not authenticated');
       }
 
-      if (emailConfirmation !== auth.record.email) {
+      if (emailConfirmation !== user.email) {
         toast.error('Email confirmation does not match your account email');
         return;
       }
 
       // Delete the user account
-      await pbClient.collection('users').delete(auth.record.id);
+      await pbClient.collection('users').delete(user.id);
 
       // Clear auth state and redirect
-      auth.logout();
+      logout();
       await router.invalidate();
       await navigate({ to: '/login' });
       onDelete?.();
@@ -81,7 +82,7 @@ export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
           </p>
           <Input
             type="email"
-            placeholder={auth.record?.email}
+            placeholder={user?.email}
             value={emailConfirmation}
             onChange={(e) => setEmailConfirmation(e.target.value)}
             className="w-full"
@@ -94,7 +95,7 @@ export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
           <AlertDialogAction
             onClick={handleDeleteAccount}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={emailConfirmation !== auth.record?.email}
+            disabled={emailConfirmation !== user?.email}
           >
             Delete Account
           </AlertDialogAction>
