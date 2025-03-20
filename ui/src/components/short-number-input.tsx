@@ -4,8 +4,6 @@ import { ChangeEvent, KeyboardEvent, useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-const HARD_MAX = 99;
-
 type Props = Omit<
   React.ComponentProps<'input'>,
   'value' | 'defaultValue' | 'onChange' | 'min' | 'max'
@@ -39,7 +37,7 @@ export function ShortNumberInput({ max = 99, min = 0, ...props }: Props) {
     if (evVal === '') {
       return setValue(evVal);
     }
-    if (isNaN(val) || val > HARD_MAX) {
+    if (isNaN(val) || evVal.length > 2) {
       return;
     }
     if (val != props.value && isValid(val)) {
