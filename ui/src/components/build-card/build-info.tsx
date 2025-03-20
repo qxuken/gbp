@@ -217,7 +217,7 @@ export function BuildInfo({ buildId, reorderIsPending, characterId }: Props) {
 export function BuildInfoSkeleton({
   ref,
 }: {
-  ref: React.Ref<HTMLDivElement | null>;
+  ref?: React.Ref<HTMLDivElement | null>;
 }) {
   return (
     <Card ref={ref} className="w-full overflow-hidden">

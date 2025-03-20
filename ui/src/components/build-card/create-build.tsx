@@ -1,15 +1,15 @@
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { useNewCharacterPlans } from '@/stores/newCharacterPlans';
+import { newCharacterPlans as useNewCharacterPlans } from '@/stores/newCharacterPlans';
 
 import { CharacterPicker } from './ui/character-picker';
 
 type Props = { size: number; disabled?: boolean };
 export function CreateBuild({ size, disabled }: Props) {
-  const newCharacterPlansStore = useNewCharacterPlans();
+  const addNew = useNewCharacterPlans((s) => s.addNew);
 
   const createNewPlan = (characterId: string) => {
-    newCharacterPlansStore.addNew(characterId, size);
+    addNew(characterId, size);
   };
 
   return (

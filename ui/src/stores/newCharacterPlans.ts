@@ -1,4 +1,3 @@
-import { ClientResponseError } from 'pocketbase';
 import { toast } from 'sonner';
 import { create } from 'zustand';
 
@@ -33,42 +32,64 @@ function newCharacterPlan(
   };
 }
 
-type PendingCharacter = {
+export type PendingCharacter = {
   id: string;
   characterId: string;
   order: number;
+  state: 'pending' | 'sent' | 'failed';
 };
 
 export interface NewCharacterPlans {
   characterPlans: PendingCharacter[];
-  sentPlans: WeakSet<PendingCharacter>;
   latestId: number;
   addNew(characterId: string, itemsCount: number): void;
-  planReady(planId: PendingCharacter): void;
+  planSent(planId: PendingCharacter['id']): void;
+  planError(planId: PendingCharacter['id']): void;
+  planRetry(planId: PendingCharacter['id']): void;
+  planReady(planId: PendingCharacter['id']): void;
 }
 
 export const newCharacterPlans = create<NewCharacterPlans>((set) => ({
   characterPlans: [],
   latestId: 0,
-  sentPlans: new WeakSet(),
   addNew(characterId, itemsCount) {
-    const newId = this.latestId + 1;
-    set(() => ({
-      latestId: newId,
+    set((state) => ({
+      latestId: state.latestId + 1,
       characterPlans: [
-        ...this.characterPlans,
+        ...state.characterPlans,
         {
-          id: String(newId),
+          id: String(state.latestId + 1),
           characterId,
-          order: itemsCount + this.characterPlans.length + 1,
+          order: itemsCount + state.characterPlans.length + 1,
+          state: 'pending',
         },
       ],
     }));
   },
-  planReady(pendingPlan) {
-    this.sentPlans.delete(pendingPlan);
-    set(() => ({
-      characterPlans: this.characterPlans.filter((p) => p != pendingPlan),
+  planSent(pendingPlanId) {
+    set((state) => ({
+      characterPlans: state.characterPlans.map((p) =>
+        p.id == pendingPlanId ? { ...p, state: 'sent' } : p,
+      ),
+    }));
+  },
+  planError(pendingPlanId) {
+    set((state) => ({
+      characterPlans: state.characterPlans.map((p) =>
+        p.id == pendingPlanId ? { ...p, state: 'failed' } : p,
+      ),
+    }));
+  },
+  planRetry(pendingPlanId) {
+    set((state) => ({
+      characterPlans: state.characterPlans.map((p) =>
+        p.id == pendingPlanId ? { ...p, state: 'pending' } : p,
+      ),
+    }));
+  },
+  planReady(pendingPlanId) {
+    set((state) => ({
+      characterPlans: state.characterPlans.filter((p) => p.id != pendingPlanId),
     }));
   },
 }));
@@ -81,17 +102,17 @@ auth.subscribe((state) => {
 
 newCharacterPlans.subscribe(createPlans);
 createPlans(newCharacterPlans.getState());
-function createPlans({ characterPlans, sentPlans }: NewCharacterPlans) {
+function createPlans({ characterPlans }: NewCharacterPlans) {
   for (const pendingPlan of characterPlans) {
-    if (sentPlans.has(pendingPlan)) {
+    if (pendingPlan.state !== 'pending') {
       continue;
     }
     const plan = newCharacterPlan(pendingPlan);
     if (!plan) {
       break;
     }
-    sentPlans.add(pendingPlan);
     let retries = 0;
+    newCharacterPlans.getState().planSent(pendingPlan.id);
     async function try_create() {
       try {
         const res = await pbClient
@@ -102,19 +123,16 @@ function createPlans({ characterPlans, sentPlans }: NewCharacterPlans) {
           queryKey: ['characterPlans', 'page'],
         });
         toast.success('Plan successfuly created');
-        newCharacterPlans.getState().planReady(pendingPlan);
-      } catch (e) {
-        if (!(e instanceof ClientResponseError)) {
-          return;
-        }
+        newCharacterPlans.getState().planReady(pendingPlan.id);
+      } catch {
         if (retries >= 3) {
+          newCharacterPlans.getState().planError(pendingPlan.id);
           toast.error('Error', {
-            description: e.message,
+            description: 'Unable to create character',
             action: {
               label: 'Retry',
               onClick() {
-                retries = 0;
-                try_create();
+                newCharacterPlans.getState().planRetry(pendingPlan.id);
               },
             },
           });
@@ -126,8 +144,4 @@ function createPlans({ characterPlans, sentPlans }: NewCharacterPlans) {
     }
     try_create();
   }
-}
-
-export function useNewCharacterPlans() {
-  return newCharacterPlans();
 }

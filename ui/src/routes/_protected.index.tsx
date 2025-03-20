@@ -22,7 +22,7 @@ import {
   LinkOptions,
   linkOptions,
 } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { z } from 'zod';
 
 import { pbClient } from '@/api/pocketbase';
@@ -52,10 +52,20 @@ import {
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { handleReorder } from '@/lib/utils';
 import { queryClient } from '@/main';
-import { useNewCharacterPlans } from '@/stores/newCharacterPlans';
+import {
+  newCharacterPlans as useNewCharacterPlans,
+  PendingCharacter,
+} from '@/stores/newCharacterPlans';
 
 type Item = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
+
+type RenderItem =
+  | { type: 'build'; build: Item; order: number }
+  | { type: 'pending'; pending: PendingCharacter; order: number }
+  | { type: 'create'; order: number };
+
 const FIELDS = 'id, order, character';
+const QUERY_KEY = ['characterPlans', 'page'];
 
 const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
 
@@ -64,14 +74,13 @@ const SEARCH_SCHEMA = z.object({
   perPage: z.number().optional(),
 });
 
-const queryParams = (queryKey: string[]) =>
-  queryOptions({
-    queryKey,
-    queryFn: () =>
-      pbClient
-        .collection<Item>('characterPlans')
-        .getFullList({ fields: FIELDS, sort: 'order' }),
-  });
+const QUERY_PARAMS = queryOptions({
+  queryKey: QUERY_KEY,
+  queryFn: () =>
+    pbClient
+      .collection<Item>('characterPlans')
+      .getFullList({ fields: FIELDS, sort: 'order' }),
+});
 
 export const Route = createFileRoute('/_protected/')({
   component: HomeComponent,
@@ -79,9 +88,8 @@ export const Route = createFileRoute('/_protected/')({
   loaderDeps: ({ search: { page = 1, perPage = PAGE_SIZE_OPTIONS[0] } }) => ({
     page,
     perPage,
-    queryKey: ['characterPlans', 'page', `${page}:${perPage}`],
   }),
-  loader: ({ deps }) => queryClient.ensureQueryData(queryParams(deps.queryKey)),
+  loader: () => queryClient.ensureQueryData(QUERY_PARAMS),
   pendingComponent: () => (
     <div className="w-full p-4 flex justify-center">
       <Icons.Spinner className="animate-spin size-12" />
@@ -108,10 +116,11 @@ function usePageLink(perPage?: number) {
 function HomeComponent() {
   const deps = Route.useLoaderDeps();
   const search = Route.useSearch();
-  const query = queryParams(deps.queryKey);
   const navigate = Route.useNavigate();
-  const { data: queryData } = useSuspenseQuery(query);
-  const { characterPlans } = useNewCharacterPlans();
+  const { data: queryData } = useSuspenseQuery(QUERY_PARAMS);
+  const pendingPlans = useNewCharacterPlans(
+    (s) => s.characterPlans as PendingCharacter[],
+  );
   const generateLink = usePageLink(search.perPage);
 
   const sensors = useSensors(
@@ -145,7 +154,7 @@ function HomeComponent() {
       return batch.send();
     },
     onSuccess: async (_, variables) => {
-      await queryClient.setQueryData(deps.queryKey, variables);
+      await queryClient.setQueryData(QUERY_KEY, variables);
       reset();
     },
     onError: notifyWithRetry((v) => {
@@ -154,12 +163,30 @@ function HomeComponent() {
   });
 
   const items = variables || queryData;
-  const pageItems = items.slice(
+
+  const allItems: RenderItem[] = useMemo(() => {
+    const buildItems: RenderItem[] = items.map((build) => ({
+      type: 'build',
+      build,
+      order: build.order,
+    }));
+    const pendingItems: RenderItem[] = pendingPlans.map((pending) => ({
+      type: 'pending',
+      pending,
+      order: pending.order,
+    }));
+    const all = buildItems
+      .concat(pendingItems)
+      .concat([{ type: 'create', order: Infinity }]);
+    all.sort((a, b) => a.order - b.order);
+    return all;
+  }, [items, pendingPlans]);
+  const renderItems = allItems.slice(
     deps.perPage * (deps.page - 1),
     deps.perPage * deps.page,
   );
 
-  const totalItems = queryData.length;
+  const totalItems = queryData.length + pendingPlans.length + 1;
   const totalPages = Math.ceil(totalItems / deps.perPage);
 
   function handleDragEnd(event: DragEndEvent) {
@@ -167,10 +194,10 @@ function HomeComponent() {
   }
 
   useEffect(() => {
-    if (pageItems.length === 0 && deps.page > 1) {
-      navigate(generateLink(queryData.length));
+    if (deps.page > totalPages) {
+      navigate(generateLink(totalPages));
     }
-  }, [pageItems]);
+  }, [deps.page, totalPages]);
 
   return (
     <div className="pb-8">
@@ -180,28 +207,44 @@ function HomeComponent() {
           collisionDetection={closestCorners}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={pageItems} strategy={rectSortingStrategy}>
-            {pageItems.map((build) => (
-              <BuildInfo
-                key={build.id}
-                buildId={build.id}
-                characterId={build.character}
-                reorderIsPending={reorderIsPending}
-              />
-            ))}
+          <SortableContext items={items} strategy={rectSortingStrategy}>
+            {renderItems.map((item) => {
+              switch (item.type) {
+                case 'build': {
+                  const { build } = item;
+                  return (
+                    <BuildInfo
+                      key={build.id}
+                      buildId={build.id}
+                      characterId={build.character}
+                      reorderIsPending={reorderIsPending}
+                    />
+                  );
+                }
+                case 'pending': {
+                  const { pending } = item;
+                  return (
+                    <PendingBuildInfo key={pending.id} pending={pending} />
+                  );
+                }
+                case 'create':
+                  return (
+                    <Card
+                      key="create"
+                      className="w-full border-2 border-dashed border-muted bg-muted/5"
+                    >
+                      <div className="w-full h-full flex items-center justify-center p-12">
+                        <CreateBuild
+                          size={totalItems - 1}
+                          disabled={reorderIsPending}
+                        />
+                      </div>
+                    </Card>
+                  );
+              }
+            })}
           </SortableContext>
         </DndContext>
-        {characterPlans.slice(0, deps.perPage - items.length).map((pending) => (
-          <PendingBuildInfo
-            key={pending.id}
-            characterId={pending.characterId}
-          />
-        ))}
-        <Card className="w-full border-2 border-dashed border-muted bg-muted/5">
-          <div className="w-full h-full flex items-center justify-center p-12">
-            <CreateBuild size={totalItems} disabled={reorderIsPending} />
-          </div>
-        </Card>
       </div>
       <div className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3">
         <PerPagePagination totalItems={totalItems} />
@@ -238,7 +281,7 @@ function PagePagination({ totalPages }: PagePaginationProps) {
   const pagesToDisplay = useLinkToDisplay(currentPage, totalPages, perPage);
 
   if (totalPages < 2) {
-    return null;
+    return <div />;
   }
 
   return (
@@ -304,7 +347,7 @@ function PerPagePagination({ totalItems }: PerPagePaginationProps) {
   };
 
   if (totalItems < PAGE_SIZE_OPTIONS[0] + 1) {
-    return null;
+    return <div />;
   }
 
   return (
