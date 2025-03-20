@@ -8,7 +8,6 @@ import {
   closestCorners,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
@@ -51,28 +50,27 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
+import { handleReorder } from '@/lib/utils';
 import { queryClient } from '@/main';
 import { useNewCharacterPlans } from '@/stores/newCharacterPlans';
 
 type Item = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
 const FIELDS = 'id, order, character';
 
-const PAGE_SIZE_OPTIONS = [5, 30, 50, 80] as const;
+const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
 
 const SEARCH_SCHEMA = z.object({
   page: z.number().optional(),
   perPage: z.number().optional(),
 });
 
-type Deps = z.infer<typeof SEARCH_SCHEMA> & { queryKey: string[] };
-
-const queryParams = ({ page, perPage, queryKey }: Deps) =>
+const queryParams = (queryKey: string[]) =>
   queryOptions({
     queryKey,
     queryFn: () =>
       pbClient
         .collection<Item>('characterPlans')
-        .getList(page, perPage, { fields: FIELDS, sort: 'order' }),
+        .getFullList({ fields: FIELDS, sort: 'order' }),
   });
 
 export const Route = createFileRoute('/_protected/')({
@@ -83,9 +81,7 @@ export const Route = createFileRoute('/_protected/')({
     perPage,
     queryKey: ['characterPlans', 'page', `${page}:${perPage}`],
   }),
-  loader: ({ deps }) => {
-    return queryClient.ensureQueryData(queryParams(deps));
-  },
+  loader: ({ deps }) => queryClient.ensureQueryData(queryParams(deps.queryKey)),
   pendingComponent: () => (
     <div className="w-full p-4 flex justify-center">
       <Icons.Spinner className="animate-spin size-12" />
@@ -104,14 +100,15 @@ function generatePaginationLink(page: number, perPage?: number) {
 }
 
 function usePageLink(perPage?: number) {
-  const generateLink = (page: number) => generatePaginationLink(page, perPage);
-  return generateLink;
+  return function (page: number) {
+    return generatePaginationLink(page, perPage);
+  };
 }
 
 function HomeComponent() {
   const deps = Route.useLoaderDeps();
   const search = Route.useSearch();
-  const query = queryParams(deps);
+  const query = queryParams(deps.queryKey);
   const navigate = Route.useNavigate();
   const { data: queryData } = useSuspenseQuery(query);
   const { characterPlans } = useNewCharacterPlans();
@@ -132,16 +129,23 @@ function HomeComponent() {
   } = useMutation({
     mutationFn(items: Item[]) {
       const batch = pbClient.createBatch();
-      for (const it of items) {
-        batch
-          .collection('characterPlans')
-          .update(it.id, { order: it.order }, { fields: FIELDS });
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        const originalItem = queryData[i];
+        if (
+          !originalItem ||
+          originalItem.id !== it.id ||
+          originalItem.order !== it.order
+        ) {
+          batch
+            .collection('characterPlans')
+            .update(it.id, { order: it.order }, { fields: FIELDS });
+        }
       }
       return batch.send();
     },
-    onSuccess: async (data) => {
-      const items = data.map((it) => it.body);
-      await queryClient.setQueryData(deps.queryKey, { ...queryData, items });
+    onSuccess: async (_, variables) => {
+      await queryClient.setQueryData(deps.queryKey, variables);
       reset();
     },
     onError: notifyWithRetry((v) => {
@@ -149,38 +153,24 @@ function HomeComponent() {
     }),
   });
 
-  const items = variables || queryData.items;
+  const items = variables || queryData;
+  const pageItems = items.slice(
+    deps.perPage * (deps.page - 1),
+    deps.perPage * deps.page,
+  );
+
+  const totalItems = queryData.length;
+  const totalPages = Math.ceil(totalItems / deps.perPage);
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = items.findIndex((it) => it.id === active.id);
-    const newIndex = items.findIndex((it) => it.id === over.id);
-
-    if (oldIndex < 0 || newIndex < 0) {
-      console.error('Invalid drag indices:', {
-        oldIndex,
-        newIndex,
-        active,
-        over,
-      });
-      return;
-    }
-
-    reorderItems(
-      arrayMove(items, oldIndex, newIndex).map((it, i) => ({
-        ...it,
-        order: queryData.perPage * (queryData.page - 1) + 1 + i,
-      })),
-    );
+    handleReorder(event, items, reorderItems);
   }
 
   useEffect(() => {
-    if (queryData.items.length === 0 && deps.page > 1) {
-      navigate(generateLink(queryData.totalPages));
+    if (pageItems.length === 0 && deps.page > 1) {
+      navigate(generateLink(queryData.length));
     }
-  }, [queryData.items]);
+  }, [pageItems]);
 
   return (
     <div className="pb-8">
@@ -190,8 +180,8 @@ function HomeComponent() {
           collisionDetection={closestCorners}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={items} strategy={rectSortingStrategy}>
-            {items.map((build) => (
+          <SortableContext items={pageItems} strategy={rectSortingStrategy}>
+            {pageItems.map((build) => (
               <BuildInfo
                 key={build.id}
                 buildId={build.id}
@@ -209,16 +199,13 @@ function HomeComponent() {
         ))}
         <Card className="w-full border-2 border-dashed border-muted bg-muted/5">
           <div className="w-full h-full flex items-center justify-center p-12">
-            <CreateBuild
-              size={queryData.totalItems}
-              disabled={reorderIsPending}
-            />
+            <CreateBuild size={totalItems} disabled={reorderIsPending} />
           </div>
         </Card>
       </div>
       <div className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3">
-        <PerPagePagination />
-        <PagePagination totalPages={queryData.totalPages} />
+        <PerPagePagination totalItems={totalItems} />
+        <PagePagination totalPages={totalPages} />
       </div>
     </div>
   );
@@ -304,18 +291,19 @@ function PagePagination({ totalPages }: PagePaginationProps) {
   );
 }
 
-function PerPagePagination() {
+type PerPagePaginationProps = {
+  totalItems: number;
+};
+
+function PerPagePagination({ totalItems }: PerPagePaginationProps) {
   const deps = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
-  const { data: queryData } = useSuspenseQuery(queryParams(deps));
 
-  const pageChange = (perPage: number) => {
-    const link = generatePaginationLink(1, perPage);
-    navigate(link);
-    queryClient.invalidateQueries({ queryKey: ['characterPlans', 'page'] });
+  const perPageChange = (perPage: number) => {
+    navigate(generatePaginationLink(1, perPage));
   };
 
-  if (queryData.totalItems < PAGE_SIZE_OPTIONS[0] + 1) {
+  if (totalItems < PAGE_SIZE_OPTIONS[0] + 1) {
     return null;
   }
 
@@ -326,7 +314,7 @@ function PerPagePagination() {
       </Label>
       <Select
         value={String(deps.perPage)}
-        onValueChange={(perPage) => pageChange(Number(perPage))}
+        onValueChange={(perPage) => perPageChange(Number(perPage))}
       >
         <SelectTrigger className="w-[4.5rem] h-9">
           <SelectValue />

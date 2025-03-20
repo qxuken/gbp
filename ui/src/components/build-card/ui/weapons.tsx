@@ -9,10 +9,9 @@ import {
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Popover } from '@radix-ui/react-popover';
@@ -37,7 +36,7 @@ import {
 import { AsyncDebounce } from '@/lib/async-debounce';
 import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
-import { cn } from '@/lib/utils';
+import { cn, handleReorder } from '@/lib/utils';
 import { queryClient } from '@/main';
 
 import {
@@ -85,8 +84,8 @@ type PropsLoaded = Omit<Props, 'enabled'> & {
 function WeaponsLoaded({
   buildId,
   weaponType,
-  weapons,
   queryKey,
+  weapons,
 }: PropsLoaded) {
   const ignoreWeapons = new Set(weapons.map((it) => it.weapon));
   const sensors = useSensors(
@@ -144,28 +143,7 @@ function WeaponsLoaded({
   const items = variables || weapons;
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = items.findIndex((it) => it.id === active.id);
-    const newIndex = items.findIndex((it) => it.id === over.id);
-
-    if (oldIndex < 0 || newIndex < 0) {
-      console.error('Invalid drag indices:', {
-        oldIndex,
-        newIndex,
-        active,
-        over,
-      });
-      return;
-    }
-
-    reorderWeapons(
-      arrayMove(items, oldIndex, newIndex).map((it, i) => ({
-        ...it,
-        order: i + 1,
-      })),
-    );
+    handleReorder(event, weapons, reorderWeapons);
   }
 
   return (
