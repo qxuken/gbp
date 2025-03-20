@@ -21,7 +21,7 @@ function newCharacterPlan(
     order: pending.order,
     constellationCurrent: 0,
     constellationTarget: 0,
-    levelCurrent: 0,
+    levelCurrent: 1,
     levelTarget: 90,
     talentAtkCurrent: 1,
     talentAtkTarget: 10,

@@ -84,7 +84,7 @@ function MainStatLoaded({ build, mutate }: PropsLoaded) {
     <div className="grid grid-cols-[auto_min-content] items-center justify-end gap-1">
       <DoubleInputLabeled
         name="Level"
-        min={0}
+        min={1}
         max={90}
         current={build.levelCurrent}
         target={build.levelTarget}
