@@ -27,7 +27,6 @@ export const Route = createFileRoute('/_auth/confirm')({
 function ConfirmComponent() {
   const auth = useAuth();
   const router = useRouter();
-  const navigate = useNavigate();
   const search = Route.useSearch();
   const [resendTimeout, startResendTimeout] = useTimeoutButton();
 
@@ -35,7 +34,6 @@ function ConfirmComponent() {
     try {
       await auth.login(search.email, search.password);
       await router.invalidate();
-      await navigate({ to: search.redirect || fallback });
     } catch (e) {
       if (e instanceof Error) {
         toast.error(e.message);
