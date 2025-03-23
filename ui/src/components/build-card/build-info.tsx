@@ -127,14 +127,14 @@ export function BuildInfo({ buildId, reorderIsPending, characterId }: Props) {
 
   if (!character) {
     return (
-      <div id={buildId} ref={cardRef}>
+      <article id={buildId} ref={cardRef}>
         <BuildInfoSkeleton ref={cardRef} />;
-      </div>
+      </article>
     );
   }
 
   return (
-    <div id={buildId} ref={cardRef}>
+    <article id={buildId} ref={cardRef}>
       <Card
         ref={setNodeRef}
         className={cn('w-full overflow-hidden', { 'opacity-50': isDragging })}
@@ -210,7 +210,7 @@ export function BuildInfo({ buildId, reorderIsPending, characterId }: Props) {
           />
         </CardContent>
       </Card>
-    </div>
+    </article>
   );
 }
 

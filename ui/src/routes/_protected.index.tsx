@@ -6,6 +6,7 @@ import {
   useSensors,
   DragEndEvent,
   closestCorners,
+  TouchSensor,
 } from '@dnd-kit/core';
 import {
   rectSortingStrategy,
@@ -100,31 +101,25 @@ export const Route = createFileRoute('/_protected/')({
 function generatePaginationLink(page: number, perPage?: number) {
   return linkOptions({
     to: Route.to,
-    search: {
+    search: (prev) => ({
+      ...prev,
       page,
-      perPage,
-    },
+      perPage: perPage ?? prev.perPage,
+    }),
   });
-}
-
-function usePageLink(perPage?: number) {
-  return function (page: number) {
-    return generatePaginationLink(page, perPage);
-  };
 }
 
 function HomeComponent() {
   const deps = Route.useLoaderDeps();
-  const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const { data: queryData } = useSuspenseQuery(QUERY_PARAMS);
   const pendingPlans = useNewCharacterPlans(
     (s) => s.characterPlans as PendingCharacter[],
   );
-  const generateLink = usePageLink(search.perPage);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
+    useSensor(TouchSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -195,7 +190,7 @@ function HomeComponent() {
 
   useEffect(() => {
     if (deps.page > totalPages) {
-      navigate(generateLink(totalPages));
+      navigate(generatePaginationLink(totalPages));
     }
   }, [deps.page, totalPages]);
 
@@ -254,15 +249,13 @@ function HomeComponent() {
   );
 }
 
-function useLinkToDisplay(page: number, totalPages: number, perPage?: number) {
-  const generateLink = usePageLink(perPage);
-
+function useLinkToDisplay(page: number, totalPages: number) {
   const items: [number, LinkOptions][] = [];
   const start = Math.max(2, page - 1);
   const end = Math.min(start + 3, totalPages);
 
   for (let i = start; i < end; i++) {
-    items.push([i, generateLink(i)]);
+    items.push([i, generatePaginationLink(i)]);
   }
 
   return {
@@ -275,10 +268,7 @@ function useLinkToDisplay(page: number, totalPages: number, perPage?: number) {
 type PagePaginationProps = { totalPages: number };
 function PagePagination({ totalPages }: PagePaginationProps) {
   const { page: currentPage } = Route.useLoaderDeps();
-  const { perPage } = Route.useSearch();
-  const generateLink = usePageLink(perPage);
-
-  const pagesToDisplay = useLinkToDisplay(currentPage, totalPages, perPage);
+  const pagesToDisplay = useLinkToDisplay(currentPage, totalPages);
 
   if (totalPages < 2) {
     return <div />;
@@ -290,11 +280,16 @@ function PagePagination({ totalPages }: PagePaginationProps) {
         <PaginationContent>
           <PaginationItem>
             {currentPage > 1 && (
-              <PaginationPrevious {...generateLink(currentPage - 1)} />
+              <PaginationPrevious
+                {...generatePaginationLink(currentPage - 1)}
+              />
             )}
           </PaginationItem>
           <PaginationItem>
-            <PaginationLink {...generateLink(1)} isActive={currentPage === 1}>
+            <PaginationLink
+              {...generatePaginationLink(1)}
+              isActive={currentPage === 1}
+            >
               1
             </PaginationLink>
           </PaginationItem>
@@ -317,7 +312,7 @@ function PagePagination({ totalPages }: PagePaginationProps) {
           )}
           <PaginationItem>
             <PaginationLink
-              {...generateLink(totalPages)}
+              {...generatePaginationLink(totalPages)}
               isActive={currentPage === totalPages}
             >
               {totalPages}
@@ -325,7 +320,7 @@ function PagePagination({ totalPages }: PagePaginationProps) {
           </PaginationItem>
           <PaginationItem>
             {currentPage < totalPages && (
-              <PaginationNext {...generateLink(currentPage + 1)} />
+              <PaginationNext {...generatePaginationLink(currentPage + 1)} />
             )}
           </PaginationItem>
         </PaginationContent>
