@@ -48,7 +48,10 @@ function RouteComponent() {
         <div className="container mx-auto p-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-4">
-              <p>© 2025 GBP. All rights reserved.</p>
+              <p className="flex items-center gap-1">
+                <Icons.Copyright className="size-4" />
+                2025 GBP. All rights reserved.
+              </p>
               <Separator
                 orientation="vertical"
                 className="h-4 hidden md:block"
@@ -59,7 +62,7 @@ function RouteComponent() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Icons.New className="size-4" />
+                <Icons.Github className="size-4" />
                 GitHub
               </a>
             </div>

@@ -8,7 +8,6 @@ import {
   Info,
   LoaderCircle,
   LogOut,
-  Minus,
   Monitor,
   Moon,
   Plus,
@@ -23,6 +22,8 @@ import {
   User,
   Mail,
   KeyRound,
+  Github,
+  Copyright,
 } from 'lucide-react';
 
 export type Icon = typeof LucideIcon;
@@ -36,8 +37,6 @@ export const Icons = {
   Left: ArrowLeft,
   Right: ArrowRight,
   Logout: LogOut,
-  Minus: Minus,
-  Plus: Plus,
   Add: Plus,
   Remove: Trash,
   New: SquarePen,
@@ -52,4 +51,6 @@ export const Icons = {
   Profile: User,
   Email: Mail,
   Password: KeyRound,
+  Github,
+  Copyright,
 };
