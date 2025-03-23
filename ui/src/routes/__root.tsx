@@ -24,5 +24,9 @@ function RootComponent() {
     router.invalidate();
   }, [isAuthenticated]);
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+    </>
+  );
 }

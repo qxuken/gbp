@@ -13,13 +13,17 @@
 [x] Footer / Header
 [x] User management
 [x] Add text confirmation to account deletion
+[ ] Filters
 
 Nice to have:
-[ ] Ugly jump on reordering
+[ ] Fix ugly reorder animations
 [x] Limit Per page to item count
 [x] Check spinner animations
 [x] Modal window scroll padding
-[ ] Page loaders
+[x] Page loaders
+[ ] Label arias: buttons, inputs, etc.
+[ ] Translations
+[ ] Radme
 
 Next big thing:
 [ ] Farm planned
