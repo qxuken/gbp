@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
 import { Icons } from '@/components/icons';
-import { ShortNumberInput } from '@/components/short-number-input';
 import { Label } from '@/components/ui/label';
+import { ShortNumberInput } from '@/components/ui/short-number-input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 

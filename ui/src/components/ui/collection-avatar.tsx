@@ -2,7 +2,7 @@ import { RecordModel } from 'pocketbase';
 
 import { pbClient } from '@/api/pocketbase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getShortName } from '@/lib/utils';
+import { getShortName } from '@/lib/get-short-name';
 
 type Props = Parameters<typeof Avatar>[0] & {
   record: RecordModel;

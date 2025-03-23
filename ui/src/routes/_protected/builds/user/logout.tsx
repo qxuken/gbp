@@ -1,6 +1,9 @@
-import { useNavigate, useRouter } from '@tanstack/react-router';
+import {
+  createFileRoute,
+  useNavigate,
+  useRouter,
+} from '@tanstack/react-router';
 
-import { Icons } from '@/components/icons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,16 +13,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { auth as useAuth } from '@/stores/auth';
 
-interface LogoutDialogProps {
-  onLogout?(): void;
-}
+export const Route = createFileRoute('/_protected/builds/user/logout')({
+  component: LogoutRoute,
+});
 
-export function LogoutDialog({ onLogout }: LogoutDialogProps) {
+function LogoutRoute() {
   const router = useRouter();
   const navigate = useNavigate();
   const logout = useAuth((s) => s.logout);
@@ -28,17 +29,18 @@ export function LogoutDialog({ onLogout }: LogoutDialogProps) {
     logout();
     await router.invalidate();
     await navigate({ to: '/login' });
-    onLogout?.();
+  };
+
+  const onClose = () => {
+    if (router.history.canGoBack()) {
+      router.history.back();
+    } else {
+      navigate({ to: '/builds', search: (s) => s });
+    }
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <Icons.Logout className="mr-2 h-4 w-4" />
-          <span>Log out</span>
-        </DropdownMenuItem>
-      </AlertDialogTrigger>
+    <AlertDialog open>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
@@ -48,7 +50,7 @@ export function LogoutDialog({ onLogout }: LogoutDialogProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={handleLogout}>Log out</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

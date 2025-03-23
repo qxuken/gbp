@@ -23,7 +23,9 @@ Nice to have:
 [x] Page loaders
 [ ] Label arias: buttons, inputs, etc.
 [ ] Translations
-[ ] Radme
+[ ] Readme
+[ ] Mobile version for weapon tagging
+[ ] Filter for team member
 
 Next big thing:
 [ ] Farm planned

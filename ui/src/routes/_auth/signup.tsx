@@ -24,8 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-
-import { auth as useAuth } from '../stores/auth';
+import { auth as useAuth } from '@/stores/auth';
 
 export const Route = createFileRoute('/_auth/signup')({
   component: SignupComponent,

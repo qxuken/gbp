@@ -3,10 +3,10 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '@/api/dictionaries-db';
 import { Characters } from '@/api/types';
-import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { Button, ButtonProps } from '@/components/ui/button';
+import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Popover, PopoverContent } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 

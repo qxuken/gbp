@@ -3,8 +3,8 @@ import fuzzysearch from 'fuzzysearch';
 import { PropsWithChildren, useState } from 'react';
 
 import { db } from '@/api/dictionaries-db';
-import { CollectionAvatar } from '@/components/collection-avatar';
 import { Button } from '@/components/ui/button';
+import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';

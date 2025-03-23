@@ -22,7 +22,7 @@ export const Route = createFileRoute('/_protected')({
 function RouteComponent() {
   return (
     <div className="min-h-svh flex flex-col">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b">
+      <header className="border-b">
         <div className="container mx-auto p-4 flex justify-between items-center gap-4">
           <h1 className="text-xl font-medium flex items-center gap-2">
             <Icons.Note className="size-6" />

@@ -1,7 +1,7 @@
-import { clamp } from 'motion';
 import { ChangeEvent, KeyboardEvent, useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
+import { clamp } from '@/lib/clamp';
 import { cn } from '@/lib/utils';
 
 type Props = Omit<

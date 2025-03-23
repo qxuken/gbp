@@ -13,11 +13,17 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as ProtectedImport } from './routes/_protected'
 import { Route as AuthImport } from './routes/_auth'
-import { Route as ProtectedIndexImport } from './routes/_protected.index'
-import { Route as AuthSignupImport } from './routes/_auth.signup'
-import { Route as AuthLoginImport } from './routes/_auth.login'
-import { Route as AuthForgotPasswordImport } from './routes/_auth.forgot-password'
-import { Route as AuthConfirmImport } from './routes/_auth.confirm'
+import { Route as ProtectedIndexImport } from './routes/_protected/index'
+import { Route as ProtectedBuildsImport } from './routes/_protected/builds'
+import { Route as AuthSignupImport } from './routes/_auth/signup'
+import { Route as AuthLoginImport } from './routes/_auth/login'
+import { Route as AuthForgotPasswordImport } from './routes/_auth/forgot-password'
+import { Route as AuthConfirmImport } from './routes/_auth/confirm'
+import { Route as ProtectedBuildsUserProfileImport } from './routes/_protected/builds/user/profile'
+import { Route as ProtectedBuildsUserPasswordImport } from './routes/_protected/builds/user/password'
+import { Route as ProtectedBuildsUserLogoutImport } from './routes/_protected/builds/user/logout'
+import { Route as ProtectedBuildsUserEmailImport } from './routes/_protected/builds/user/email'
+import { Route as ProtectedBuildsUserDeleteImport } from './routes/_protected/builds/user/delete'
 
 // Create/Update Routes
 
@@ -34,6 +40,12 @@ const AuthRoute = AuthImport.update({
 const ProtectedIndexRoute = ProtectedIndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+
+const ProtectedBuildsRoute = ProtectedBuildsImport.update({
+  id: '/builds',
+  path: '/builds',
   getParentRoute: () => ProtectedRoute,
 } as any)
 
@@ -59,6 +71,39 @@ const AuthConfirmRoute = AuthConfirmImport.update({
   id: '/confirm',
   path: '/confirm',
   getParentRoute: () => AuthRoute,
+} as any)
+
+const ProtectedBuildsUserProfileRoute = ProtectedBuildsUserProfileImport.update(
+  {
+    id: '/user/profile',
+    path: '/user/profile',
+    getParentRoute: () => ProtectedBuildsRoute,
+  } as any,
+)
+
+const ProtectedBuildsUserPasswordRoute =
+  ProtectedBuildsUserPasswordImport.update({
+    id: '/user/password',
+    path: '/user/password',
+    getParentRoute: () => ProtectedBuildsRoute,
+  } as any)
+
+const ProtectedBuildsUserLogoutRoute = ProtectedBuildsUserLogoutImport.update({
+  id: '/user/logout',
+  path: '/user/logout',
+  getParentRoute: () => ProtectedBuildsRoute,
+} as any)
+
+const ProtectedBuildsUserEmailRoute = ProtectedBuildsUserEmailImport.update({
+  id: '/user/email',
+  path: '/user/email',
+  getParentRoute: () => ProtectedBuildsRoute,
+} as any)
+
+const ProtectedBuildsUserDeleteRoute = ProtectedBuildsUserDeleteImport.update({
+  id: '/user/delete',
+  path: '/user/delete',
+  getParentRoute: () => ProtectedBuildsRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -107,12 +152,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignupImport
       parentRoute: typeof AuthImport
     }
+    '/_protected/builds': {
+      id: '/_protected/builds'
+      path: '/builds'
+      fullPath: '/builds'
+      preLoaderRoute: typeof ProtectedBuildsImport
+      parentRoute: typeof ProtectedImport
+    }
     '/_protected/': {
       id: '/_protected/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof ProtectedIndexImport
       parentRoute: typeof ProtectedImport
+    }
+    '/_protected/builds/user/delete': {
+      id: '/_protected/builds/user/delete'
+      path: '/user/delete'
+      fullPath: '/builds/user/delete'
+      preLoaderRoute: typeof ProtectedBuildsUserDeleteImport
+      parentRoute: typeof ProtectedBuildsImport
+    }
+    '/_protected/builds/user/email': {
+      id: '/_protected/builds/user/email'
+      path: '/user/email'
+      fullPath: '/builds/user/email'
+      preLoaderRoute: typeof ProtectedBuildsUserEmailImport
+      parentRoute: typeof ProtectedBuildsImport
+    }
+    '/_protected/builds/user/logout': {
+      id: '/_protected/builds/user/logout'
+      path: '/user/logout'
+      fullPath: '/builds/user/logout'
+      preLoaderRoute: typeof ProtectedBuildsUserLogoutImport
+      parentRoute: typeof ProtectedBuildsImport
+    }
+    '/_protected/builds/user/password': {
+      id: '/_protected/builds/user/password'
+      path: '/user/password'
+      fullPath: '/builds/user/password'
+      preLoaderRoute: typeof ProtectedBuildsUserPasswordImport
+      parentRoute: typeof ProtectedBuildsImport
+    }
+    '/_protected/builds/user/profile': {
+      id: '/_protected/builds/user/profile'
+      path: '/user/profile'
+      fullPath: '/builds/user/profile'
+      preLoaderRoute: typeof ProtectedBuildsUserProfileImport
+      parentRoute: typeof ProtectedBuildsImport
     }
   }
 }
@@ -135,11 +222,33 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface ProtectedBuildsRouteChildren {
+  ProtectedBuildsUserDeleteRoute: typeof ProtectedBuildsUserDeleteRoute
+  ProtectedBuildsUserEmailRoute: typeof ProtectedBuildsUserEmailRoute
+  ProtectedBuildsUserLogoutRoute: typeof ProtectedBuildsUserLogoutRoute
+  ProtectedBuildsUserPasswordRoute: typeof ProtectedBuildsUserPasswordRoute
+  ProtectedBuildsUserProfileRoute: typeof ProtectedBuildsUserProfileRoute
+}
+
+const ProtectedBuildsRouteChildren: ProtectedBuildsRouteChildren = {
+  ProtectedBuildsUserDeleteRoute: ProtectedBuildsUserDeleteRoute,
+  ProtectedBuildsUserEmailRoute: ProtectedBuildsUserEmailRoute,
+  ProtectedBuildsUserLogoutRoute: ProtectedBuildsUserLogoutRoute,
+  ProtectedBuildsUserPasswordRoute: ProtectedBuildsUserPasswordRoute,
+  ProtectedBuildsUserProfileRoute: ProtectedBuildsUserProfileRoute,
+}
+
+const ProtectedBuildsRouteWithChildren = ProtectedBuildsRoute._addFileChildren(
+  ProtectedBuildsRouteChildren,
+)
+
 interface ProtectedRouteChildren {
+  ProtectedBuildsRoute: typeof ProtectedBuildsRouteWithChildren
   ProtectedIndexRoute: typeof ProtectedIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedBuildsRoute: ProtectedBuildsRouteWithChildren,
   ProtectedIndexRoute: ProtectedIndexRoute,
 }
 
@@ -153,7 +262,13 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
+  '/builds': typeof ProtectedBuildsRouteWithChildren
   '/': typeof ProtectedIndexRoute
+  '/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
+  '/builds/user/email': typeof ProtectedBuildsUserEmailRoute
+  '/builds/user/logout': typeof ProtectedBuildsUserLogoutRoute
+  '/builds/user/password': typeof ProtectedBuildsUserPasswordRoute
+  '/builds/user/profile': typeof ProtectedBuildsUserProfileRoute
 }
 
 export interface FileRoutesByTo {
@@ -162,7 +277,13 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
+  '/builds': typeof ProtectedBuildsRouteWithChildren
   '/': typeof ProtectedIndexRoute
+  '/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
+  '/builds/user/email': typeof ProtectedBuildsUserEmailRoute
+  '/builds/user/logout': typeof ProtectedBuildsUserLogoutRoute
+  '/builds/user/password': typeof ProtectedBuildsUserPasswordRoute
+  '/builds/user/profile': typeof ProtectedBuildsUserProfileRoute
 }
 
 export interface FileRoutesById {
@@ -173,14 +294,44 @@ export interface FileRoutesById {
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
+  '/_protected/builds': typeof ProtectedBuildsRouteWithChildren
   '/_protected/': typeof ProtectedIndexRoute
+  '/_protected/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
+  '/_protected/builds/user/email': typeof ProtectedBuildsUserEmailRoute
+  '/_protected/builds/user/logout': typeof ProtectedBuildsUserLogoutRoute
+  '/_protected/builds/user/password': typeof ProtectedBuildsUserPasswordRoute
+  '/_protected/builds/user/profile': typeof ProtectedBuildsUserProfileRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '' | '/confirm' | '/forgot-password' | '/login' | '/signup' | '/'
+  fullPaths:
+    | ''
+    | '/confirm'
+    | '/forgot-password'
+    | '/login'
+    | '/signup'
+    | '/builds'
+    | '/'
+    | '/builds/user/delete'
+    | '/builds/user/email'
+    | '/builds/user/logout'
+    | '/builds/user/password'
+    | '/builds/user/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '' | '/confirm' | '/forgot-password' | '/login' | '/signup' | '/'
+  to:
+    | ''
+    | '/confirm'
+    | '/forgot-password'
+    | '/login'
+    | '/signup'
+    | '/builds'
+    | '/'
+    | '/builds/user/delete'
+    | '/builds/user/email'
+    | '/builds/user/logout'
+    | '/builds/user/password'
+    | '/builds/user/profile'
   id:
     | '__root__'
     | '/_auth'
@@ -189,7 +340,13 @@ export interface FileRouteTypes {
     | '/_auth/forgot-password'
     | '/_auth/login'
     | '/_auth/signup'
+    | '/_protected/builds'
     | '/_protected/'
+    | '/_protected/builds/user/delete'
+    | '/_protected/builds/user/email'
+    | '/_protected/builds/user/logout'
+    | '/_protected/builds/user/password'
+    | '/_protected/builds/user/profile'
   fileRoutesById: FileRoutesById
 }
 
@@ -229,28 +386,60 @@ export const routeTree = rootRoute
     "/_protected": {
       "filePath": "_protected.tsx",
       "children": [
+        "/_protected/builds",
         "/_protected/"
       ]
     },
     "/_auth/confirm": {
-      "filePath": "_auth.confirm.tsx",
+      "filePath": "_auth/confirm.tsx",
       "parent": "/_auth"
     },
     "/_auth/forgot-password": {
-      "filePath": "_auth.forgot-password.tsx",
+      "filePath": "_auth/forgot-password.tsx",
       "parent": "/_auth"
     },
     "/_auth/login": {
-      "filePath": "_auth.login.tsx",
+      "filePath": "_auth/login.tsx",
       "parent": "/_auth"
     },
     "/_auth/signup": {
-      "filePath": "_auth.signup.tsx",
+      "filePath": "_auth/signup.tsx",
       "parent": "/_auth"
     },
+    "/_protected/builds": {
+      "filePath": "_protected/builds.tsx",
+      "parent": "/_protected",
+      "children": [
+        "/_protected/builds/user/delete",
+        "/_protected/builds/user/email",
+        "/_protected/builds/user/logout",
+        "/_protected/builds/user/password",
+        "/_protected/builds/user/profile"
+      ]
+    },
     "/_protected/": {
-      "filePath": "_protected.index.tsx",
+      "filePath": "_protected/index.tsx",
       "parent": "/_protected"
+    },
+    "/_protected/builds/user/delete": {
+      "filePath": "_protected/builds/user/delete.tsx",
+      "parent": "/_protected/builds"
+    },
+    "/_protected/builds/user/email": {
+      "filePath": "_protected/builds/user/email.tsx",
+      "parent": "/_protected/builds"
+    },
+    "/_protected/builds/user/logout": {
+      "filePath": "_protected/builds/user/logout.tsx",
+      "parent": "/_protected/builds"
+    },
+    "/_protected/builds/user/password": {
+      "filePath": "_protected/builds/user/password.tsx",
+      "parent": "/_protected/builds"
+    },
+    "/_protected/builds/user/profile": {
+      "filePath": "_protected/builds/user/profile.tsx",
+      "parent": "/_protected/builds"
     }
   }
 }

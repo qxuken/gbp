@@ -24,9 +24,9 @@ import { useMemo, useState } from 'react';
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 import { WeaponPlans } from '@/api/types';
-import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -35,9 +35,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { AsyncDebounce } from '@/lib/async-debounce';
+import { handleReorder } from '@/lib/handle-reorder';
 import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
-import { cn, handleReorder } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
 import {

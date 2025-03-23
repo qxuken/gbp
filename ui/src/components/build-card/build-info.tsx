@@ -2,16 +2,16 @@ import { useSortable } from '@dnd-kit/sortable';
 // import { CSS } from '@dnd-kit/utilities';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useInView } from 'motion/react';
+import { motion, useInView } from 'motion/react';
 import { useMemo, useRef } from 'react';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 import type { CharacterPlans } from '@/api/types';
-import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import {
   Popover,
   PopoverContent,
@@ -40,8 +40,14 @@ type Props = {
   buildId: string;
   reorderIsPending?: boolean;
   characterId: string;
+  dndEnabled?: boolean;
 };
-export function BuildInfo({ buildId, reorderIsPending, characterId }: Props) {
+export function BuildInfo({
+  buildId,
+  reorderIsPending,
+  characterId,
+  dndEnabled,
+}: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true });
 
@@ -137,19 +143,38 @@ export function BuildInfo({ buildId, reorderIsPending, characterId }: Props) {
     <article id={buildId} ref={cardRef}>
       <Card
         ref={setNodeRef}
-        className={cn('w-full overflow-hidden', { 'opacity-50': isDragging })}
+        className={cn('w-full overflow-hidden', {
+          'opacity-50': isDragging,
+        })}
         style={style}
       >
-        <div className="w-full flex justify-center pt-1">
-          {reorderIsPending ? (
+        <motion.div
+          className="w-full flex justify-center pt-1"
+          initial={{
+            opacity: dndEnabled ? 1 : 0,
+          }}
+          animate={{
+            opacity: dndEnabled ? 1 : 0,
+          }}
+          transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
+          aria-hidden={!dndEnabled}
+        >
+          {reorderIsPending || !dndEnabled ? (
             <Icons.Drag
-              className="opacity-25 animate-pulse py-1 px-2"
+              className={cn('opacity-25 py-1', {
+                'animate-pulse': reorderIsPending,
+                'cursor-default': !dndEnabled,
+              })}
               {...attributes}
             />
           ) : (
-            <Icons.Drag className="py-1" {...listeners} {...attributes} />
+            <Icons.Drag
+              className="py-1 cursor-grab"
+              {...listeners}
+              {...attributes}
+            />
           )}
-        </div>
+        </motion.div>
         <CardTitle className="px-4 w-full flex items-center gap-3">
           <span className="font-semibold text-lg">{character.name}</span>
           <CharacterInfo character={character} />

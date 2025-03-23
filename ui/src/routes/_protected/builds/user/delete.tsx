@@ -1,9 +1,8 @@
-import { useNavigate, useRouter } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { pbClient } from '@/api/pocketbase';
-import { Icons } from '@/components/icons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,19 +12,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { auth as useAuth } from '@/stores/auth';
 
-interface DeleteAccountDialogProps {
-  onDelete?(): void;
-}
+export const Route = createFileRoute('/_protected/builds/user/delete')({
+  component: DeleteAccountRoute,
+});
 
-export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
+function DeleteAccountRoute() {
   const router = useRouter();
-  const navigate = useNavigate();
+  const navigate = Route.useNavigate();
   const user = useAuth((s) => s.record);
   const logout = useAuth((s) => s.logout);
   const [emailConfirmation, setEmailConfirmation] = useState('');
@@ -48,7 +45,6 @@ export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
       logout();
       await router.invalidate();
       await navigate({ to: '/login' });
-      onDelete?.();
 
       toast.success('Your account has been deleted successfully');
     } catch (err) {
@@ -57,17 +53,16 @@ export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
     }
   };
 
+  const onClose = () => {
+    if (router.history.canGoBack()) {
+      router.history.back();
+    } else {
+      navigate({ to: '/builds', search: (s) => s });
+    }
+  };
+
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <DropdownMenuItem
-          onSelect={(e) => e.preventDefault()}
-          className="text-destructive"
-        >
-          <Icons.Remove className="mr-2 h-4 w-4" />
-          <span>Delete Account</span>
-        </DropdownMenuItem>
-      </AlertDialogTrigger>
+    <AlertDialog open>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Account</AlertDialogTitle>
@@ -89,9 +84,7 @@ export function DeleteAccountDialog({ onDelete }: DeleteAccountDialogProps) {
           />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setEmailConfirmation('')}>
-            Cancel
-          </AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDeleteAccount}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

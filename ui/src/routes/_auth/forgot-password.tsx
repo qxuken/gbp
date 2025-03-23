@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, createFileRoute, useRouter } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -22,38 +22,36 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { auth as useAuth } from '@/stores/auth';
 
-import { auth as useAuth } from '../stores/auth';
-
-export const Route = createFileRoute('/_auth/login')({
-  component: LoginComponent,
+export const Route = createFileRoute('/_auth/forgot-password')({
+  component: ForgotPassword,
 });
 
 const formSchema = z.object({
   email: z.string().email({
     message: 'Please enter a valid email address.',
   }),
-  password: z.string().min(8, {
-    message: 'Password must be at least 8 characters.',
-  }),
 });
 
-function LoginComponent() {
-  const login = useAuth((s) => s.login);
-  const router = useRouter();
+function ForgotPassword() {
+  const passwordReset = useAuth((s) => s.passwordReset);
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
       email: '',
-      password: '',
     },
     resolver: zodResolver(formSchema),
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await login(values.email, values.password);
-      await router.invalidate();
+      await passwordReset(values.email);
+      toast.success('Check your inbox');
+
+      await navigate({ search: search, to: '/login' });
     } catch (e) {
       if (e instanceof Error) {
         toast.error(e.message);
@@ -67,10 +65,10 @@ function LoginComponent() {
         <Card className="shadow-lg">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              Login
+              Forgot Password
             </CardTitle>
             <CardDescription className="text-center">
-              Enter your email below to login to your account
+              Enter your email to reset your password
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -97,34 +95,6 @@ function LoginComponent() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center">
-                        <FormLabel>Password</FormLabel>
-                        <Link
-                          to="/forgot-password"
-                          className="ms-auto inline-block text-sm underline-offset-4 hover:underline"
-                          search={(prev) => prev}
-                          activeOptions={{ exact: true }}
-                        >
-                          Forgot your password?
-                        </Link>
-                      </div>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="password"
-                          autoComplete="current-password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <Button
                   type="submit"
                   className="w-full"
@@ -135,17 +105,17 @@ function LoginComponent() {
                       <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />{' '}
                     </>
                   )}
-                  Login
+                  Reset Password
                 </Button>
                 <div className="mt-4 text-center text-sm">
-                  Don&apos;t have an account?{' '}
+                  Remember your password?{' '}
                   <Link
-                    to="/signup"
+                    to="/login"
                     className="underline underline-offset-4"
-                    search={(s) => s}
-                    activeOptions={{ exact: true, includeSearch: true }}
+                    search={(prev) => prev}
+                    activeOptions={{ exact: true }}
                   >
-                    Sign up
+                    Login
                   </Link>
                 </div>
               </form>

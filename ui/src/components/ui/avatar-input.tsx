@@ -9,8 +9,8 @@ import { Icons } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FormControl, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { getShortName } from '@/lib/get-short-name';
 import { cn } from '@/lib/utils';
-import { getShortName } from '@/lib/utils';
 
 interface AvatarInputProps<T extends FieldValues, TName extends Path<T>> {
   field: Omit<ControllerRenderProps<T, TName>, 'ref'>;

@@ -5,9 +5,9 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 import { ArtifactTypePlans, Specials } from '@/api/types';
-import { CollectionAvatar } from '@/components/collection-avatar';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import {
   Popover,
   PopoverContent,
