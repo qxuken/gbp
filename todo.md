@@ -22,9 +22,10 @@ Nice to have:
 [x] Modal window scroll padding
 [x] Page loaders
 [ ] Label arias: buttons, inputs, etc.
-[ ] Translations
 [ ] Readme
 [ ] Mobile version for weapon tagging
+[ ] Mobile version for filters
+[ ] Translations
 [ ] Filter for team member
 
 Next big thing:

@@ -16,7 +16,11 @@ import { getShortName } from '@/lib/get-short-name';
 import { auth as useAuth } from '@/stores/auth';
 
 export function UserManagement() {
-  const user = useAuth((s) => s.record)!;
+  const user = useAuth((s) => s.record);
+
+  if (!user) {
+    return null;
+  }
 
   const avatarUrl = pbClient.files.getURL(user, user.avatar);
   const shortName = getShortName(user.name);

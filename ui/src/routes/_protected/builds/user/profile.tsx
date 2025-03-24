@@ -40,7 +40,7 @@ export const Route = createFileRoute('/_protected/builds/user/profile')({
 function ProfileEditRoute() {
   const navigate = Route.useNavigate();
   const router = useRouter();
-  const user = useAuth((s) => s.record)!;
+  const user = useAuth((s) => s.record);
   const updateProfile = useAuth((s) => s.updateProfile);
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -92,8 +92,12 @@ function ProfileEditRoute() {
                 render={({ field }) => (
                   <AvatarInput
                     field={field}
-                    defaultAvatarUrl={pbClient.files.getURL(user, user.avatar)}
-                    name={user.name}
+                    defaultAvatarUrl={
+                      user
+                        ? pbClient.files.getURL(user, user.avatar)
+                        : undefined
+                    }
+                    name={user?.name}
                   />
                 )}
               />
