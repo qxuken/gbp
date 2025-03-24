@@ -13,7 +13,7 @@
 [x] Footer / Header
 [x] User management
 [x] Add text confirmation to account deletion
-[ ] Filters
+[x] Filters
 
 Nice to have:
 [ ] Fix ugly reorder animations
