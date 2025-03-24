@@ -121,6 +121,28 @@ func (s ArtifactType) Save(app core.App) error {
 	return app.Save(record)
 }
 
+type DomainOfBlessing struct {
+	Name         string                  `db:"name"`
+	ArtifactSets types.JSONArray[string] `db:"artifactSets"`
+}
+
+func (s DomainOfBlessing) Save(app core.App) error {
+	record, err := upsertRecordByName(app, models.DOMAINS_OF_BLESSING_COLLECTION_NAME, s.Name)
+	if err != nil {
+		return err
+	}
+	specials := []string{}
+	for _, set := range s.ArtifactSets {
+		special, err := app.FindFirstRecordByData(models.ARTIFACT_SETS_COLLECTION_NAME, "name", set)
+		if err != nil {
+			return err
+		}
+		specials = append(specials, special.Id)
+	}
+	record.Set("artifactSets", specials)
+	return app.Save(record)
+}
+
 type WeaponType struct {
 	Name         string `db:"name"`
 	IconContent  Icon   `db:"iconContent"`

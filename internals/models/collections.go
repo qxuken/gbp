@@ -10,6 +10,7 @@ const (
 	CHARACTERS_COLLECTION_NAME          = "characters"
 	WEAPONS_COLLECTION_NAME             = "weapons"
 	ARTIFACT_SETS_COLLECTION_NAME       = "artifactSets"
+	DOMAINS_OF_BLESSING_COLLECTION_NAME = "domainsOfBlessing"
 	ARTIFACT_TYPES_COLLECTION_NAME      = "artifactTypes"
 	CHARACTER_PLANS_COLLECTION_NAME     = "characterPlans"
 	WEAPON_PLANS_COLLECTION_NAME        = "weaponPlans"

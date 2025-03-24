@@ -5,6 +5,7 @@ import type {
   ArtifactTypes,
   CharacterRoles,
   Characters,
+  DomainsOfBlessing,
   Elements,
   Specials,
   Weapons,
@@ -27,6 +28,7 @@ export const DB_COLLECTIONS = [
   'characters',
   'artifactSets',
   'artifactTypes',
+  'domainsOfBlessing',
 ] as const;
 export type DBCollections = (typeof DB_COLLECTIONS)[number];
 
@@ -40,6 +42,7 @@ export type DB = Dexie & {
   characters: EntityTable<Characters, 'id'>;
   artifactSets: EntityTable<ArtifactSets, 'id'>;
   artifactTypes: EntityTable<ArtifactTypes, 'id'>;
+  domainsOfBlessing: EntityTable<DomainsOfBlessing, 'id'>;
 };
 
 export const db = new Dexie('Dictionaries') as DB;
@@ -54,4 +57,5 @@ db.version(1).stores({
   characters: '++id, name, icon, element, weaponType, special, rarity',
   artifactSets: '++id, name, icon, rarity',
   artifactTypes: '++id, name, order, icon, specials',
+  domainsOfBlessing: '++id, name, artifactSets',
 });

@@ -21,7 +21,11 @@ export async function loadDictionaries(reload = false) {
   postMessage({ message: 'Fetched collections' });
 
   await Promise.all(
-    DB_COLLECTIONS.map((c, i) => db[c].bulkPut(collections[i])),
+    DB_COLLECTIONS.map(async (c, i) => {
+      const db_col = db[c];
+      await db_col.clear();
+      await db_col.bulkPut(collections[i]);
+    }),
   );
   postMessage({ message: 'Stored to indexedDB' });
 

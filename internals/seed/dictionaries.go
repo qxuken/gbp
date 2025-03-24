@@ -28,40 +28,44 @@ func Seed(app core.App, path string) error {
 	app.Logger().Debug(fmt.Sprintf("seed db path %#v", path))
 
 	db, err := core.DefaultDBConnect(path)
-	defer db.Close()
 	if err != nil {
 		return err
 	}
+	defer db.Close()
 
-	if err := seedCollection[Special](app, db, "specials"); err != nil {
+	if err := seedCollection[Special](app, db, models.SPECIALS_COLLECTION_NAME); err != nil {
 		return err
 	}
 
-	if err := seedCollection[Element](app, db, "elements"); err != nil {
+	if err := seedCollection[Element](app, db, models.ELEMENTS_COLLECTION_NAME); err != nil {
 		return err
 	}
 
-	if err := seedCollection[CharacterRole](app, db, "characterRoles"); err != nil {
+	if err := seedCollection[CharacterRole](app, db, models.CHARACTER_ROLES_COLLECTION_NAME); err != nil {
 		return err
 	}
 
-	if err := seedCollection[ArtifactSet](app, db, "artifactSets"); err != nil {
+	if err := seedCollection[ArtifactSet](app, db, models.ARTIFACT_SETS_COLLECTION_NAME); err != nil {
 		return err
 	}
 
-	if err := seedCollection[ArtifactType](app, db, "artifactTypes"); err != nil {
+	if err := seedCollection[ArtifactType](app, db, models.ARTIFACT_TYPES_COLLECTION_NAME); err != nil {
 		return err
 	}
 
-	if err := seedCollection[WeaponType](app, db, "weaponTypes"); err != nil {
+	if err := seedCollection[DomainOfBlessing](app, db, models.DOMAINS_OF_BLESSING_COLLECTION_NAME); err != nil {
 		return err
 	}
 
-	if err := seedCollection[Weapon](app, db, "weapons"); err != nil {
+	if err := seedCollection[WeaponType](app, db, models.WEAPON_TYPES_COLLECTION_NAME); err != nil {
 		return err
 	}
 
-	if err := seedCollection[Character](app, db, "characters"); err != nil {
+	if err := seedCollection[Weapon](app, db, models.WEAPONS_COLLECTION_NAME); err != nil {
+		return err
+	}
+
+	if err := seedCollection[Character](app, db, models.CHARACTERS_COLLECTION_NAME); err != nil {
 		return err
 	}
 

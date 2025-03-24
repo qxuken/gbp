@@ -1,5 +1,7 @@
 import type { RecordModel } from 'pocketbase';
 
+import { ArtifactSets } from '@/components/build-card/ui/artifact-sets';
+
 export type WithOrder<T> = T & {
   order: number;
 };
@@ -67,6 +69,12 @@ export interface ArtifactSets extends RecordModel {
   name: string;
   icon: string;
   rarity: number;
+}
+
+export interface DomainsOfBlessing extends RecordModel {
+  id: string;
+  name: string;
+  artifactSets: string[];
 }
 
 export interface ArtifactTypes extends RecordModel {
