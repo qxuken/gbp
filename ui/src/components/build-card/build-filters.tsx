@@ -18,6 +18,7 @@ export type TBuildFilter = {
   weaponTypes: Set<string>;
   characters: Set<string>;
 };
+
 type Props = TBuildFilter & {
   availableElements: Set<string>;
   availableWeaponTypes: Set<string>;

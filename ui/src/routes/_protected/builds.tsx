@@ -32,6 +32,7 @@ import { z } from 'zod';
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
 import { CharacterPlans, Characters } from '@/api/types';
+import { BuildDomainsAnalysis } from '@/components/build-card/build-domains-analysis';
 import {
   BuildFilters,
   TBuildFilter,
@@ -66,10 +67,10 @@ import {
   PendingCharacter,
 } from '@/stores/newCharacterPlans';
 
-type Item = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
+export type ShortBuildItem = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
 
 type RenderItem =
-  | { type: 'build'; build: Item; order: number }
+  | { type: 'build'; build: ShortBuildItem; order: number }
   | { type: 'pending'; pending: PendingCharacter; order: number }
   | { type: 'create'; order: number };
 
@@ -94,7 +95,7 @@ const QUERY_PARAMS = queryOptions({
   queryKey: QUERY_KEY,
   queryFn: () =>
     pbClient
-      .collection<Item>('characterPlans')
+      .collection<ShortBuildItem>('characterPlans')
       .getFullList({ fields: FIELDS, sort: 'order' }),
 });
 
@@ -124,7 +125,7 @@ const filterCharacters = (filters: TBuildFilter) => (character: Characters) =>
     fuzzysearch(filters.name.toLowerCase(), character.name.toLowerCase()));
 
 const getRenderItems = (
-  items: Item[],
+  items: ShortBuildItem[],
   pendingPlans: PendingCharacter[],
   characters: Map<string, Characters> | undefined,
   filters: TBuildFilter,
@@ -205,7 +206,7 @@ function HomeComponent() {
     isPending: reorderIsPending,
     reset,
   } = useMutation({
-    mutationFn(items: Item[]) {
+    mutationFn(items: ShortBuildItem[]) {
       const batch = pbClient.createBatch();
       for (let i = 0; i < items.length; i++) {
         const it = items[i];
@@ -333,6 +334,7 @@ function HomeComponent() {
             availableCharacters={availableFilters.characters}
             onChange={changeFilter}
           />
+          <BuildDomainsAnalysis builds={items} />
         </aside>
         <section
           aria-label="Build cards"

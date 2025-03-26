@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
 
 import { Skeleton } from '../ui/skeleton';
+import { QUERY_KEY as DOMAINS_ANALYSIS_QUERY_KEY } from './build-domains-analysis';
 import { ArtifactSets, ArtifactSetsSkeleton } from './ui/artifact-sets';
 import { ArtifactStats, ArtifactStatsSkeleton } from './ui/artifact-stats';
 import {
@@ -98,6 +99,9 @@ export function BuildInfo({
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ['characterPlans', 'page'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: DOMAINS_ANALYSIS_QUERY_KEY,
       });
       queryClient.removeQueries({ queryKey });
     },

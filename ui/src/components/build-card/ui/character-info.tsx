@@ -10,8 +10,8 @@ import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Popover, PopoverContent } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
-type InfoProps = { character: Characters };
-function Info({ character }: InfoProps) {
+type CharacterInfoContentProps = { character: Characters };
+export function CharacterInfoContent({ character }: CharacterInfoContentProps) {
   const element = useLiveQuery(
     () => db.elements.get(character?.element ?? ''),
     [character?.element],
@@ -65,7 +65,7 @@ function Info({ character }: InfoProps) {
   );
 }
 
-type Props = ButtonProps & InfoProps;
+type Props = ButtonProps & CharacterInfoContentProps;
 export function CharacterInfo({ character, ...props }: Props) {
   return (
     <Popover>
@@ -83,7 +83,7 @@ export function CharacterInfo({ character, ...props }: Props) {
         </Button>
       </PopoverTrigger>
       <PopoverContent side="right">
-        <Info character={character} />
+        <CharacterInfoContent character={character} />
       </PopoverContent>
     </Popover>
   );

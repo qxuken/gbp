@@ -14,6 +14,7 @@
 [x] User management
 [x] Add text confirmation to account deletion
 [x] Filters
+[ ] Ui controls
 
 Nice to have:
 [ ] Fix ugly reorder animations
@@ -21,7 +22,7 @@ Nice to have:
 [x] Check spinner animations
 [x] Modal window scroll padding
 [x] Page loaders
-[ ] Label arias: buttons, inputs, etc.
+[ ] Label arias: buttons, inputs, etc. sr-only elements
 [ ] Readme
 [ ] Mobile version for weapon tagging
 [ ] Mobile version for filters
