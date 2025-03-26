@@ -160,6 +160,7 @@ function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
           artifactSets: v,
         }),
     onSuccess: async (data) => {
+      queryClient.invalidateQueries({ queryKey: DOMAINS_ANALYSIS_QUERY_KEY });
       queryClient.setQueryData(queryKey, data);
     },
     onError: notifyWithRetry((vars) => {

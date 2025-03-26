@@ -14,7 +14,7 @@
 [x] User management
 [x] Add text confirmation to account deletion
 [x] Filters
-[ ] Ui controls
+[ ] Ui controls, hide blocks
 
 Nice to have:
 [ ] Fix ugly reorder animations
@@ -30,4 +30,4 @@ Nice to have:
 [ ] Filter for team member
 
 Next big thing:
-[ ] Farm planned
+[x] Farm planned
