@@ -15,6 +15,7 @@
 [x] Add text confirmation to account deletion
 [x] Filters
 [ ] Ui controls, hide blocks
+[ ] Add new character, weapon to seed
 
 Nice to have:
 [ ] Fix ugly reorder animations

@@ -34,18 +34,21 @@ export async function loadDictionaries(reload = false) {
 }
 
 let isLoading = false;
-function loadDictionariesSafe(force = false) {
+async function loadDictionariesSafe(force = false) {
   if (isLoading) {
     return;
   }
   isLoading = true;
-  loadDictionaries(force)
-    .catch((error) => {
-      postMessage({ message: 'Data loading error', error: error.message });
-    })
-    .finally(() => {
-      isLoading = false;
+  try {
+    await loadDictionaries(force);
+  } catch (error) {
+    postMessage({
+      message: 'Data loading error',
+      error: error instanceof Error ? error.message : String(error),
     });
+  } finally {
+    isLoading = false;
+  }
 }
 
 loadDictionariesSafe();
