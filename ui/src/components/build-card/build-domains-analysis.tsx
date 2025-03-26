@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useState } from 'react';
 
 import { db } from '@/api/dictionaries-db';
 import { pbClient } from '@/api/pocketbase';
@@ -13,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
@@ -26,10 +26,8 @@ type Props = {
   builds: ShortBuildItem[];
 };
 export function BuildDomainsAnalysis({ builds }: Props) {
-  // TODO: remove
-  const [isOpen, setIsOpen] = useState(true);
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
+    <Collapsible asChild>
       <section
         aria-label="Filters"
         className="p-3 grid gap-2 min-w-xs border border-border border-dashed rounded-xl"
@@ -100,6 +98,33 @@ function aggregateSets(
   return res;
 }
 
+function BuildDomainsAnalysisSkeleton() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <div className="pt-1 pb-2 px-2 bg-accent/50 rounded-lg">
+        <div className="flex gap-1">
+          {[1, 2].map((j) => (
+            <Skeleton key={j} className="size-10 rounded-2xl" />
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2 mt-1">
+          <Skeleton className="h-3 w-10 rounded-md" />
+          <Skeleton className="h-3 w-10 rounded-md" />
+          <Skeleton className="h-3 w-10 rounded-md" />
+        </div>
+      </div>
+      <div className="pt-1 pb-2 px-2 bg-accent rounded-lg">
+        <div className="flex gap-1">
+          <Skeleton className="size-10 rounded-2xl" />
+        </div>
+        <div className="flex flex-wrap gap-2 mt-1">
+          <Skeleton className="h-3 w-16 rounded-md" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BuildDomainsAnalysisContent({ builds }: Props) {
   const domainsBySet = useLiveQuery(
     () =>
@@ -120,14 +145,17 @@ function BuildDomainsAnalysisContent({ builds }: Props) {
         fields: 'artifactSets,characterPlan',
       }),
   });
-  // TODO: loader state
-  const agg =
-    domainsBySet && query.isSuccess
-      ? aggregateSets(domainsBySet, builds, query.data)
-      : undefined;
+
+  if (!domainsBySet || query.isPending || !query.data) {
+    return <BuildDomainsAnalysisSkeleton />;
+  }
+
+  const agg = aggregateSets(domainsBySet, builds, query.data);
   return (
     <div className="flex flex-wrap gap-2">
-      {agg?.map((it) => <BuildDomainsAnalysisItem key={it.domain} item={it} />)}
+      {agg.map((it) => (
+        <BuildDomainsAnalysisItem key={it.domain} item={it} />
+      ))}
     </div>
   );
 }
