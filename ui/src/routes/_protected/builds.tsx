@@ -322,8 +322,14 @@ function HomeComponent() {
 
   return (
     <>
-      <section aria-label="Builds with controls" className="flex flex-wrap">
-        <aside aria-label="Controls" className="p-2 basis-80 grow">
+      <section
+        aria-label="Builds with controls"
+        className="flex flex-wrap gap-2"
+      >
+        <aside
+          aria-label="Controls"
+          className="p-2 basis-80 grow flex flex-col gap-4"
+        >
           <BuildFilters
             name={filters.name}
             elements={filters.elements}
@@ -333,6 +339,7 @@ function HomeComponent() {
             availableWeaponTypes={availableFilters.weaponTypes}
             availableCharacters={availableFilters.characters}
             onChange={changeFilter}
+            hasActiveFilters={filterEnabled}
           />
           <BuildDomainsAnalysis builds={items} />
         </aside>

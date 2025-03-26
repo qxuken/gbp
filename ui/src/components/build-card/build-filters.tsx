@@ -24,6 +24,7 @@ type Props = TBuildFilter & {
   availableWeaponTypes: Set<string>;
   availableCharacters: Set<string>;
   onChange(v: Partial<TBuildFilter>): void;
+  hasActiveFilters: boolean;
 };
 
 export function BuildFilters(props: Props) {
@@ -38,12 +39,31 @@ export function BuildFilters(props: Props) {
       >
         <div className="flex justify-between gap-2">
           <h3 className="text-md font-semibold">Filter</h3>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <Icons.Dropdown className="h-4 w-4" />
-              <span className="sr-only">Toggle</span>
-            </Button>
-          </CollapsibleTrigger>
+          <div className="flex gap-2">
+            {props.hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-muted-foreground"
+                onClick={() => {
+                  props.onChange({
+                    name: '',
+                    elements: new Set(),
+                    weaponTypes: new Set(),
+                    characters: new Set(),
+                  });
+                }}
+              >
+                Clear All
+              </Button>
+            )}
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <Icons.Dropdown className="h-4 w-4" />
+                <span className="sr-only">Toggle</span>
+              </Button>
+            </CollapsibleTrigger>
+          </div>
         </div>
         <CollapsibleContent className="grid gap-2">
           <Input
