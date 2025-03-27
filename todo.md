@@ -29,6 +29,8 @@ Nice to have:
 [ ] Mobile version for filters
 [ ] Translations
 [ ] Filter for team member
+[ ] Small cards, at least version
+[ ] More visible active state filters
 
 Next big thing:
 [x] Farm planned
