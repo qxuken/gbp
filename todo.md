@@ -16,6 +16,7 @@
 [x] Filters
 [ ] Ui controls, hide blocks
 [ ] Add new character, weapon to seed
+[ ] Add filters by stats
 
 Nice to have:
 [ ] Fix ugly reorder animations
