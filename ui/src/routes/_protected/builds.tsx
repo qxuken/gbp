@@ -85,14 +85,21 @@ const MAX_PENDING_ITEMS = 10;
 const SEARCH_SCHEMA = z.object({
   page: z.number().optional(),
   perPage: z.number().optional(),
-  cName: z.string().optional(),
-  cElements: z.array(z.string()).optional(),
-  cWeaponTypes: z.array(z.string()).optional(),
-  characters: z.array(z.string()).optional(),
+  // Character Name
+  cN: z.string().optional(),
+  // Character Elements
+  cE: z.array(z.string()).optional(),
+  // Character Weapon Types
+  cWT: z.array(z.string()).optional(),
+  // Character artifact types
+  cAT: z.record(z.string(), z.array(z.string())).optional(),
+  // Characters
+  cs: z.array(z.string()).optional(),
 });
 
 const QUERY_PARAMS = queryOptions({
   queryKey: QUERY_KEY,
+
   queryFn: () =>
     pbClient
       .collection<ShortBuildItem>('characterPlans')
@@ -235,12 +242,12 @@ function HomeComponent() {
   const items = variables || queryData;
   const filters = useMemo(
     () => ({
-      name: search.cName ?? '',
-      elements: new Set(search.cElements),
-      weaponTypes: new Set(search.cWeaponTypes),
-      characters: new Set(search.characters),
+      name: search.cN ?? '',
+      elements: new Set(search.cE),
+      weaponTypes: new Set(search.cWT),
+      characters: new Set(search.cs),
     }),
-    [search.cName, search.cElements, search.cWeaponTypes, search.characters],
+    [search.cN, search.cE, search.cWT, search.cs],
   );
 
   const allItems: RenderItem[] = useMemo(
@@ -289,27 +296,27 @@ function HomeComponent() {
       to: Route.to,
       search: (state) => ({
         ...state,
-        cName:
+        cN:
           typeof newFilter.name === 'string'
             ? newFilter.name.length > 0
               ? newFilter.name
               : undefined
-            : state.cName,
-        cElements: newFilter.elements
+            : state.cN,
+        cE: newFilter.elements
           ? newFilter.elements.size > 0
             ? Array.from(newFilter.elements)
             : undefined
-          : state.cElements,
-        cWeaponTypes: newFilter.weaponTypes
+          : state.cE,
+        cWT: newFilter.weaponTypes
           ? newFilter.weaponTypes.size > 0
             ? Array.from(newFilter.weaponTypes)
             : undefined
-          : state.cWeaponTypes,
-        characters: newFilter.characters
+          : state.cWT,
+        cs: newFilter.characters
           ? newFilter.characters.size > 0
             ? Array.from(newFilter.characters)
             : undefined
-          : state.characters,
+          : state.cs,
       }),
     });
   };
