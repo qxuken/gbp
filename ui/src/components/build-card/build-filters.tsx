@@ -1,7 +1,11 @@
+import { SelectTrigger } from '@radix-ui/react-select';
+import { useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 
 import { db } from '@/api/dictionaries-db';
+import { pbClient } from '@/api/pocketbase';
+import { ArtifactTypePlans, Specials } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,12 +15,21 @@ import {
 } from '@/components/ui/collapsible';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 export type TBuildFilter = {
   name: string;
   elements: Set<string>;
   weaponTypes: Set<string>;
   characters: Set<string>;
+  /** Key: artifact type, Value: set of specials */
+  artifactTypeSpecials: Map<string, Set<string>>;
 };
 
 type Props = TBuildFilter & {
@@ -27,10 +40,44 @@ type Props = TBuildFilter & {
   hasActiveFilters: boolean;
 };
 
+export const QUERY_KEY = ['characterPlans', 'stats'];
+
 export function BuildFilters(props: Props) {
   const [isOpen, setIsOpen] = useState(true);
   const elements = useLiveQuery(() => db.elements.toArray(), []);
   const weaponTypes = useLiveQuery(() => db.weaponTypes.toArray(), []);
+  const query = useQuery({
+    queryKey: QUERY_KEY,
+    queryFn: () =>
+      pbClient.collection<ArtifactTypePlans>('artifactTypePlans').getFullList(),
+    enabled: isOpen,
+  });
+  const artifactTypes = useLiveQuery(
+    () => db.artifactTypes.orderBy('order').toArray(),
+    [],
+  );
+  const specialsMap = useLiveQuery(
+    () =>
+      db.specials.toArray().then((s) =>
+        s.reduce((acc, it) => {
+          acc.set(it.id, it);
+          return acc;
+        }, new Map<string, Specials>()),
+      ),
+    [],
+  );
+  const artifactTypesPlans = query.data?.reduce((acc, it) => {
+    let types = acc.get(it.artifactType);
+    if (!types) {
+      types = new Set();
+      acc.set(it.artifactType, types);
+    }
+    types.add(it.special);
+    return acc;
+  }, new Map<string, Set<string>>());
+  console.log(artifactTypes, specialsMap);
+  console.log(query.data, artifactTypesPlans);
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
       <section
@@ -132,6 +179,88 @@ export function BuildFilters(props: Props) {
                 {weaponType.name}
               </Button>
             ))}
+          </div>
+
+          <div className="grid gap-2 w-full">
+            {artifactTypes?.map((at) => {
+              const selectedSpecials = artifactTypesPlans?.get(at.id);
+              const selected = Array.from(selectedSpecials?.values() ?? []);
+              const options = at.specials
+                .map((s) => specialsMap?.get(s))
+                .filter(
+                  (s) =>
+                    s && (!selectedSpecials || !selectedSpecials.has(s.id)),
+                ) as Specials[];
+              return (
+                <div key={at.id} className="w-full flex gap-2">
+                  <CollectionAvatar
+                    record={at}
+                    fileName={at.icon}
+                    name={at.name}
+                    className={cn('size-8', {
+                      ['opacity-50']: selected.length === 0,
+                    })}
+                  />
+                  <div className="flex flex-wrap gap-1 items-start">
+                    {selected.map((s, i) => {
+                      const special = specialsMap?.get(s);
+                      if (!special) {
+                        return null;
+                      }
+                      return (
+                        <div
+                          key={special.id}
+                          className="flex gap-1 items-center"
+                        >
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="text-md after:text-gray-400 cursor-pointer hover:line-through focus:line-through">
+                                {special.name}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="p-0" side="top">
+                              <Button
+                                variant="destructive"
+                                className="w-full"
+                                onClick={() => console.log(at.id, s)}
+                              >
+                                Yes i really want to delete
+                              </Button>
+                            </PopoverContent>
+                          </Popover>
+                          {selected.length - 1 !== i && (
+                            <Icons.Divide className="text-gray-400 size-4" />
+                          )}
+                        </div>
+                      );
+                    })}
+                    {options.length > 0 && (
+                      <Select
+                        onValueChange={(s) => console.log(at.id, s)}
+                        value=""
+                      >
+                        <SelectTrigger data-slot="select-trigger" asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
+                          >
+                            <Icons.Add />
+                          </Button>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {options.map((special) => (
+                            <SelectItem key={special.id} value={special.id}>
+                              {special.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CollapsibleContent>
       </section>

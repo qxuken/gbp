@@ -43,6 +43,7 @@ type Props = {
   characterId: string;
   dndEnabled?: boolean;
 };
+
 export function BuildInfo({
   buildId,
   reorderIsPending,

@@ -92,7 +92,7 @@ const SEARCH_SCHEMA = z.object({
   // Character Weapon Types
   cWT: z.array(z.string()).optional(),
   // Character artifact types
-  cAT: z.record(z.string(), z.array(z.string())).optional(),
+  cAT: z.array(z.tuple([z.string(), z.array(z.string())])).optional(),
   // Characters
   cs: z.array(z.string()).optional(),
 });
@@ -199,14 +199,6 @@ function HomeComponent() {
     [],
   );
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
   const {
     variables,
     mutate: reorderItems,
@@ -240,12 +232,15 @@ function HomeComponent() {
   });
 
   const items = variables || queryData;
-  const filters = useMemo(
+  const filters: TBuildFilter = useMemo(
     () => ({
       name: search.cN ?? '',
       elements: new Set(search.cE),
       weaponTypes: new Set(search.cWT),
       characters: new Set(search.cs),
+      artifactTypeSpecials: new Map(
+        search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
+      ),
     }),
     [search.cN, search.cE, search.cWT, search.cs],
   );
@@ -275,10 +270,6 @@ function HomeComponent() {
     );
   }, [characters, items]);
 
-  const renderItems = allItems.slice(
-    deps.perPage * (deps.page - 1),
-    deps.perPage * deps.page,
-  );
   const filterEnabled =
     filters.name.length > 0 ||
     filters.elements.size > 0 ||
@@ -286,10 +277,6 @@ function HomeComponent() {
     filters.characters.size > 0;
   const totalItems = allItems.length;
   const totalPages = Math.ceil(totalItems / deps.perPage);
-
-  function handleDragEnd(event: DragEndEvent) {
-    handleReorder(event, items, reorderItems);
-  }
 
   const changeFilter = (newFilter: Partial<TBuildFilter>) => {
     navigate({
@@ -342,6 +329,7 @@ function HomeComponent() {
             elements={filters.elements}
             weaponTypes={filters.weaponTypes}
             characters={filters.characters}
+            artifactTypeSpecials={filters.artifactTypeSpecials}
             availableElements={availableFilters.elements}
             availableWeaponTypes={availableFilters.weaponTypes}
             availableCharacters={availableFilters.characters}
@@ -354,50 +342,14 @@ function HomeComponent() {
           aria-label="Build cards"
           className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
         >
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={items} strategy={rectSortingStrategy}>
-              {renderItems.map((item) => {
-                switch (item.type) {
-                  case 'build': {
-                    const { build } = item;
-                    return (
-                      <BuildInfo
-                        key={build.id}
-                        buildId={build.id}
-                        characterId={build.character}
-                        reorderIsPending={reorderIsPending}
-                        dndEnabled={!filterEnabled}
-                      />
-                    );
-                  }
-                  case 'pending': {
-                    const { pending } = item;
-                    return (
-                      <PendingBuildInfo key={pending.id} pending={pending} />
-                    );
-                  }
-                  case 'create':
-                    return (
-                      <Card
-                        key="create"
-                        className="w-full border-2 border-dashed border-muted bg-muted/5"
-                      >
-                        <div className="w-full h-full flex items-center justify-center p-12">
-                          <CreateBuild
-                            size={totalItems - 1}
-                            disabled={reorderIsPending}
-                          />
-                        </div>
-                      </Card>
-                    );
-                }
-              })}
-            </SortableContext>
-          </DndContext>
+          <Content
+            buildItems={items}
+            items={allItems}
+            totalItems={totalItems}
+            filterEnabled={filterEnabled}
+            reorderIsPending={reorderIsPending}
+            reorderItems={reorderItems}
+          />
         </section>
       </section>
       <nav
@@ -412,15 +364,92 @@ function HomeComponent() {
   );
 }
 
+type ContentProps = {
+  buildItems: ShortBuildItem[];
+  items: RenderItem[];
+  totalItems: number;
+  filterEnabled: boolean;
+  reorderIsPending: boolean;
+  reorderItems(items: ShortBuildItem[]): void;
+};
+function Content({
+  buildItems,
+  items,
+  totalItems,
+  filterEnabled,
+  reorderIsPending,
+  reorderItems,
+}: ContentProps) {
+  const deps = Route.useLoaderDeps();
+  const paginatedItems = items.slice(
+    deps.perPage * (deps.page - 1),
+    deps.perPage * deps.page,
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+  function handleDragEnd(event: DragEndEvent) {
+    handleReorder(event, buildItems, reorderItems);
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={buildItems} strategy={rectSortingStrategy}>
+        {paginatedItems.map((item) => {
+          switch (item.type) {
+            case 'build': {
+              const { build } = item;
+              return (
+                <BuildInfo
+                  key={build.id}
+                  buildId={build.id}
+                  characterId={build.character}
+                  reorderIsPending={reorderIsPending}
+                  dndEnabled={!filterEnabled}
+                />
+              );
+            }
+            case 'pending': {
+              const { pending } = item;
+              return <PendingBuildInfo key={pending.id} pending={pending} />;
+            }
+            case 'create':
+              return (
+                <Card
+                  key="create"
+                  className="w-full border-2 border-dashed border-muted bg-muted/5"
+                >
+                  <div className="w-full h-full flex items-center justify-center p-12">
+                    <CreateBuild
+                      size={totalItems - 1}
+                      disabled={reorderIsPending}
+                    />
+                  </div>
+                </Card>
+              );
+          }
+        })}
+      </SortableContext>
+    </DndContext>
+  );
+}
+
 function useLinkToDisplay(page: number, totalPages: number) {
   const items: [number, LinkOptions][] = [];
   const start = Math.max(2, page - 1);
   const end = Math.min(start + 3, totalPages);
-
   for (let i = start; i < end; i++) {
     items.push([i, generatePaginationLink(i)]);
   }
-
   return {
     items,
     leftDots: start > 2,
@@ -432,11 +461,9 @@ type PagePaginationProps = { totalPages: number };
 function PagePagination({ totalPages }: PagePaginationProps) {
   const { page: currentPage } = Route.useLoaderDeps();
   const pagesToDisplay = useLinkToDisplay(currentPage, totalPages);
-
   if (totalPages < 2) {
     return <div className="h-9" aria-hidden />;
   }
-
   return (
     <div>
       <Pagination>
@@ -495,19 +522,15 @@ function PagePagination({ totalPages }: PagePaginationProps) {
 type PerPagePaginationProps = {
   totalItems: number;
 };
-
 function PerPagePagination({ totalItems }: PerPagePaginationProps) {
   const deps = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
-
   const perPageChange = (perPage: number) => {
     navigate(generatePaginationLink(1, perPage));
   };
-
   if (totalItems < PAGE_SIZE_OPTIONS[0] + 1) {
     return <div className="h-9" aria-hidden />;
   }
-
   return (
     <div className="flex items-center gap-2">
       <Label className="text-sm text-muted-foreground whitespace-nowrap">
