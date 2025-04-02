@@ -14,9 +14,11 @@
 [x] User management
 [x] Add text confirmation to account deletion
 [x] Filters
+[ ] Add filters by stats
 [ ] Ui controls, hide blocks
 [ ] Add new character, weapon to seed
-[ ] Add filters by stats
+
+[ ] Reduce number of request via sharing domains and fitlers reqs
 
 Nice to have:
 [ ] Fix ugly reorder animations
@@ -35,3 +37,5 @@ Nice to have:
 
 Next big thing:
 [x] Farm planned
+[ ] Dashboards
+    refs: https://observablehq.observablehq.cloud/framework-example-api/
