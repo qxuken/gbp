@@ -21,7 +21,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { motion } from 'motion/react';
 import { useMemo, useState } from 'react';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
 import { WeaponPlans } from '@/api/types';
 import { Icons } from '@/components/icons';

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
 import { ArtifactSetsPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
@@ -51,7 +51,6 @@ export function BuildDomainsAnalysis({ builds }: Props) {
 
 export const QUERY_KEY = ['characterPlans', 'domains'];
 
-type Item = Pick<ArtifactSetsPlans, 'artifactSets' | 'characterPlan'>;
 type AggItem = {
   domain: string;
   characters: string[];
@@ -61,7 +60,7 @@ type AggItem = {
 function aggregateSets(
   domainsBySet: Map<string, string>,
   builds: ShortBuildItem[],
-  items: Item[],
+  items: ArtifactSetsPlans[],
 ): AggItem[] {
   const characterByBuildId = builds.reduce((acc, it) => {
     acc.set(it.id, it.character);
@@ -141,9 +140,7 @@ function BuildDomainsAnalysisContent({ builds }: Props) {
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: () =>
-      pbClient.collection<Item>('artifactSetsPlans').getFullList({
-        fields: 'artifactSets,characterPlan',
-      }),
+      pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').getFullList(),
   });
 
   if (!domainsBySet || query.isPending || !query.data) {

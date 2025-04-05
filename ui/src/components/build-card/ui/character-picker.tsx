@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import fuzzysearch from 'fuzzysearch';
 import { PropsWithChildren, useState } from 'react';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';

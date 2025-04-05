@@ -10,7 +10,7 @@ import { auth as useAuth } from '@/stores/auth';
 
 import { router } from './router';
 
-import('@/api/dictionaries-loader');
+import('@/api/dictionaries/loader');
 
 if (!import.meta.env.PROD) {
   import('@/devtoolsLoader');

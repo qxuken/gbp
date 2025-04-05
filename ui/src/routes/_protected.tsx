@@ -57,13 +57,13 @@ function RouteComponent() {
                 className="h-4 hidden md:block"
               />
               <a
-                href="https://github.com/qxuken/gbp"
+                href="https://github.com/qxuken/gbp/issues"
                 className="hover:text-foreground flex items-center gap-1"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <Icons.Github className="size-4" />
-                GitHub
+                Report Issue
               </a>
             </div>
             <p className="text-xs">

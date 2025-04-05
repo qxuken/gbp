@@ -1,7 +1,7 @@
 import { pane } from '@/tweakpane';
 
-import { db, DICTIONARY_VERSION_CONFIG_KEY } from './dictionaries-db';
-import { worker } from './dictionaries-loader';
+import { db, DICTIONARY_VERSION_CONFIG_KEY } from './db';
+import { worker } from './loader';
 
 const params = {
   _dictionaryVersion: 'none',

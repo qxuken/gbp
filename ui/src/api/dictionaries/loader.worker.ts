@@ -2,7 +2,7 @@ import {
   db,
   DB_COLLECTIONS,
   DICTIONARY_VERSION_CONFIG_KEY,
-} from '@/api/dictionaries-db';
+} from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
 
 export async function loadDictionaries(reload = false) {

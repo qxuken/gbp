@@ -2,7 +2,7 @@ import { Trigger as SelectTrigger } from '@radix-ui/react-select';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
 import { ArtifactTypePlans, Specials } from '@/api/types';
 import { Icons } from '@/components/icons';
@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
+import { ARTIFACT_TYPE_PLANS_QUERY_KEY } from '@/routes/_protected/builds';
 
 type Props = { buildId: string; enabled?: boolean };
 export function ArtifactStats({ buildId, enabled }: Props) {
@@ -71,7 +72,12 @@ function ArtifactStatsLoaded({ buildId, items, queryKey }: PropsLoaded) {
           return;
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey });
+      await queryClient.invalidateQueries({
+        queryKey: ARTIFACT_TYPE_PLANS_QUERY_KEY,
+      });
+    },
     onError: notifyWithRetry((v) => {
       mutate(v);
     }),

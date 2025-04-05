@@ -1,7 +1,7 @@
 import { PopoverTrigger } from '@radix-ui/react-popover';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { Characters } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';

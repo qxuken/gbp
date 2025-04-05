@@ -1,7 +1,7 @@
 import { Trigger as SelectTrigger } from '@radix-ui/react-select';
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { Specials } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';

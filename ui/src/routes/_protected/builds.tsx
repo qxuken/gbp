@@ -29,9 +29,9 @@ import fuzzysearch from 'fuzzysearch';
 import { useEffect, useMemo } from 'react';
 import { z } from 'zod';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
-import { CharacterPlans, Characters } from '@/api/types';
+import { ArtifactTypePlans, CharacterPlans, Characters } from '@/api/types';
 import { BuildDomainsAnalysis } from '@/components/build-card/build-domains-analysis';
 import {
   BuildFilters,
@@ -69,13 +69,17 @@ import {
 
 export type ShortBuildItem = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
 
-type RenderItem =
+export type BuildsRenderItem =
   | { type: 'build'; build: ShortBuildItem; order: number }
   | { type: 'pending'; pending: PendingCharacter; order: number }
   | { type: 'create'; order: number };
 
 const FIELDS = 'id, order, character';
-const QUERY_KEY = ['characterPlans', 'page'];
+const BUILDS_PAGE_QUERY_KEY = ['characterPlans', 'page'];
+export const ARTIFACT_TYPE_PLANS_QUERY_KEY = [
+  'characterPlans',
+  'artifact_type_plans',
+];
 
 const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
 
@@ -85,6 +89,8 @@ const MAX_PENDING_ITEMS = 10;
 const SEARCH_SCHEMA = z.object({
   page: z.number().optional(),
   perPage: z.number().optional(),
+  // Characters
+  cs: z.array(z.string()).optional(),
   // Character Name
   cN: z.string().optional(),
   // Character Elements
@@ -92,18 +98,21 @@ const SEARCH_SCHEMA = z.object({
   // Character Weapon Types
   cWT: z.array(z.string()).optional(),
   // Character artifact types
-  cAT: z.record(z.string(), z.array(z.string())).optional(),
-  // Characters
-  cs: z.array(z.string()).optional(),
+  cAT: z.array(z.tuple([z.string(), z.array(z.string())])).optional(),
 });
 
-const QUERY_PARAMS = queryOptions({
-  queryKey: QUERY_KEY,
-
+const BUILDS_PAGE_QUERY_PARAMS = queryOptions({
+  queryKey: BUILDS_PAGE_QUERY_KEY,
   queryFn: () =>
     pbClient
       .collection<ShortBuildItem>('characterPlans')
       .getFullList({ fields: FIELDS, sort: 'order' }),
+});
+
+const ARTIFACT_TYPE_PLANS_QUERY_PARAMS = queryOptions({
+  queryKey: ARTIFACT_TYPE_PLANS_QUERY_KEY,
+  queryFn: () =>
+    pbClient.collection<ArtifactTypePlans>('artifactTypePlans').getFullList(),
 });
 
 export const Route = createFileRoute('/_protected/builds')({
@@ -113,7 +122,7 @@ export const Route = createFileRoute('/_protected/builds')({
     page,
     perPage,
   }),
-  loader: () => queryClient.ensureQueryData(QUERY_PARAMS),
+  loader: () => queryClient.ensureQueryData(BUILDS_PAGE_QUERY_PARAMS),
   pendingComponent: () => (
     <div className="w-full p-4 flex justify-center">
       <Icons.Spinner className="animate-spin size-12" />
@@ -138,7 +147,7 @@ const getRenderItems = (
   filters: TBuildFilter,
 ) => {
   const filter = filterCharacters(filters);
-  const buildItems: RenderItem[] = items
+  const buildItems: BuildsRenderItem[] = items
     .filter((build) => {
       const character = characters?.get(build.character);
       if (!character) {
@@ -151,7 +160,7 @@ const getRenderItems = (
       build,
       order: build.order,
     }));
-  const pendingItems: RenderItem[] = pendingPlans
+  const pendingItems: BuildsRenderItem[] = pendingPlans
     .filter((pending) => {
       const character = characters?.get(pending.characterId);
       if (!character) {
@@ -190,21 +199,16 @@ function HomeComponent() {
   const deps = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
-  const { data: queryData } = useSuspenseQuery(QUERY_PARAMS);
+  const { data: queryData } = useSuspenseQuery(BUILDS_PAGE_QUERY_PARAMS);
+  const { data: artifactTypePlans } = useSuspenseQuery(
+    ARTIFACT_TYPE_PLANS_QUERY_PARAMS,
+  );
   const pendingPlans = useNewCharacterPlans(
     (s) => s.characterPlans as PendingCharacter[],
   );
   const characters = useLiveQuery(
     () => db.characters.toArray().then((c) => new Map(c.map((c) => [c.id, c]))),
     [],
-  );
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
   );
 
   const {
@@ -231,7 +235,7 @@ function HomeComponent() {
       return batch.send();
     },
     onSuccess: async (_, variables) => {
-      await queryClient.setQueryData(QUERY_KEY, variables);
+      await queryClient.setQueryData(BUILDS_PAGE_QUERY_KEY, variables);
       reset();
     },
     onError: notifyWithRetry((v) => {
@@ -240,17 +244,20 @@ function HomeComponent() {
   });
 
   const items = variables || queryData;
-  const filters = useMemo(
+  const filters: TBuildFilter = useMemo(
     () => ({
       name: search.cN ?? '',
       elements: new Set(search.cE),
       weaponTypes: new Set(search.cWT),
       characters: new Set(search.cs),
+      artifactTypeSpecials: new Map(
+        search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
+      ),
     }),
-    [search.cN, search.cE, search.cWT, search.cs],
+    [search.cN, search.cE, search.cWT, search.cs, search.cAT],
   );
 
-  const allItems: RenderItem[] = useMemo(
+  const allItems: BuildsRenderItem[] = useMemo(
     () => getRenderItems(items, pendingPlans, characters, filters),
     [items, pendingPlans, characters, filters],
   );
@@ -275,21 +282,14 @@ function HomeComponent() {
     );
   }, [characters, items]);
 
-  const renderItems = allItems.slice(
-    deps.perPage * (deps.page - 1),
-    deps.perPage * deps.page,
-  );
   const filterEnabled =
     filters.name.length > 0 ||
     filters.elements.size > 0 ||
     filters.weaponTypes.size > 0 ||
+    filters.artifactTypeSpecials.size > 0 ||
     filters.characters.size > 0;
   const totalItems = allItems.length;
   const totalPages = Math.ceil(totalItems / deps.perPage);
-
-  function handleDragEnd(event: DragEndEvent) {
-    handleReorder(event, items, reorderItems);
-  }
 
   const changeFilter = (newFilter: Partial<TBuildFilter>) => {
     navigate({
@@ -317,6 +317,13 @@ function HomeComponent() {
             ? Array.from(newFilter.characters)
             : undefined
           : state.cs,
+        cAT: newFilter.artifactTypeSpecials
+          ? newFilter.artifactTypeSpecials.size > 0
+            ? Array.from(newFilter.artifactTypeSpecials.entries()).map(
+                ([k, v]) => [k, Array.from(v)] as const,
+              )
+            : undefined
+          : state.cAT,
       }),
     });
   };
@@ -339,9 +346,11 @@ function HomeComponent() {
         >
           <BuildFilters
             name={filters.name}
+            artifactTypePlansData={artifactTypePlans}
             elements={filters.elements}
             weaponTypes={filters.weaponTypes}
             characters={filters.characters}
+            artifactTypeSpecials={filters.artifactTypeSpecials}
             availableElements={availableFilters.elements}
             availableWeaponTypes={availableFilters.weaponTypes}
             availableCharacters={availableFilters.characters}
@@ -354,50 +363,14 @@ function HomeComponent() {
           aria-label="Build cards"
           className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
         >
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={items} strategy={rectSortingStrategy}>
-              {renderItems.map((item) => {
-                switch (item.type) {
-                  case 'build': {
-                    const { build } = item;
-                    return (
-                      <BuildInfo
-                        key={build.id}
-                        buildId={build.id}
-                        characterId={build.character}
-                        reorderIsPending={reorderIsPending}
-                        dndEnabled={!filterEnabled}
-                      />
-                    );
-                  }
-                  case 'pending': {
-                    const { pending } = item;
-                    return (
-                      <PendingBuildInfo key={pending.id} pending={pending} />
-                    );
-                  }
-                  case 'create':
-                    return (
-                      <Card
-                        key="create"
-                        className="w-full border-2 border-dashed border-muted bg-muted/5"
-                      >
-                        <div className="w-full h-full flex items-center justify-center p-12">
-                          <CreateBuild
-                            size={totalItems - 1}
-                            disabled={reorderIsPending}
-                          />
-                        </div>
-                      </Card>
-                    );
-                }
-              })}
-            </SortableContext>
-          </DndContext>
+          <Content
+            buildItems={items}
+            items={allItems}
+            totalItems={totalItems}
+            filterEnabled={filterEnabled}
+            reorderIsPending={reorderIsPending}
+            reorderItems={reorderItems}
+          />
         </section>
       </section>
       <nav
@@ -412,15 +385,92 @@ function HomeComponent() {
   );
 }
 
+type ContentProps = {
+  buildItems: ShortBuildItem[];
+  items: BuildsRenderItem[];
+  totalItems: number;
+  filterEnabled: boolean;
+  reorderIsPending: boolean;
+  reorderItems(items: ShortBuildItem[]): void;
+};
+function Content({
+  buildItems,
+  items,
+  totalItems,
+  filterEnabled,
+  reorderIsPending,
+  reorderItems,
+}: ContentProps) {
+  const deps = Route.useLoaderDeps();
+  const paginatedItems = items.slice(
+    deps.perPage * (deps.page - 1),
+    deps.perPage * deps.page,
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+  function handleDragEnd(event: DragEndEvent) {
+    handleReorder(event, buildItems, reorderItems);
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext items={buildItems} strategy={rectSortingStrategy}>
+        {paginatedItems.map((item) => {
+          switch (item.type) {
+            case 'build': {
+              const { build } = item;
+              return (
+                <BuildInfo
+                  key={build.id}
+                  buildId={build.id}
+                  characterId={build.character}
+                  reorderIsPending={reorderIsPending}
+                  dndEnabled={!filterEnabled}
+                />
+              );
+            }
+            case 'pending': {
+              const { pending } = item;
+              return <PendingBuildInfo key={pending.id} pending={pending} />;
+            }
+            case 'create':
+              return (
+                <Card
+                  key="create"
+                  className="w-full border-2 border-dashed border-muted bg-muted/5"
+                >
+                  <div className="w-full h-full flex items-center justify-center p-12">
+                    <CreateBuild
+                      size={totalItems - 1}
+                      disabled={reorderIsPending}
+                    />
+                  </div>
+                </Card>
+              );
+          }
+        })}
+      </SortableContext>
+    </DndContext>
+  );
+}
+
 function useLinkToDisplay(page: number, totalPages: number) {
   const items: [number, LinkOptions][] = [];
   const start = Math.max(2, page - 1);
   const end = Math.min(start + 3, totalPages);
-
   for (let i = start; i < end; i++) {
     items.push([i, generatePaginationLink(i)]);
   }
-
   return {
     items,
     leftDots: start > 2,
@@ -432,11 +482,9 @@ type PagePaginationProps = { totalPages: number };
 function PagePagination({ totalPages }: PagePaginationProps) {
   const { page: currentPage } = Route.useLoaderDeps();
   const pagesToDisplay = useLinkToDisplay(currentPage, totalPages);
-
   if (totalPages < 2) {
     return <div className="h-9" aria-hidden />;
   }
-
   return (
     <div>
       <Pagination>
@@ -495,19 +543,15 @@ function PagePagination({ totalPages }: PagePaginationProps) {
 type PerPagePaginationProps = {
   totalItems: number;
 };
-
 function PerPagePagination({ totalItems }: PerPagePaginationProps) {
   const deps = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
-
   const perPageChange = (perPage: number) => {
     navigate(generatePaginationLink(1, perPage));
   };
-
   if (totalItems < PAGE_SIZE_OPTIONS[0] + 1) {
     return <div className="h-9" aria-hidden />;
   }
-
   return (
     <div className="flex items-center gap-2">
       <Label className="text-sm text-muted-foreground whitespace-nowrap">

@@ -17,8 +17,8 @@
 [ ] Add filters by stats
 [ ] Ui controls, hide blocks
 [ ] Add new character, weapon to seed
-
 [ ] Reduce number of request via sharing domains and fitlers reqs
+[ ] Add theme metatags
 
 Nice to have:
 [ ] Fix ugly reorder animations
@@ -39,3 +39,5 @@ Next big thing:
 [x] Farm planned
 [ ] Dashboards
     refs: https://observablehq.observablehq.cloud/framework-example-api/
+    url: /_/monitor
+    share auth with admin panel via shared localstorage key

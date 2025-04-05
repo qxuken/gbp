@@ -5,7 +5,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { motion, useInView } from 'motion/react';
 import { useMemo, useRef } from 'react';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
 import type { CharacterPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
@@ -43,6 +43,7 @@ type Props = {
   characterId: string;
   dndEnabled?: boolean;
 };
+
 export function BuildInfo({
   buildId,
   reorderIsPending,

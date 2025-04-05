@@ -12,7 +12,7 @@ func init() {
 		settings.Meta.SenderName = "Genshin Build Planner (no-reply)"
 		settings.Meta.HideControls = !app.IsDev()
 		settings.Batch.Enabled = true
-		settings.Batch.MaxRequests = 100
+		settings.Batch.MaxRequests = 150
 		settings.Batch.Timeout = 20
 		return app.Save(settings)
 	}, nil)

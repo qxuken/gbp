@@ -10,7 +10,7 @@ import type {
   Specials,
   Weapons,
   WeaponTypes,
-} from './types';
+} from '@/api/types';
 
 type Config = {
   key: string;

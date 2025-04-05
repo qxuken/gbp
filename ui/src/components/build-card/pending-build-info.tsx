@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 
-import { db } from '@/api/dictionaries-db';
+import { db } from '@/api/dictionaries/db';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
