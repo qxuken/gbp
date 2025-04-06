@@ -1,6 +1,6 @@
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { newCharacterPlans as useNewCharacterPlans } from '@/stores/newCharacterPlans';
+import { newCharacterPlans as useNewCharacterPlans } from '@/store/newCharacterPlans';
 
 import { CharacterPicker } from './ui/character-picker';
 

@@ -65,7 +65,7 @@ import { queryClient } from '@/main';
 import {
   newCharacterPlans as useNewCharacterPlans,
   PendingCharacter,
-} from '@/stores/newCharacterPlans';
+} from '@/store/newCharacterPlans';
 
 export type ShortBuildItem = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
 
@@ -320,8 +320,8 @@ function HomeComponent() {
         cAT: newFilter.artifactTypeSpecials
           ? newFilter.artifactTypeSpecials.size > 0
             ? Array.from(newFilter.artifactTypeSpecials.entries()).map(
-                ([k, v]) => [k, Array.from(v)] as const,
-              )
+              ([k, v]) => [k, Array.from(v)] as const,
+            )
             : undefined
           : state.cAT,
       }),

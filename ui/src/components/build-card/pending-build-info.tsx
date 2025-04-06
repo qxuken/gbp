@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   newCharacterPlans as useNewCharacterPlans,
   PendingCharacter,
-} from '@/stores/newCharacterPlans';
+} from '@/store/newCharacterPlans';
 
 import { Button } from '../ui/button';
 import { CharacterInfo } from './ui/character-info';

@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { themeAtom, displayThemeAtom } from '@/stores/theme';
+import { themeAtom, displayThemeAtom } from '@/store/theme';
 
 const iconAnimationProps = {
   active: { opacity: 1, scale: 1, rotate: 0 },

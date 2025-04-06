@@ -1,7 +1,7 @@
 import { createRouteMask, createRouter } from '@tanstack/react-router';
 
 import { Icons } from '@/components/icons';
-import { auth } from '@/stores/auth';
+import { auth } from '@/store/auth';
 
 import { routeTree } from './routeTree.gen';
 

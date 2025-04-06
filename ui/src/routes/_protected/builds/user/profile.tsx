@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { auth as useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/store/auth';
 
 const profileFormSchema = z.object({
   name: z.string().min(2).max(50),

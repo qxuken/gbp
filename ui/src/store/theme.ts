@@ -1,7 +1,7 @@
 import { atomWithStorage } from 'jotai/utils';
 import { atom } from 'jotai/vanilla';
 
-import { store } from '@/stores/jotai-store';
+import { store } from '@/store/jotai-store';
 
 export type ThemeValue = 'dark' | 'light';
 const DARK_MODE_QUERY = window.matchMedia('(prefers-color-scheme: dark)');

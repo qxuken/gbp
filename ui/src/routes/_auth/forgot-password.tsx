@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { auth as useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/store/auth';
 
 export const Route = createFileRoute('/_auth/forgot-password')({
   component: ForgotPassword,

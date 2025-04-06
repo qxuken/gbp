@@ -3,13 +3,14 @@ import { RouterProvider } from '@tanstack/react-router';
 import { Provider as JotaiProvider } from 'jotai/react';
 import { RecordModel } from 'pocketbase';
 import { RecordAuthResponse } from 'pocketbase';
+import { PropsWithChildren } from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { router } from '@/router';
-import { auth as useAuth } from '@/stores/auth';
-import { store } from '@/stores/jotai-store';
+import { auth as useAuth } from '@/store/auth';
+import { store } from '@/store/jotai-store';
 
 import('@/api/dictionaries/loader');
 
@@ -31,6 +32,13 @@ export const queryClient = new QueryClient({
   },
 });
 
+function AppContext({ children }: PropsWithChildren) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <JotaiProvider store={store}>{children}</JotaiProvider>
+    </QueryClientProvider>
+  );
+}
 function App() {
   const auth = useAuth();
   const context = {
@@ -41,13 +49,9 @@ function App() {
 
   return (
     <>
-      <QueryClientProvider client={queryClient}>
-        <JotaiProvider store={store}>
-          <TooltipProvider>
-            <RouterProvider router={router} context={context} />
-          </TooltipProvider>
-        </JotaiProvider>
-      </QueryClientProvider>
+      <TooltipProvider>
+        <RouterProvider router={router} context={context} />
+      </TooltipProvider>
       <Toaster position="top-center" richColors />
     </>
   );
@@ -57,5 +61,9 @@ const rootElement = document.getElementById('app')!;
 
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
-  root.render(<App />);
+  root.render(
+    <AppContext>
+      <App />
+    </AppContext>,
+  );
 }

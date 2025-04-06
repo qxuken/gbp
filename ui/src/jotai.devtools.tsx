@@ -3,8 +3,8 @@ import 'jotai-devtools/styles.css';
 import { useAtomValue } from 'jotai/react';
 import ReactDOM from 'react-dom/client';
 
-import { store } from '@/stores/jotai-store';
-import { displayThemeAtom } from '@/stores/theme';
+import { store } from '@/store/jotai-store';
+import { displayThemeAtom } from '@/store/theme';
 
 function JotaiDevTools() {
   const theme = useAtomValue(displayThemeAtom);

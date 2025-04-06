@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTimeoutButton } from '@/hooks/useTimeoutButton';
-import { auth as useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/store/auth';
 
 export const Route = createFileRoute('/_auth/confirm')({
   component: ConfirmComponent,

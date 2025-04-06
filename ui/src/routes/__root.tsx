@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 import { AppContext } from '@/main';
 import { router } from '@/router';
-import { auth as useAuth } from '@/stores/auth';
+import { auth as useAuth } from '@/store/auth';
 
 export const Route = createRootRouteWithContext<AppContext>()({
   component: RootComponent,
