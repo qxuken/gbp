@@ -1,14 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
+import { Provider as JotaiProvider } from 'jotai/react';
 import { RecordModel } from 'pocketbase';
 import { RecordAuthResponse } from 'pocketbase';
 import ReactDOM from 'react-dom/client';
 
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { router } from '@/router';
 import { auth as useAuth } from '@/stores/auth';
-
-import { router } from './router';
+import { store } from '@/stores/jotai-store';
 
 import('@/api/dictionaries/loader');
 
@@ -41,9 +42,11 @@ function App() {
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <RouterProvider router={router} context={context} />
-        </TooltipProvider>
+        <JotaiProvider store={store}>
+          <TooltipProvider>
+            <RouterProvider router={router} context={context} />
+          </TooltipProvider>
+        </JotaiProvider>
       </QueryClientProvider>
       <Toaster position="top-center" richColors />
     </>

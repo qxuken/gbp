@@ -1,11 +1,12 @@
+import { useAtomValue } from 'jotai/react';
 import { Toaster as Sonner } from 'sonner';
 
-import { theme as useTheme } from '@/stores/theme';
+import { displayThemeAtom } from '@/stores/theme';
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const displayTheme = useTheme((s) => s.displayTheme);
+  const displayTheme = useAtomValue(displayThemeAtom);
 
   return (
     <Sonner

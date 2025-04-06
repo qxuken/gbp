@@ -2,7 +2,7 @@ import { Pane } from 'tweakpane';
 
 document.createElement('div');
 const container = document.createElement('div');
-container.className = 'fixed right-4 bottom-4';
+container.className = 'fixed right-20 bottom-4';
 document.body.appendChild(container);
 
 const styleElement = document.createElement('style');

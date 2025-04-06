@@ -1,3 +1,4 @@
+import { useAtomValue, useSetAtom } from 'jotai/react';
 import { animate } from 'motion';
 import { useEffect, useRef } from 'react';
 
@@ -9,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { theme as useTheme } from '@/stores/theme';
+import { themeAtom, displayThemeAtom } from '@/stores/theme';
 
 const iconAnimationProps = {
   active: { opacity: 1, scale: 1, rotate: 0 },
@@ -18,8 +19,8 @@ const iconAnimationProps = {
 };
 
 export function ThemeToggle() {
-  const displayTheme = useTheme((s) => s.displayTheme);
-  const setTheme = useTheme((s) => s.setTheme);
+  const displayTheme = useAtomValue(displayThemeAtom);
+  const setTheme = useSetAtom(themeAtom);
   const moonRef = useRef<SVGSVGElement>(null);
   const sunRef = useRef<SVGSVGElement>(null);
 

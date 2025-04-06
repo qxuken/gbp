@@ -1,64 +1,54 @@
-import { create } from 'zustand';
-import { subscribeWithSelector, persist } from 'zustand/middleware';
+import { atomWithStorage } from 'jotai/utils';
+import { atom } from 'jotai/vanilla';
 
-export type ThemeValue = 'dark' | 'light' | 'system';
+import { store } from '@/stores/jotai-store';
 
-export interface Theme {
-  theme: ThemeValue;
-  displayTheme: 'dark' | 'light';
-  setTheme(theme: ThemeValue): void;
-}
+export type ThemeValue = 'dark' | 'light';
+const DARK_MODE_QUERY = window.matchMedia('(prefers-color-scheme: dark)');
+const DOCUMENT_ROOT = window.document.documentElement;
 
-export const theme = create(
-  subscribeWithSelector(
-    persist<Theme>(
-      (set, get) => ({
-        theme: get()?.theme ?? 'system',
-        displayTheme: 'light',
-        setTheme(theme: ThemeValue) {
-          set(() => ({ theme }));
-        },
-      }),
-      {
-        name: 'gbp__uiTheme',
-      },
-    ),
-  ),
+export const themeAtom = atomWithStorage<'dark' | 'light' | 'system'>(
+  'gbp__theme',
+  'system',
+);
+// this is module private since i want displayThemeAtom to be readonly
+const actualThemeAtom = atom<'dark' | 'light'>(
+  DARK_MODE_QUERY.matches ? 'dark' : 'light',
+);
+export const displayThemeAtom = atom<'dark' | 'light'>((get) =>
+  get(actualThemeAtom),
 );
 
 let systemSub: AbortController | null;
-theme.subscribe(
-  (state) => state.theme,
-  (themeValue) => {
-    systemSub?.abort();
+function subSystem() {
+  systemSub?.abort();
+  systemSub = null;
+  const theme = store.get(themeAtom);
+  const setTheme = (v: ThemeValue) => {
+    store.set(actualThemeAtom, v);
+    updateDOM();
+  };
+  if (theme === 'system') {
+    systemSub = new AbortController();
 
-    const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
+    setTheme(DARK_MODE_QUERY.matches ? 'dark' : 'light');
+    DARK_MODE_QUERY.addEventListener(
+      'change',
+      (e) => setTheme(e.matches ? 'dark' : 'light'),
+      {
+        signal: systemSub.signal,
+      },
+    );
+  } else {
+    setTheme(theme);
+  }
+}
+function updateDOM() {
+  const theme = store.get(displayThemeAtom);
+  DOCUMENT_ROOT.classList.remove('light', 'dark');
+  DOCUMENT_ROOT.classList.add(theme);
+}
 
-    if (themeValue === 'system') {
-      const query = window.matchMedia('(prefers-color-scheme: dark)');
-      const setSystemTheme = (isDark: boolean) => {
-        const displayTheme = isDark ? 'dark' : 'light';
-        root.classList.add(displayTheme);
-        theme.setState({ displayTheme });
-      };
+subSystem();
 
-      setSystemTheme(query.matches);
-
-      systemSub = new AbortController();
-      query.addEventListener(
-        'change',
-        (e) => {
-          root.classList.remove('light', 'dark');
-          setSystemTheme(e.matches);
-        },
-        { signal: systemSub.signal },
-      );
-    } else {
-      systemSub = null;
-      root.classList.add(themeValue);
-      theme.setState({ displayTheme: themeValue });
-    }
-  },
-  { fireImmediately: true },
-);
+store.sub(themeAtom, subSystem);
