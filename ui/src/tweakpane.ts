@@ -58,6 +58,6 @@ document.head.appendChild(styleElement);
 
 export const pane = new Pane({
   container,
-  title: 'Dev parameters',
+  title: 'Dev panel',
   expanded: false,
 });

@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
-import { ArtifactSetsPlans } from '@/api/types';
+import { ArtifactSetsPlans, CharacterPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,12 +18,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { ShortBuildItem } from '@/routes/_protected/builds';
 
 import { CharacterInfoContent } from './ui/character-info';
 
 type Props = {
-  builds: ShortBuildItem[];
+  builds: CharacterPlans[];
 };
 export function BuildDomainsAnalysis({ builds }: Props) {
   return (
@@ -59,7 +58,7 @@ type AggItem = {
 
 function aggregateSets(
   domainsBySet: Map<string, string>,
-  builds: ShortBuildItem[],
+  builds: CharacterPlans[],
   items: ArtifactSetsPlans[],
 ): AggItem[] {
   const characterByBuildId = builds.reduce((acc, it) => {

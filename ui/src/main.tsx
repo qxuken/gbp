@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
+import { enableMapSet } from 'immer';
 import { Provider as JotaiProvider } from 'jotai/react';
 import { RecordModel } from 'pocketbase';
 import { RecordAuthResponse } from 'pocketbase';
@@ -17,6 +18,8 @@ import('@/api/dictionaries/loader');
 if (!import.meta.env.PROD) {
   import('@/devtoolsLoader');
 }
+
+enableMapSet();
 
 export interface AppContext {
   isAuthenticated: boolean;

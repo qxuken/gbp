@@ -17,4 +17,5 @@ const (
 	ARTIFACT_SETS_PLANS_COLLECTION_NAME = "artifactSetsPlans"
 	ARTIFACT_TYPE_PLANS_COLLECTION_NAME = "artifactTypePlans"
 	TEAM_PLANS_COLLECTION_NAME          = "teamPlans"
+	PLANS_VIEW_COLLECTION_NAME          = "plans"
 )

@@ -1,4 +1,5 @@
 !.keep
+.DS_Store
 
 *.db-wal
 *.db-shm
@@ -8,4 +9,3 @@ node_modules
 
 tmp
 pb_data/*
-

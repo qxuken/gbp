@@ -11,7 +11,7 @@ export const themeAtom = atomWithStorage<'dark' | 'light' | 'system'>(
   'gbp__theme',
   'system',
 );
-// this is module private since i want displayThemeAtom to be readonly
+// This is module private since I want displayThemeAtom to be readonly
 const actualThemeAtom = atom<'dark' | 'light'>(
   DARK_MODE_QUERY.matches ? 'dark' : 'light',
 );

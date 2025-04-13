@@ -31,8 +31,7 @@ export const DB_COLLECTIONS = [
   'domainsOfBlessing',
 ] as const;
 export type DBCollections = (typeof DB_COLLECTIONS)[number];
-
-export type DB = Dexie & {
+export type DBCollectionValues = {
   config: EntityTable<Config, 'key'>;
   elements: EntityTable<Elements, 'id'>;
   specials: EntityTable<Specials, 'id'>;
@@ -44,6 +43,8 @@ export type DB = Dexie & {
   artifactTypes: EntityTable<ArtifactTypes, 'id'>;
   domainsOfBlessing: EntityTable<DomainsOfBlessing, 'id'>;
 };
+
+export type DB = Dexie & DBCollectionValues;
 
 export const db = new Dexie('Dictionaries') as DB;
 

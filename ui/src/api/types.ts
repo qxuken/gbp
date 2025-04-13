@@ -2,10 +2,6 @@ import type { RecordModel } from 'pocketbase';
 
 import { ArtifactSets } from '@/components/build-card/ui/artifact-sets';
 
-export type WithOrder<T> = T & {
-  order: number;
-};
-
 export interface OnlyId {
   id: string;
 }
@@ -86,6 +82,13 @@ export interface ArtifactTypes extends RecordModel {
 }
 
 // Plans
+
+export interface Plans extends CharacterPlans {
+  artifactSetsPlans?: ArtifactSetsPlans[];
+  artifactTypePlans?: ArtifactTypePlans[];
+  weaponPlans?: WeaponPlans[];
+  teamPlans?: TeamPlans[];
+}
 
 export interface CharacterPlans extends RecordModel {
   id: string;

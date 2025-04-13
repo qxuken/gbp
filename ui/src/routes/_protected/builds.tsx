@@ -13,25 +13,20 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import {
-  queryOptions,
-  useMutation,
-  useSuspenseQuery,
-} from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import {
   createFileRoute,
   LinkOptions,
   linkOptions,
 } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
-import { useLiveQuery } from 'dexie-react-hooks';
-import fuzzysearch from 'fuzzysearch';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { z } from 'zod';
 
-import { db } from '@/api/dictionaries/db';
+import { CHARACTER_PLANS_QUERY_KEY } from '@/api/plans/characterPlans';
+import { PLANS_QUERY_PARAMS } from '@/api/plans/plans';
 import { pbClient } from '@/api/pocketbase';
-import { ArtifactTypePlans, CharacterPlans, Characters } from '@/api/types';
+import { CharacterPlans } from '@/api/types';
 import { BuildDomainsAnalysis } from '@/components/build-card/build-domains-analysis';
 import {
   BuildFilters,
@@ -62,29 +57,19 @@ import {
 import { handleReorder } from '@/lib/handle-reorder';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
+import { useArtifactTypePlans } from '@/store/plans/artifactTypePlans';
 import {
-  newCharacterPlans as useNewCharacterPlans,
-  PendingCharacter,
-} from '@/store/newCharacterPlans';
-
-export type ShortBuildItem = Pick<CharacterPlans, 'id' | 'order' | 'character'>;
-
-export type BuildsRenderItem =
-  | { type: 'build'; build: ShortBuildItem; order: number }
-  | { type: 'pending'; pending: PendingCharacter; order: number }
-  | { type: 'create'; order: number };
-
-const FIELDS = 'id, order, character';
-const BUILDS_PAGE_QUERY_KEY = ['characterPlans', 'page'];
-export const ARTIFACT_TYPE_PLANS_QUERY_KEY = [
-  'characterPlans',
-  'artifact_type_plans',
-];
+  useAvailableFilters,
+  useFilters,
+  useFiltersEnabled,
+} from '@/store/plans/filters';
+import { usePlans } from '@/store/plans/plans';
+import {
+  BuildsRenderItem,
+  useRenderingPlanItems,
+} from '@/store/plans/renderingItems';
 
 const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
-
-const MAX_ITEMS = 130;
-const MAX_PENDING_ITEMS = 10;
 
 const SEARCH_SCHEMA = z.object({
   page: z.number().optional(),
@@ -101,20 +86,6 @@ const SEARCH_SCHEMA = z.object({
   cAT: z.array(z.tuple([z.string(), z.array(z.string())])).optional(),
 });
 
-const BUILDS_PAGE_QUERY_PARAMS = queryOptions({
-  queryKey: BUILDS_PAGE_QUERY_KEY,
-  queryFn: () =>
-    pbClient
-      .collection<ShortBuildItem>('characterPlans')
-      .getFullList({ fields: FIELDS, sort: 'order' }),
-});
-
-const ARTIFACT_TYPE_PLANS_QUERY_PARAMS = queryOptions({
-  queryKey: ARTIFACT_TYPE_PLANS_QUERY_KEY,
-  queryFn: () =>
-    pbClient.collection<ArtifactTypePlans>('artifactTypePlans').getFullList(),
-});
-
 export const Route = createFileRoute('/_protected/builds')({
   component: HomeComponent,
   validateSearch: SEARCH_SCHEMA,
@@ -122,67 +93,13 @@ export const Route = createFileRoute('/_protected/builds')({
     page,
     perPage,
   }),
-  loader: () => queryClient.ensureQueryData(BUILDS_PAGE_QUERY_PARAMS),
+  loader: () => queryClient.ensureQueryData(PLANS_QUERY_PARAMS),
   pendingComponent: () => (
     <div className="w-full p-4 flex justify-center">
       <Icons.Spinner className="animate-spin size-12" />
     </div>
   ),
 });
-
-export const indexRoute = Route;
-
-const filterCharacters = (filters: TBuildFilter) => (character: Characters) =>
-  (filters.elements.size === 0 ||
-    (character.element && filters.elements.has(character.element))) &&
-  (filters.weaponTypes.size === 0 ||
-    filters.weaponTypes.has(character.weaponType)) &&
-  (!filters.name ||
-    fuzzysearch(filters.name.toLowerCase(), character.name.toLowerCase()));
-
-const getRenderItems = (
-  items: ShortBuildItem[],
-  pendingPlans: PendingCharacter[],
-  characters: Map<string, Characters> | undefined,
-  filters: TBuildFilter,
-) => {
-  const filter = filterCharacters(filters);
-  const buildItems: BuildsRenderItem[] = items
-    .filter((build) => {
-      const character = characters?.get(build.character);
-      if (!character) {
-        return false;
-      }
-      return filter(character);
-    })
-    .map((build) => ({
-      type: 'build',
-      build,
-      order: build.order,
-    }));
-  const pendingItems: BuildsRenderItem[] = pendingPlans
-    .filter((pending) => {
-      const character = characters?.get(pending.characterId);
-      if (!character) {
-        return false;
-      }
-      return filter(character);
-    })
-    .map((pending) => ({
-      type: 'pending',
-      pending,
-      order: pending.order,
-    }));
-  const all = buildItems.concat(pendingItems);
-  all.sort((a, b) => a.order - b.order);
-  if (
-    items.length <= MAX_ITEMS - pendingPlans.length &&
-    pendingPlans.length <= MAX_PENDING_ITEMS
-  ) {
-    all.push({ type: 'create', order: Infinity });
-  }
-  return all;
-};
 
 function generatePaginationLink(page: number, perPage?: number) {
   return linkOptions({
@@ -199,17 +116,12 @@ function HomeComponent() {
   const deps = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
-  const { data: queryData } = useSuspenseQuery(BUILDS_PAGE_QUERY_PARAMS);
-  const { data: artifactTypePlans } = useSuspenseQuery(
-    ARTIFACT_TYPE_PLANS_QUERY_PARAMS,
-  );
-  const pendingPlans = useNewCharacterPlans(
-    (s) => s.characterPlans as PendingCharacter[],
-  );
-  const characters = useLiveQuery(
-    () => db.characters.toArray().then((c) => new Map(c.map((c) => [c.id, c]))),
-    [],
-  );
+  const renderingItems = useRenderingPlanItems();
+  const plans = usePlans();
+  const artifactTypePlans = useArtifactTypePlans();
+  const [filters, setFilters] = useFilters();
+  const availableFilters = useAvailableFilters();
+  const filtersEnabled = useFiltersEnabled();
 
   const {
     variables,
@@ -217,25 +129,23 @@ function HomeComponent() {
     isPending: reorderIsPending,
     reset,
   } = useMutation({
-    mutationFn(items: ShortBuildItem[]) {
+    mutationFn(items: CharacterPlans[]) {
       const batch = pbClient.createBatch();
       for (let i = 0; i < items.length; i++) {
         const it = items[i];
-        const originalItem = queryData[i];
+        const originalItem = plans[i];
         if (
           !originalItem ||
           originalItem.id !== it.id ||
           originalItem.order !== it.order
         ) {
-          batch
-            .collection('characterPlans')
-            .update(it.id, { order: it.order }, { fields: FIELDS });
+          batch.collection('characterPlans').update(it.id, { order: it.order });
         }
       }
       return batch.send();
     },
     onSuccess: async (_, variables) => {
-      await queryClient.setQueryData(BUILDS_PAGE_QUERY_KEY, variables);
+      await queryClient.setQueryData(CHARACTER_PLANS_QUERY_KEY, variables);
       reset();
     },
     onError: notifyWithRetry((v) => {
@@ -243,9 +153,8 @@ function HomeComponent() {
     }),
   });
 
-  const items = variables || queryData;
-  const filters: TBuildFilter = useMemo(
-    () => ({
+  useEffect(() => {
+    setFilters({
       name: search.cN ?? '',
       elements: new Set(search.cE),
       weaponTypes: new Set(search.cWT),
@@ -253,43 +162,8 @@ function HomeComponent() {
       artifactTypeSpecials: new Map(
         search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
       ),
-    }),
-    [search.cN, search.cE, search.cWT, search.cs, search.cAT],
-  );
-
-  const allItems: BuildsRenderItem[] = useMemo(
-    () => getRenderItems(items, pendingPlans, characters, filters),
-    [items, pendingPlans, characters, filters],
-  );
-  const availableFilters = useMemo(() => {
-    return items.reduce(
-      (acc, item) => {
-        const character = characters?.get(item.character);
-        if (character) {
-          if (character.element) {
-            acc.elements.add(character.element);
-          }
-          acc.weaponTypes.add(character.weaponType);
-          acc.characters.add(character.id);
-        }
-        return acc;
-      },
-      {
-        elements: new Set<string>(),
-        weaponTypes: new Set<string>(),
-        characters: new Set<string>(),
-      },
-    );
-  }, [characters, items]);
-
-  const filterEnabled =
-    filters.name.length > 0 ||
-    filters.elements.size > 0 ||
-    filters.weaponTypes.size > 0 ||
-    filters.artifactTypeSpecials.size > 0 ||
-    filters.characters.size > 0;
-  const totalItems = allItems.length;
-  const totalPages = Math.ceil(totalItems / deps.perPage);
+    });
+  }, [search.cN, search.cE, search.cWT, search.cs, search.cAT]);
 
   const changeFilter = (newFilter: Partial<TBuildFilter>) => {
     navigate({
@@ -328,6 +202,9 @@ function HomeComponent() {
     });
   };
 
+  const totalItems = renderingItems.length;
+  const totalPages = Math.ceil(totalItems / deps.perPage);
+
   useEffect(() => {
     if (deps.page > totalPages) {
       navigate(generatePaginationLink(totalPages));
@@ -355,19 +232,19 @@ function HomeComponent() {
             availableWeaponTypes={availableFilters.weaponTypes}
             availableCharacters={availableFilters.characters}
             onChange={changeFilter}
-            hasActiveFilters={filterEnabled}
+            hasActiveFilters={filtersEnabled}
           />
-          <BuildDomainsAnalysis builds={items} />
+          <BuildDomainsAnalysis builds={plans} />
         </aside>
         <section
           aria-label="Build cards"
           className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
         >
           <Content
-            buildItems={items}
-            items={allItems}
+            buildItems={plans}
+            items={renderingItems}
             totalItems={totalItems}
-            filterEnabled={filterEnabled}
+            filterEnabled={filtersEnabled}
             reorderIsPending={reorderIsPending}
             reorderItems={reorderItems}
           />
@@ -386,12 +263,12 @@ function HomeComponent() {
 }
 
 type ContentProps = {
-  buildItems: ShortBuildItem[];
+  buildItems: CharacterPlans[];
   items: BuildsRenderItem[];
   totalItems: number;
   filterEnabled: boolean;
   reorderIsPending: boolean;
-  reorderItems(items: ShortBuildItem[]): void;
+  reorderItems(items: CharacterPlans[]): void;
 };
 function Content({
   buildItems,
