@@ -26,7 +26,7 @@ import {
 } from '@/store/plans/filters';
 import { useWeaponPlans } from '@/store/plans/weaponsPlans';
 
-export function BuildFilters() {
+export default function BuildFilters() {
   const [isOpen, setIsOpen] = useState(true);
   const elements = useElements();
   const weaponTypes = useWeaponPlans();

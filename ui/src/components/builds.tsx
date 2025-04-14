@@ -27,7 +27,7 @@ type Props = {
   page: number;
   perPage: number;
 };
-export function Builds({ page, perPage }: Props) {
+export default function Builds({ page, perPage }: Props) {
   const reorderItems = useReorderPlans();
   const plans = usePlans();
   const renderingItems = useRenderingPlanItems();
@@ -88,5 +88,3 @@ export function Builds({ page, perPage }: Props) {
     </DndContext>
   );
 }
-
-export default Builds;

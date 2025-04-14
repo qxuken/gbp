@@ -8,9 +8,6 @@ import { lazy, useEffect } from 'react';
 import { z } from 'zod';
 
 import { PLANS_QUERY_PARAMS } from '@/api/plans/plans';
-import { BuildDomainsAnalysis } from '@/components/build-card/build-domains-analysis';
-import { BuildFilters } from '@/components/build-card/build-filters';
-import { Builds } from '@/components/builds';
 import { Icons } from '@/components/icons';
 import { Label } from '@/components/ui/label';
 import {
@@ -34,6 +31,12 @@ import { useFilters } from '@/store/plans/filters';
 import { useRenderingPlanItems } from '@/store/plans/renderingItems';
 
 const LazyBuilds = lazy(() => import('@/components/builds'));
+const LazyBuildFilters = lazy(
+  () => import('@/components/build-card/build-filters'),
+);
+const LazyBuildDomainsAnalysis = lazy(
+  () => import('@/components/build-card/build-domains-analysis'),
+);
 
 const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
 
@@ -138,8 +141,8 @@ function HomeComponent() {
           aria-label="Controls"
           className="p-2 basis-80 grow flex flex-col gap-4"
         >
-          <BuildFilters />
-          <BuildDomainsAnalysis />
+          <LazyBuildFilters />
+          <LazyBuildDomainsAnalysis />
         </aside>
         <section
           aria-label="Build cards"

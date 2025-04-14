@@ -26,7 +26,7 @@ import { usePlansisLoading } from '@/store/plans/plans';
 
 import { CharacterInfoContent } from './ui/character-info';
 
-export function BuildDomainsAnalysis() {
+export default function BuildDomainsAnalysis() {
   return (
     <Collapsible asChild>
       <section
