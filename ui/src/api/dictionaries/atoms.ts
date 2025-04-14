@@ -1,8 +1,11 @@
 import { liveQuery } from 'dexie';
-import { Atom, atom, useAtomValue } from 'jotai';
+import { atom, useAtomValue } from 'jotai';
 import { atomWithObservable } from 'jotai/utils';
 import { useMemo } from 'react';
 
+import { createMapAtom } from '@/lib/create-map-atom';
+
+import { DomainsOfBlessing } from '../types';
 import { db } from './db';
 
 export const elementsAtom = atomWithObservable(
@@ -25,6 +28,17 @@ export const specialsAtom = atomWithObservable(
 
 export function useSpecials() {
   return useAtomValue(specialsAtom);
+}
+
+export const specialsMapAtom = createMapAtom(specialsAtom);
+
+export function useSpecialsMap() {
+  return useAtomValue(specialsMapAtom);
+}
+
+export function useSpecialsItem(id: string) {
+  const map = useAtomValue(specialsMapAtom);
+  return useMemo(() => map.get(id), [map, id]);
 }
 
 export const characterRolesAtom = atomWithObservable(
@@ -67,11 +81,11 @@ export const charactersAtom = atomWithObservable(
   },
 );
 
-export const charactersMapAtom = createMapAtom(charactersAtom);
-
 export function useCharacters() {
   return useAtomValue(charactersAtom);
 }
+
+export const charactersMapAtom = createMapAtom(charactersAtom);
 
 export function useCharactersMap() {
   return useAtomValue(charactersMapAtom);
@@ -91,6 +105,13 @@ export const artifactSetsAtom = atomWithObservable(
 
 export function useArtifactSets() {
   return useAtomValue(artifactSetsAtom);
+}
+
+export const artifactSetsMapAtom = createMapAtom(artifactSetsAtom);
+
+export function useArtifactSet(id: string) {
+  const map = useAtomValue(domainsOfBlessingMapAtom);
+  return useMemo(() => map.get(id), [id, map]);
 }
 
 export const artifactTypesAtom = atomWithObservable(
@@ -115,9 +136,24 @@ export function useDomainsOfBlessing() {
   return useAtomValue(domainsOfBlessingAtom);
 }
 
-function createMapAtom<T extends { id: string }>(ca: Atom<T[]>) {
-  return atom((get) => {
-    const items = get(ca);
-    return new Map(items.map((it) => [it.id, it]));
-  });
+export const domainsOfBlessingMapAtom = createMapAtom(domainsOfBlessingAtom);
+
+export function useDomainOfBlessing(id: string) {
+  const map = useAtomValue(domainsOfBlessingMapAtom);
+  return useMemo(() => map.get(id), [id, map]);
+}
+
+export const domainsBySetAtom = atom((get) => {
+  const items = get(domainsOfBlessingAtom);
+  const acc = new Map<string, DomainsOfBlessing>();
+  for (const it of items) {
+    for (const set of it.artifactSets) {
+      acc.set(set, it);
+    }
+  }
+  return acc;
+});
+
+export function useDomainsBySet() {
+  return useAtomValue(domainsBySetAtom);
 }

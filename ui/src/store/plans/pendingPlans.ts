@@ -1,4 +1,4 @@
-import { atom } from 'jotai';
+import { atom, useSetAtom } from 'jotai';
 import { atomWithImmer } from 'jotai-immer';
 import { toast } from 'sonner';
 
@@ -38,6 +38,10 @@ export const addNewCharacterPlanAtom = atom(
     });
   },
 );
+
+export function useAddNewCharacterPlan() {
+  return useSetAtom(addNewCharacterPlanAtom);
+}
 
 store.sub(pendingCharacterPlansMapAtom, () => {
   const pendingPlans = store.get(pendingCharacterPlansMapAtom);

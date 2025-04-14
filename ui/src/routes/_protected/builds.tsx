@@ -1,42 +1,17 @@
 import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  closestCorners,
-  TouchSensor,
-} from '@dnd-kit/core';
-import {
-  rectSortingStrategy,
-  SortableContext,
-  sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable';
-import { useMutation } from '@tanstack/react-query';
-import {
   createFileRoute,
   LinkOptions,
   linkOptions,
 } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { lazy, useEffect } from 'react';
 import { z } from 'zod';
 
-import { CHARACTER_PLANS_QUERY_KEY } from '@/api/plans/characterPlans';
 import { PLANS_QUERY_PARAMS } from '@/api/plans/plans';
-import { pbClient } from '@/api/pocketbase';
-import { CharacterPlans } from '@/api/types';
 import { BuildDomainsAnalysis } from '@/components/build-card/build-domains-analysis';
-import {
-  BuildFilters,
-  TBuildFilter,
-} from '@/components/build-card/build-filters';
-import { BuildInfo } from '@/components/build-card/build-info';
-import { CreateBuild } from '@/components/build-card/create-build';
-import { PendingBuildInfo } from '@/components/build-card/pending-build-info';
+import { BuildFilters } from '@/components/build-card/build-filters';
+import { Builds } from '@/components/builds';
 import { Icons } from '@/components/icons';
-import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
   Pagination,
@@ -54,20 +29,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { handleReorder } from '@/lib/handle-reorder';
-import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
-import { useArtifactTypePlans } from '@/store/plans/artifactTypePlans';
-import {
-  useAvailableFilters,
-  useFilters,
-  useFiltersEnabled,
-} from '@/store/plans/filters';
-import { usePlans } from '@/store/plans/plans';
-import {
-  BuildsRenderItem,
-  useRenderingPlanItems,
-} from '@/store/plans/renderingItems';
+import { useFilters } from '@/store/plans/filters';
+import { useRenderingPlanItems } from '@/store/plans/renderingItems';
+
+const LazyBuilds = lazy(() => import('@/components/builds'));
 
 const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
 
@@ -117,41 +83,7 @@ function HomeComponent() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
   const renderingItems = useRenderingPlanItems();
-  const plans = usePlans();
-  const artifactTypePlans = useArtifactTypePlans();
   const [filters, setFilters] = useFilters();
-  const availableFilters = useAvailableFilters();
-  const filtersEnabled = useFiltersEnabled();
-
-  const {
-    variables,
-    mutate: reorderItems,
-    isPending: reorderIsPending,
-    reset,
-  } = useMutation({
-    mutationFn(items: CharacterPlans[]) {
-      const batch = pbClient.createBatch();
-      for (let i = 0; i < items.length; i++) {
-        const it = items[i];
-        const originalItem = plans[i];
-        if (
-          !originalItem ||
-          originalItem.id !== it.id ||
-          originalItem.order !== it.order
-        ) {
-          batch.collection('characterPlans').update(it.id, { order: it.order });
-        }
-      }
-      return batch.send();
-    },
-    onSuccess: async (_, variables) => {
-      await queryClient.setQueryData(CHARACTER_PLANS_QUERY_KEY, variables);
-      reset();
-    },
-    onError: notifyWithRetry((v) => {
-      reorderItems(v);
-    }),
-  });
 
   useEffect(() => {
     setFilters({
@@ -163,44 +95,29 @@ function HomeComponent() {
         search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
       ),
     });
-  }, [search.cN, search.cE, search.cWT, search.cs, search.cAT]);
+  }, []);
 
-  const changeFilter = (newFilter: Partial<TBuildFilter>) => {
+  useEffect(() => {
+    const cN = filters.name;
+    const cE = Array.from(filters.elements);
+    const cWT = Array.from(filters.weaponTypes);
+    const cS = Array.from(filters.characters);
+    const cAt: [string, string[]][] = Array.from(
+      filters.artifactTypeSpecials.entries(),
+      ([key, value]) => [key, Array.from(value)],
+    );
     navigate({
       to: Route.to,
       search: (state) => ({
         ...state,
-        cN:
-          typeof newFilter.name === 'string'
-            ? newFilter.name.length > 0
-              ? newFilter.name
-              : undefined
-            : state.cN,
-        cE: newFilter.elements
-          ? newFilter.elements.size > 0
-            ? Array.from(newFilter.elements)
-            : undefined
-          : state.cE,
-        cWT: newFilter.weaponTypes
-          ? newFilter.weaponTypes.size > 0
-            ? Array.from(newFilter.weaponTypes)
-            : undefined
-          : state.cWT,
-        cs: newFilter.characters
-          ? newFilter.characters.size > 0
-            ? Array.from(newFilter.characters)
-            : undefined
-          : state.cs,
-        cAT: newFilter.artifactTypeSpecials
-          ? newFilter.artifactTypeSpecials.size > 0
-            ? Array.from(newFilter.artifactTypeSpecials.entries()).map(
-              ([k, v]) => [k, Array.from(v)] as const,
-            )
-            : undefined
-          : state.cAT,
+        cN: cN.length > 0 ? cN : undefined,
+        cE: cE.length > 0 ? cE : undefined,
+        cWT: cWT.length > 0 ? cWT : undefined,
+        cs: cS.length > 0 ? cS : undefined,
+        cAT: cAt.length > 0 ? cAt : undefined,
       }),
     });
-  };
+  }, [filters]);
 
   const totalItems = renderingItems.length;
   const totalPages = Math.ceil(totalItems / deps.perPage);
@@ -221,33 +138,14 @@ function HomeComponent() {
           aria-label="Controls"
           className="p-2 basis-80 grow flex flex-col gap-4"
         >
-          <BuildFilters
-            name={filters.name}
-            artifactTypePlansData={artifactTypePlans}
-            elements={filters.elements}
-            weaponTypes={filters.weaponTypes}
-            characters={filters.characters}
-            artifactTypeSpecials={filters.artifactTypeSpecials}
-            availableElements={availableFilters.elements}
-            availableWeaponTypes={availableFilters.weaponTypes}
-            availableCharacters={availableFilters.characters}
-            onChange={changeFilter}
-            hasActiveFilters={filtersEnabled}
-          />
-          <BuildDomainsAnalysis builds={plans} />
+          <BuildFilters />
+          <BuildDomainsAnalysis />
         </aside>
         <section
           aria-label="Build cards"
           className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
         >
-          <Content
-            buildItems={plans}
-            items={renderingItems}
-            totalItems={totalItems}
-            filterEnabled={filtersEnabled}
-            reorderIsPending={reorderIsPending}
-            reorderItems={reorderItems}
-          />
+          <LazyBuilds page={deps.page} perPage={deps.perPage} />
         </section>
       </section>
       <nav
@@ -259,85 +157,6 @@ function HomeComponent() {
       </nav>
       <Outlet />
     </>
-  );
-}
-
-type ContentProps = {
-  buildItems: CharacterPlans[];
-  items: BuildsRenderItem[];
-  totalItems: number;
-  filterEnabled: boolean;
-  reorderIsPending: boolean;
-  reorderItems(items: CharacterPlans[]): void;
-};
-function Content({
-  buildItems,
-  items,
-  totalItems,
-  filterEnabled,
-  reorderIsPending,
-  reorderItems,
-}: ContentProps) {
-  const deps = Route.useLoaderDeps();
-  const paginatedItems = items.slice(
-    deps.perPage * (deps.page - 1),
-    deps.perPage * deps.page,
-  );
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-  function handleDragEnd(event: DragEndEvent) {
-    handleReorder(event, buildItems, reorderItems);
-  }
-
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext items={buildItems} strategy={rectSortingStrategy}>
-        {paginatedItems.map((item) => {
-          switch (item.type) {
-            case 'build': {
-              const { build } = item;
-              return (
-                <BuildInfo
-                  key={build.id}
-                  buildId={build.id}
-                  characterId={build.character}
-                  reorderIsPending={reorderIsPending}
-                  dndEnabled={!filterEnabled}
-                />
-              );
-            }
-            case 'pending': {
-              const { pending } = item;
-              return <PendingBuildInfo key={pending.id} pending={pending} />;
-            }
-            case 'create':
-              return (
-                <Card
-                  key="create"
-                  className="w-full border-2 border-dashed border-muted bg-muted/5"
-                >
-                  <div className="w-full h-full flex items-center justify-center p-12">
-                    <CreateBuild
-                      size={totalItems - 1}
-                      disabled={reorderIsPending}
-                    />
-                  </div>
-                </Card>
-              );
-          }
-        })}
-      </SortableContext>
-    </DndContext>
   );
 }
 

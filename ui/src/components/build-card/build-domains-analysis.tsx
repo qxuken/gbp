@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-import { useLiveQuery } from 'dexie-react-hooks';
-
-import { db } from '@/api/dictionaries/db';
-import { pbClient } from '@/api/pocketbase';
-import { ArtifactSetsPlans, CharacterPlans } from '@/api/types';
+import {
+  useArtifactSet,
+  useCharactersItem,
+  useDomainOfBlessing,
+} from '@/api/dictionaries/atoms';
+import { DomainsOfBlessing } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,13 +18,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  DomainsByArtifactSets,
+  useDomainsByArtifactSets,
+} from '@/store/plans/domainsOfBlessing';
+import { usePlansisLoading } from '@/store/plans/plans';
 
 import { CharacterInfoContent } from './ui/character-info';
 
-type Props = {
-  builds: CharacterPlans[];
-};
-export function BuildDomainsAnalysis({ builds }: Props) {
+export function BuildDomainsAnalysis() {
   return (
     <Collapsible asChild>
       <section
@@ -41,59 +43,11 @@ export function BuildDomainsAnalysis({ builds }: Props) {
           </CollapsibleTrigger>
         </div>
         <CollapsibleContent className="grid gap-2">
-          <BuildDomainsAnalysisContent builds={builds} />
+          <BuildDomainsAnalysisContent />
         </CollapsibleContent>
       </section>
     </Collapsible>
   );
-}
-
-export const QUERY_KEY = ['characterPlans', 'domains'];
-
-type AggItem = {
-  domain: string;
-  characters: string[];
-  artifactSets: string[];
-};
-
-function aggregateSets(
-  domainsBySet: Map<string, string>,
-  builds: CharacterPlans[],
-  items: ArtifactSetsPlans[],
-): AggItem[] {
-  const characterByBuildId = builds.reduce((acc, it) => {
-    acc.set(it.id, it.character);
-    return acc;
-  }, new Map<string, string>());
-
-  const domainsWithSets = new Map<
-    string,
-    { characters: Set<string>; artifactSets: Set<string> }
-  >();
-
-  for (const item of items) {
-    for (const artifactSet of item.artifactSets) {
-      const domain = domainsBySet.get(artifactSet);
-      const character = characterByBuildId.get(item.characterPlan);
-      if (!domain || !character) {
-        continue;
-      }
-      let v = domainsWithSets.get(domain);
-      if (!v) {
-        v = { characters: new Set(), artifactSets: new Set() };
-        domainsWithSets.set(domain, v);
-      }
-      v.characters.add(character);
-      v.artifactSets.add(artifactSet);
-    }
-  }
-  const res = Array.from(domainsWithSets.entries()).map(([domain, v]) => ({
-    domain,
-    characters: Array.from(v.characters),
-    artifactSets: Array.from(v.artifactSets),
-  }));
-  res.sort((a, b) => b.characters.length - a.characters.length);
-  return res;
 }
 
 function BuildDomainsAnalysisSkeleton() {
@@ -123,33 +77,17 @@ function BuildDomainsAnalysisSkeleton() {
   );
 }
 
-function BuildDomainsAnalysisContent({ builds }: Props) {
-  const domainsBySet = useLiveQuery(
-    () =>
-      db.domainsOfBlessing.toArray().then((domainsOfBlessing) =>
-        domainsOfBlessing.reduce((acc, it) => {
-          for (const set of it.artifactSets) {
-            acc.set(set, it.id);
-          }
-          return acc;
-        }, new Map<string, string>()),
-      ),
-    [],
-  );
-  const query = useQuery({
-    queryKey: QUERY_KEY,
-    queryFn: () =>
-      pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').getFullList(),
-  });
+function BuildDomainsAnalysisContent() {
+  const isLoading = usePlansisLoading();
+  const items = useDomainsByArtifactSets();
 
-  if (!domainsBySet || query.isPending || !query.data) {
+  if (isLoading) {
     return <BuildDomainsAnalysisSkeleton />;
   }
 
-  const agg = aggregateSets(domainsBySet, builds, query.data);
   return (
     <div className="flex flex-wrap gap-2">
-      {agg.map((it) => (
+      {items.map((it) => (
         <BuildDomainsAnalysisItem key={it.domain} item={it} />
       ))}
     </div>
@@ -157,74 +95,87 @@ function BuildDomainsAnalysisContent({ builds }: Props) {
 }
 
 type BuildDomainsAnalysisItemProps = {
-  item: AggItem;
+  item: DomainsByArtifactSets;
 };
 function BuildDomainsAnalysisItem({ item }: BuildDomainsAnalysisItemProps) {
-  const characters = useLiveQuery(
-    () => db.characters.bulkGet(item.characters),
-    [item.characters],
-  );
-  const artifactSets = useLiveQuery(
-    () => db.artifactSets.bulkGet(item.artifactSets),
-    [item.artifactSets],
-  );
-  const domain = useLiveQuery(
-    () => db.domainsOfBlessing.get(item.domain),
-    [item.domain],
-  );
+  const domain = useDomainOfBlessing(item.domain)!;
   return (
     <div className="pt-1 pb-2 px-2 bg-accent rounded-lg">
       <div className="flex gap-1">
-        {artifactSets?.map(
-          (it) =>
-            it && (
-              <Tooltip key={it.id}>
-                <TooltipTrigger asChild>
-                  <CollectionAvatar
-                    className="size-10 rounded-2xl"
-                    record={it}
-                    fileName={it.icon}
-                    name={it.name}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="flex flex-col gap-1">
-                    <span>{it.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {domain?.name}
-                    </span>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ),
-        )}
+        {item.artifactSets.map((it) => (
+          <BuildDomainsAnalysisItemArtifactSets
+            key={it}
+            domain={domain}
+            item={it}
+          />
+        ))}
       </div>
       <ul className="flex flex-wrap mt-1">
-        {characters?.map(
-          (it) =>
-            it && (
-              <li
-                key={it.id}
-                className="text-xs text-accent-foreground not-last:after:content-['•'] after:mx-1 after:text-muted-foreground"
-              >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>{it.name}</span>
-                  </TooltipTrigger>
-                  <TooltipContent className="flex items-center gap-2">
-                    <CollectionAvatar
-                      className="size-16 rounded-xl"
-                      record={it}
-                      fileName={it.icon}
-                      name={it.name}
-                    />
-                    <CharacterInfoContent character={it} />
-                  </TooltipContent>
-                </Tooltip>
-              </li>
-            ),
-        )}
+        {item.characters.map((it) => (
+          <BuildDomainsAnalysisItemCharacter key={it} item={it} />
+        ))}
       </ul>
     </div>
+  );
+}
+
+type BuildDomainsAnalysisItemArtifactSetsProps = {
+  item: string;
+  domain: DomainsOfBlessing;
+};
+function BuildDomainsAnalysisItemArtifactSets({
+  item,
+  domain,
+}: BuildDomainsAnalysisItemArtifactSetsProps) {
+  const artifactSet = useArtifactSet(item);
+  if (!artifactSet) return null;
+  return (
+    <Tooltip key={artifactSet.id}>
+      <TooltipTrigger asChild>
+        <CollectionAvatar
+          className="size-10 rounded-2xl"
+          record={artifactSet}
+          fileName={artifactSet.icon}
+          name={artifactSet.name}
+        />
+      </TooltipTrigger>
+      <TooltipContent>
+        <div className="flex flex-col gap-1">
+          <span>{artifactSet.name}</span>
+          <span className="text-xs text-muted-foreground">{domain.name}</span>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+type BuildDomainsAnalysisItemCharacterProps = {
+  item: string;
+};
+function BuildDomainsAnalysisItemCharacter({
+  item,
+}: BuildDomainsAnalysisItemCharacterProps) {
+  const character = useCharactersItem(item);
+  if (!character) return null;
+  return (
+    <li
+      key={character.id}
+      className="text-xs text-accent-foreground not-last:after:content-['•'] after:mx-1 after:text-muted-foreground"
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span>{character.name}</span>
+        </TooltipTrigger>
+        <TooltipContent className="flex items-center gap-2">
+          <CollectionAvatar
+            className="size-16 rounded-xl"
+            record={character}
+            fileName={character.icon}
+            name={character.name}
+          />
+          <CharacterInfoContent character={character} />
+        </TooltipContent>
+      </Tooltip>
+    </li>
   );
 }

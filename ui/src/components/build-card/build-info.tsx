@@ -22,9 +22,10 @@ import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
 import { queryClient } from '@/main';
+import { useFiltersEnabled } from '@/store/plans/filters';
+import { useReorderPlansIsPending } from '@/store/plans/plans';
 
 import { Skeleton } from '../ui/skeleton';
-import { QUERY_KEY as DOMAINS_ANALYSIS_QUERY_KEY } from './build-domains-analysis';
 import { ArtifactSets, ArtifactSetsSkeleton } from './ui/artifact-sets';
 import { ArtifactStats, ArtifactStatsSkeleton } from './ui/artifact-stats';
 import {
@@ -39,19 +40,15 @@ import { Weapons, WeaponsSkeleton } from './ui/weapons';
 
 type Props = {
   buildId: string;
-  reorderIsPending?: boolean;
   characterId: string;
-  dndEnabled?: boolean;
 };
 
-export function BuildInfo({
-  buildId,
-  reorderIsPending,
-  characterId,
-  dndEnabled,
-}: Props) {
+export function BuildInfo({ buildId, characterId }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true });
+
+  const reorderIsPending = useReorderPlansIsPending();
+  const dndEnabled = !useFiltersEnabled();
 
   const queryKey = ['characterPlans', buildId];
   const query = useQuery({
@@ -100,9 +97,6 @@ export function BuildInfo({
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ['characterPlans', 'page'],
-      });
-      queryClient.invalidateQueries({
-        queryKey: DOMAINS_ANALYSIS_QUERY_KEY,
       });
       queryClient.removeQueries({ queryKey });
     },

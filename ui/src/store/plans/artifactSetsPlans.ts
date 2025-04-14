@@ -1,7 +1,11 @@
-import { atomWithQuery } from 'jotai-tanstack-query';
+import { atom, useAtomValue } from 'jotai';
 
-import { ARTIFACT_SETS_PLANS_QUERY_PARAMS } from '@/api/plans/artifactSetsPlans';
+import { plansArrayAtom } from './plans';
 
-export const artifactSetsPlansAtom = atomWithQuery(
-  () => ARTIFACT_SETS_PLANS_QUERY_PARAMS,
-);
+export const artifactSetsPlansAtom = atom((get) => {
+  return get(plansArrayAtom).flatMap((p) => p.artifactSetsPlans ?? []);
+});
+
+export function useArtifactSetsPlans() {
+  return useAtomValue(artifactSetsPlansAtom);
+}

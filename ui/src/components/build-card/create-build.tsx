@@ -1,25 +1,17 @@
-import { useSetAtom } from 'jotai';
-
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { newCharacterPlans as useNewCharacterPlans } from '@/store/newCharacterPlans';
-import { addNewCharacterPlanAtom } from '@/store/plans/pendingPlans';
+import { useAddNewCharacterPlan } from '@/store/plans/pendingPlans';
+import { useReorderPlansIsPending } from '@/store/plans/plans';
 
 import { CharacterPicker } from './ui/character-picker';
 
-type Props = { size: number; disabled?: boolean };
-export function CreateBuild({ size, disabled }: Props) {
-  const addNew = useNewCharacterPlans((s) => s.addNew);
-  const addNewV2 = useSetAtom(addNewCharacterPlanAtom);
-
-  const createNewPlan = (characterId: string) => {
-    addNew(characterId, size);
-    addNewV2(characterId);
-  };
+export function CreateBuild() {
+  const addNew = useAddNewCharacterPlan();
+  const reorderIsPending = useReorderPlansIsPending();
 
   return (
-    <CharacterPicker title="Create new build" onSelect={createNewPlan}>
-      <Button disabled={disabled}>
+    <CharacterPicker title="Create new build" onSelect={addNew}>
+      <Button disabled={reorderIsPending}>
         <Icons.New />
         <span>Create new build</span>
       </Button>

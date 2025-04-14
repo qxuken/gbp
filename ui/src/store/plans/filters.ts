@@ -3,6 +3,7 @@ import { atom, useAtom, useAtomValue } from 'jotai';
 import { charactersMapAtom } from '@/api/dictionaries/atoms';
 
 import { plansArrayAtom } from './plans';
+import { atomWithImmer } from 'jotai-immer';
 
 export type TBuildFilter = {
   name: string;
@@ -35,7 +36,7 @@ export const availableFiltersAtom = atom((get) => {
   return values;
 });
 
-export const filtersAtom = atom({
+export const filtersAtom = atomWithImmer({
   name: '',
   elements: new Set(),
   characters: new Set(),

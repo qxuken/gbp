@@ -19,8 +19,8 @@ export type BuildsRenderItem =
 export const renderingPlanItemsAtom = atom((get) => {
   const res = get(plansQueryAtom);
   if (res.isError) return [];
-  const plans = get(plansArrayAtom);
   const characters = get(charactersMapAtom);
+  const plans = get(plansArrayAtom);
   const pendingPlans = get(pendingCharacterPlansAtom);
   const filters = get(filtersAtom);
 

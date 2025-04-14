@@ -17,7 +17,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { queryClient } from '@/main';
 
-import { QUERY_KEY as DOMAINS_ANALYSIS_QUERY_KEY } from '../build-domains-analysis';
 import { ArtifactSetPicker } from './artifact-set-picker';
 
 type ShortItem = Pick<ArtifactSetsPlans, 'id'>;
@@ -40,7 +39,6 @@ export function ArtifactSets({ buildId, enabled }: Props) {
         artifactSets: [artifactSetsId],
       }),
     onSuccess(data) {
-      queryClient.invalidateQueries({ queryKey: DOMAINS_ANALYSIS_QUERY_KEY });
       queryClient.setQueryData([...queryKey, data.id], data);
       return queryClient.invalidateQueries({ queryKey });
     },
@@ -76,7 +74,6 @@ function ArtifactSetsLoaded({ buildId, queryKey, artifactSets }: PropsLoaded) {
         artifactSets: [artifactSetsId],
       }),
     onSuccess(data) {
-      queryClient.invalidateQueries({ queryKey: DOMAINS_ANALYSIS_QUERY_KEY });
       queryClient.setQueryData([...queryKey, data.id], data);
       return queryClient.invalidateQueries({ queryKey });
     },
@@ -145,7 +142,6 @@ function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
         queryKey: ['characterPlans', buildId, 'artifactSetsPlans'],
         exact: true,
       });
-      queryClient.invalidateQueries({ queryKey: DOMAINS_ANALYSIS_QUERY_KEY });
       queryClient.removeQueries({ queryKey });
     },
     onError: notifyWithRetry(() => {
@@ -160,7 +156,6 @@ function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
           artifactSets: v,
         }),
     onSuccess: async (data) => {
-      queryClient.invalidateQueries({ queryKey: DOMAINS_ANALYSIS_QUERY_KEY });
       queryClient.setQueryData(queryKey, data);
     },
     onError: notifyWithRetry((vars) => {
