@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 import { AppContext } from '@/main';
 import { router } from '@/router';
-import { auth as useAuth } from '@/store/auth';
+import { useIsAuthenticated } from '@/store/auth';
 
 export const Route = createRootRouteWithContext<AppContext>()({
   component: RootComponent,
@@ -18,7 +18,7 @@ export const Route = createRootRouteWithContext<AppContext>()({
 });
 
 function RootComponent() {
-  const isAuthenticated = useAuth((s) => s.isAuthenticated);
+  const isAuthenticated = useIsAuthenticated();
 
   useEffect(() => {
     router.invalidate();

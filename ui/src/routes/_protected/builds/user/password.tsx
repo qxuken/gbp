@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { auth as useAuth } from '@/store/auth';
+import { useUpdatePassword } from '@/store/auth';
 
 const passwordFormSchema = z
   .object({
@@ -44,7 +44,7 @@ export const Route = createFileRoute('/_protected/builds/user/password')({
 function PasswordEditRoute() {
   const router = useRouter();
   const navigate = Route.useNavigate();
-  const updatePassword = useAuth((s) => s.updatePassword);
+  const updatePassword = useUpdatePassword();
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
   });

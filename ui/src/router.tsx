@@ -1,7 +1,12 @@
 import { createRouteMask, createRouter } from '@tanstack/react-router';
 
 import { Icons } from '@/components/icons';
-import { auth } from '@/store/auth';
+import {
+  authRefresh,
+  initCheckCompleteAtom,
+  isAuthenticatedAtom,
+} from '@/store/auth';
+import { store } from '@/store/jotai-store';
 
 import { routeTree } from './routeTree.gen';
 
@@ -18,9 +23,9 @@ export const router = createRouter({
   defaultPreload: 'intent',
   scrollRestoration: true,
   context: {
-    isAuthenticated: auth.getState().isAuthenticated,
-    initCheckComplete: auth.getState().initCheckComplete,
-    authRefresh: auth.getState().authRefresh,
+    isAuthenticated: store.get(isAuthenticatedAtom),
+    initCheckComplete: store.get(initCheckCompleteAtom),
+    authRefresh,
   },
   defaultPendingComponent: () => {
     <div className="w-full p-2 flex justify-center">
@@ -29,7 +34,6 @@ export const router = createRouter({
   },
 });
 
-// Register things for typesafety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;

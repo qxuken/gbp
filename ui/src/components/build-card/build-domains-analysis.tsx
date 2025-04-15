@@ -22,7 +22,7 @@ import {
   DomainsByArtifactSets,
   useDomainsByArtifactSets,
 } from '@/store/plans/domainsOfBlessing';
-import { usePlansisLoading } from '@/store/plans/plans';
+import { usePlansIsLoading } from '@/store/plans/plans';
 
 import { CharacterInfoContent } from './ui/character-info';
 
@@ -78,7 +78,7 @@ function BuildDomainsAnalysisSkeleton() {
 }
 
 function BuildDomainsAnalysisContent() {
-  const isLoading = usePlansisLoading();
+  const isLoading = usePlansIsLoading();
   const items = useDomainsByArtifactSets();
 
   if (isLoading) {

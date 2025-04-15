@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTimeoutButton } from '@/hooks/useTimeoutButton';
-import { auth as useAuth } from '@/store/auth';
+import { useLogin, useRequestVerification } from '@/store/auth';
 
 export const Route = createFileRoute('/_auth/confirm')({
   component: ConfirmComponent,
@@ -18,8 +18,8 @@ export const Route = createFileRoute('/_auth/confirm')({
 });
 
 function ConfirmComponent() {
-  const login = useAuth((s) => s.login);
-  const requestVerification = useAuth((s) => s.requestVerification);
+  const login = useLogin();
+  const requestVerification = useRequestVerification();
   const router = useRouter();
   const search = Route.useSearch();
   const [resendTimeout, startResendTimeout] = useTimeoutButton();
@@ -58,12 +58,12 @@ function ConfirmComponent() {
             <Alert>
               <Icons.Alert className="size-4" />
               <AlertDescription>
-                We’ve sent a verification email. Please check your inbox and
-                confirm your email to proceed.
+                We&apos;ve sent a verification email. Please check your inbox
+                and confirm your email to proceed.
               </AlertDescription>
             </Alert>
             <Button size="lg" className="mt-2 w-full" onClick={tryLogin}>
-              I’ve Verified My Email
+              I&apos;ve Verified My Email
             </Button>
             <Button
               variant="outline"

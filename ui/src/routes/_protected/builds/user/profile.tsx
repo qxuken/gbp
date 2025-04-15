@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { auth as useAuth } from '@/store/auth';
+import { useUpdateProfile, useRecord } from '@/store/auth';
 
 const profileFormSchema = z.object({
   name: z.string().min(2).max(50),
@@ -38,10 +38,10 @@ export const Route = createFileRoute('/_protected/builds/user/profile')({
 });
 
 function ProfileEditRoute() {
-  const navigate = Route.useNavigate();
   const router = useRouter();
-  const user = useAuth((s) => s.record);
-  const updateProfile = useAuth((s) => s.updateProfile);
+  const navigate = Route.useNavigate();
+  const user = useRecord();
+  const updateProfile = useUpdateProfile();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {

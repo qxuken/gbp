@@ -26,7 +26,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { auth as useAuth } from '@/store/auth';
+import { useRecord, useUpdateEmail } from '@/store/auth';
 
 const emailFormSchema = z.object({
   email: z.string().email(),
@@ -41,8 +41,8 @@ export const Route = createFileRoute('/_protected/builds/user/email')({
 function EmailEditRoute() {
   const router = useRouter();
   const navigate = useNavigate();
-  const user = useAuth((s) => s.record);
-  const updateEmail = useAuth((s) => s.updateEmail);
+  const user = useRecord();
+  const updateEmail = useUpdateEmail();
   const form = useForm<EmailFormValues>({
     resolver: zodResolver(emailFormSchema),
     defaultValues: {

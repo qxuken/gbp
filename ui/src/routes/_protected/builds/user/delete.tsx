@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
-import { auth as useAuth } from '@/store/auth';
+import { useRecord, useLogout } from '@/store/auth';
 
 export const Route = createFileRoute('/_protected/builds/user/delete')({
   component: DeleteAccountRoute,
@@ -23,8 +23,8 @@ export const Route = createFileRoute('/_protected/builds/user/delete')({
 function DeleteAccountRoute() {
   const router = useRouter();
   const navigate = Route.useNavigate();
-  const user = useAuth((s) => s.record);
-  const logout = useAuth((s) => s.logout);
+  const user = useRecord();
+  const logout = useLogout();
   const [emailConfirmation, setEmailConfirmation] = useState('');
 
   const handleDeleteAccount = async () => {

@@ -13,10 +13,10 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { getShortName } from '@/lib/get-short-name';
-import { auth as useAuth } from '@/store/auth';
+import { useRecord } from '@/store/auth';
 
 export function UserManagement() {
-  const user = useAuth((s) => s.record);
+  const user = useRecord();
 
   if (!user) {
     return null;

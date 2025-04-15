@@ -1,18 +1,19 @@
 import { pbClient } from '@/api/pocketbase';
 import { pane } from '@/tweakpane';
 
-import { auth } from './auth';
+import { isAuthenticatedAtom, recordAtom } from './auth';
+import { store } from './jotai-store';
 
 const group = pane.addFolder({ title: 'Auth', expanded: false });
 const params = {
   get ['store:userId']() {
-    return auth.getState().record?.id ?? 'none';
+    return store.get(recordAtom)?.id ?? 'none';
   },
   get ['pbClient:userId']() {
     return pbClient.authStore.record?.id ?? 'none';
   },
   get ['store:isAuthenticated']() {
-    return auth.getState().isAuthenticated;
+    return store.get(isAuthenticatedAtom);
   },
   get ['pbClient:isValid']() {
     return pbClient.authStore.isValid;

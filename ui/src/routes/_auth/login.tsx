@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { auth as useAuth } from '@/store/auth';
+import { useLogin } from '@/store/auth';
 
 export const Route = createFileRoute('/_auth/login')({
   component: LoginComponent,
@@ -38,7 +38,7 @@ const formSchema = z.object({
 });
 
 function LoginComponent() {
-  const login = useAuth((s) => s.login);
+  const login = useLogin();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({

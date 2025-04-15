@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { auth as useAuth } from '@/store/auth';
+import { useRegister, useRequestVerification } from '@/store/auth';
 
 export const Route = createFileRoute('/_auth/signup')({
   component: SignupComponent,
@@ -54,8 +54,8 @@ const formSchema = z
   });
 
 function SignupComponent() {
-  const register = useAuth((s) => s.register);
-  const requestVerification = useAuth((s) => s.requestVerification);
+  const register = useRegister();
+  const requestVerification = useRequestVerification();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
 

@@ -1,13 +1,14 @@
 import { atom, useSetAtom } from 'jotai';
 import { atomWithImmer } from 'jotai-immer';
+import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { pbClient } from '@/api/pocketbase';
 import { CharacterPlans } from '@/api/types';
 import { store } from '@/store/jotai-store';
 
-import { auth } from '../auth';
-import { plansAtom } from './plans';
+import { authRefreshAtom, recordAtom } from '../auth';
+import { createPlanAtom, plansAtom } from './plans';
 
 export type PendingCharacter = {
   id: string;
@@ -19,6 +20,19 @@ export type PendingCharacter = {
 export const pendingCharacterPlansMapAtom = atomWithImmer(
   new Map<string, PendingCharacter>(),
 );
+
+export function useRetryPendingPlan(id: string) {
+  const set = useSetAtom(pendingCharacterPlansMapAtom);
+  return useCallback(
+    () =>
+      set((pendingPlans) => {
+        const pp = pendingPlans.get(id);
+        if (pp) pp.state = 'sent';
+      }),
+    [id, set],
+  );
+}
+
 export const pendingCharacterPlansAtom = atom((get) => {
   const items = get(pendingCharacterPlansMapAtom);
   return Array.from(items.values());
@@ -63,9 +77,7 @@ store.sub(pendingCharacterPlansMapAtom, () => {
         const res = await pbClient
           .collection<CharacterPlans>('characterPlans')
           .create(newPlanData);
-        store.set(plansAtom, (plans) => {
-          plans.set(res.id, res);
-        });
+        store.set(createPlanAtom, res);
         toast.success('Plan successfuly created');
         store.set(pendingCharacterPlansMapAtom, (pendingPlans) => {
           pendingPlans.delete(pendingPlan.id);
@@ -101,12 +113,13 @@ store.sub(pendingCharacterPlansMapAtom, () => {
 function newCharacterPlan(
   pending: PendingCharacter,
 ): Omit<CharacterPlans, 'id'> | undefined {
-  if (!pbClient.authStore.record) {
-    auth.getState().authRefresh();
+  const record = store.get(recordAtom);
+  if (!record) {
+    store.set(authRefreshAtom);
     return;
   }
   return {
-    user: pbClient.authStore.record?.id,
+    user: record.id,
     character: pending.characterId,
     order: pending.order,
     constellationCurrent: 0,

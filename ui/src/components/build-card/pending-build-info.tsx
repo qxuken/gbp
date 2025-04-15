@@ -1,13 +1,11 @@
-import { useLiveQuery } from 'dexie-react-hooks';
-
-import { db } from '@/api/dictionaries/db';
+import { useCharactersItem } from '@/api/dictionaries/atoms';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  newCharacterPlans as useNewCharacterPlans,
   PendingCharacter,
-} from '@/store/newCharacterPlans';
+  useRetryPendingPlan,
+} from '@/store/plans/pendingPlans';
 
 import { Button } from '../ui/button';
 import { CharacterInfo } from './ui/character-info';
@@ -15,11 +13,8 @@ import { MainStatSkeleton } from './ui/main-stats';
 
 type Props = { pending: PendingCharacter };
 export function PendingBuildInfo({ pending }: Props) {
-  const character = useLiveQuery(
-    () => db.characters.get(pending.characterId ?? ''),
-    [pending.characterId],
-  );
-  const planRetry = useNewCharacterPlans((s) => s.planRetry);
+  const character = useCharactersItem(pending.characterId);
+  const planRetry = useRetryPendingPlan(pending.id);
 
   if (!character) {
     return null;
@@ -48,7 +43,7 @@ export function PendingBuildInfo({ pending }: Props) {
           <div />
         </div>
         {pending.state == 'failed' && (
-          <Button onClick={() => planRetry(pending.id)}>Retry</Button>
+          <Button onClick={planRetry}>Retry</Button>
         )}
       </CardContent>
     </Card>

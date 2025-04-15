@@ -1,26 +1,48 @@
 import { atom, useAtomValue } from 'jotai';
-import { atomWithImmer } from 'jotai-immer';
-import { atomWithMutation, atomWithQuery } from 'jotai-tanstack-query';
+import {
+  atomWithMutation,
+  atomWithQuery,
+  queryClientAtom,
+} from 'jotai-tanstack-query';
 
 import { PLANS_QUERY_PARAMS } from '@/api/plans/plans';
 import { pbClient } from '@/api/pocketbase';
 import { Plans } from '@/api/types';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
-import { store } from '@/store/jotai-store';
 
 export const plansQueryAtom = atomWithQuery(() => PLANS_QUERY_PARAMS);
 
-export const plansAtom = atomWithImmer(new Map<string, Plans>());
-
-store.sub(plansQueryAtom, () => {
-  const res = store.get(plansQueryAtom);
-  if (!res.isSuccess) return;
-  store.set(plansAtom, (plans) => {
-    plans.clear();
-    for (const item of res.data) {
-      plans.set(item.id, item);
-    }
+export const createPlanAtom = atom(null, (get, _set, plan: Plans) => {
+  const client = get(queryClientAtom);
+  client.setQueryData(PLANS_QUERY_PARAMS.queryKey, (data) => {
+    if (!data) return;
+    return [...data, plan];
   });
+});
+
+export const updatePlanAtom = atom(null, (get, _set, plan: Plans) => {
+  const client = get(queryClientAtom);
+  client.setQueryData(PLANS_QUERY_PARAMS.queryKey, (data) => {
+    if (!data) return;
+    return data.map((it) => (it.id == plan.id ? plan : it));
+  });
+});
+
+export const deletePlanAtom = atom(null, (get, _set, plan: Plans) => {
+  const client = get(queryClientAtom);
+  client.setQueryData(PLANS_QUERY_PARAMS.queryKey, (data) => {
+    if (!data) return;
+    return data.filter((it) => it.id != plan.id);
+  });
+});
+
+export const plansAtom = atom((get) => {
+  const items = get(plansQueryAtom).data ?? [];
+  const res = new Map<string, Plans>();
+  for (const it of items) {
+    res.set(it.id, it);
+  }
+  return res;
 });
 
 const reorderMutationAtom = atomWithMutation((get) => ({
@@ -38,14 +60,16 @@ const reorderMutationAtom = atomWithMutation((get) => ({
     return batch.send();
   },
   onSuccess: async (_, reorderedPlans) => {
-    store.set(plansAtom, (plans) => {
-      for (const plan of reorderedPlans) {
-        const original = plans.get(plan.id);
-        if (original && original.order !== plan.order) {
-          original.order = plan.order;
-        }
-      }
+    const client = get(queryClientAtom);
+    client.setQueryData(PLANS_QUERY_PARAMS.queryKey, (data) => {
+      if (!data) return;
+      return data.map((it, i) =>
+        reorderedPlans[i] && it.id != reorderedPlans[i].id
+          ? reorderedPlans[i]
+          : it,
+      );
     });
+
     get(reorderMutationAtom).reset();
   },
   onError: notifyWithRetry(
@@ -71,7 +95,7 @@ export function usePlans() {
   return useAtomValue(plansArrayAtom);
 }
 
-export function usePlansisLoading() {
+export function usePlansIsLoading() {
   const q = useAtomValue(plansQueryAtom);
   return q.isLoading;
 }

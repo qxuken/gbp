@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { auth as useAuth } from '@/store/auth';
+import { useLogout } from '@/store/auth';
 
 export const Route = createFileRoute('/_protected/builds/user/logout')({
   component: LogoutRoute,
@@ -23,7 +23,7 @@ export const Route = createFileRoute('/_protected/builds/user/logout')({
 function LogoutRoute() {
   const router = useRouter();
   const navigate = useNavigate();
-  const logout = useAuth((s) => s.logout);
+  const logout = useLogout();
 
   const handleLogout = async () => {
     logout();
