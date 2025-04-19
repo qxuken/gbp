@@ -3,17 +3,9 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { pbClient } from '@/api/pocketbase';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { useRecord, useLogout } from '@/store/auth';
 
 export const Route = createFileRoute('/_protected/builds/user/delete')({
@@ -62,38 +54,38 @@ function DeleteAccountRoute() {
   };
 
   return (
-    <AlertDialog open>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete Account</AlertDialogTitle>
-          <AlertDialogDescription className="text-destructive">
-            Warning: This action cannot be undone. This will permanently delete
-            your account and remove all of your data from our servers.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-muted-foreground mb-2">
-            Please type your email address to confirm account deletion:
-          </p>
-          <Input
-            type="email"
-            placeholder={user?.email}
-            value={emailConfirmation}
-            onChange={(e) => setEmailConfirmation(e.target.value)}
-            className="w-full"
-          />
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDeleteAccount}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={emailConfirmation !== user?.email}
-          >
-            Delete Account
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ResponsiveDialog
+      open
+      onOpenChange={onClose}
+      title="Delete account"
+      description={
+        <p className="text-destructive">
+          Warning: This action cannot be undone. This will permanently delete
+          your account and remove all of your data from our servers.
+        </p>
+      }
+      footer={
+        <Button
+          onClick={handleDeleteAccount}
+          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          disabled={emailConfirmation !== user?.email}
+        >
+          Delete Account
+        </Button>
+      }
+    >
+      <div className="py-4">
+        <p className="text-sm text-muted-foreground mb-2">
+          Please type your email address to confirm account deletion:
+        </p>
+        <Input
+          type="email"
+          placeholder={user?.email}
+          value={emailConfirmation}
+          onChange={(e) => setEmailConfirmation(e.target.value)}
+          className="w-full"
+        />
+      </div>
+    </ResponsiveDialog>
   );
 }

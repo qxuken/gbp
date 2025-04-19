@@ -2,10 +2,6 @@ import type { RecordModel } from 'pocketbase';
 
 import { ArtifactSets } from '@/components/build-card/ui/artifact-sets';
 
-export interface OnlyId {
-  id: string;
-}
-
 export interface Users extends RecordModel {
   id: string;
   email: string;

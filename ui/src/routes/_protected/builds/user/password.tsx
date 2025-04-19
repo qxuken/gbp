@@ -7,13 +7,6 @@ import { z } from 'zod';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import {
   Form,
   FormControl,
   FormField,
@@ -22,6 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { useUpdatePassword } from '@/store/auth';
 
 const passwordFormSchema = z
@@ -73,68 +67,67 @@ function PasswordEditRoute() {
   };
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Change Password</DialogTitle>
-          <DialogDescription>Update your password</DialogDescription>
-        </DialogHeader>
-        <div className="pb-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="oldPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>New Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="passwordConfirm"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm New Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                disabled={form.formState.isSubmitting}
-                className="w-full md:w-fit"
-                type="submit"
-              >
-                {form.formState.isSubmitting && (
-                  <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Update Password
-              </Button>
-            </form>
-          </Form>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ResponsiveDialog
+      open
+      onOpenChange={onClose}
+      title="Change Password"
+      description="Update your password"
+    >
+      <div className="pb-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="oldPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Current Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="passwordConfirm"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm New Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              disabled={form.formState.isSubmitting}
+              className="w-full md:w-fit"
+              type="submit"
+            >
+              {form.formState.isSubmitting && (
+                <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Update Password
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </ResponsiveDialog>
   );
 }

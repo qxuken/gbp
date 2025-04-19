@@ -11,13 +11,6 @@ import { z } from 'zod';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import {
   Form,
   FormControl,
   FormField,
@@ -26,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { useRecord, useUpdateEmail } from '@/store/auth';
 
 const emailFormSchema = z.object({
@@ -69,45 +63,41 @@ function EmailEditRoute() {
   };
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Change Email</DialogTitle>
-          <DialogDescription>
-            Enter your new email address. A verification link will be sent to
-            confirm the change.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="pb-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>New Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                disabled={form.formState.isSubmitting}
-                className="w-full md:w-fit"
-                type="submit"
-              >
-                {form.formState.isSubmitting && (
-                  <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Send Verification
-              </Button>
-            </form>
-          </Form>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ResponsiveDialog
+      open
+      onOpenChange={onClose}
+      title="Change Email"
+      description="Enter your new email address. A verification link will be sent to confirm the change."
+    >
+      <div className="pb-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              disabled={form.formState.isSubmitting}
+              className="w-full md:w-fit"
+              type="submit"
+            >
+              {form.formState.isSubmitting && (
+                <Icons.Spinner className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Send Verification
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </ResponsiveDialog>
   );
 }
