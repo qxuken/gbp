@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { updateEmail } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
-import { useRecord, useUpdateEmail } from '@/store/auth';
+import { useUser } from '@/store/auth';
 
 const emailFormSchema = z.object({
   email: z.string().email(),
@@ -35,8 +36,7 @@ export const Route = createFileRoute('/_protected/builds/user/email')({
 function EmailEditRoute() {
   const router = useRouter();
   const navigate = useNavigate();
-  const user = useRecord();
-  const updateEmail = useUpdateEmail();
+  const user = useUser();
   const form = useForm<EmailFormValues>({
     resolver: zodResolver(emailFormSchema),
     defaultValues: {

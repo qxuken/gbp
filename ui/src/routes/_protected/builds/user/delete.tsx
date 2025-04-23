@@ -2,11 +2,11 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { pbClient } from '@/api/pocketbase';
+import { logout, pbClient } from '@/api/pocketbase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
-import { useRecord, useLogout } from '@/store/auth';
+import { useUser } from '@/store/auth';
 
 export const Route = createFileRoute('/_protected/builds/user/delete')({
   component: DeleteAccountRoute,
@@ -15,9 +15,8 @@ export const Route = createFileRoute('/_protected/builds/user/delete')({
 function DeleteAccountRoute() {
   const router = useRouter();
   const navigate = Route.useNavigate();
-  const user = useRecord();
-  const logout = useLogout();
   const [emailConfirmation, setEmailConfirmation] = useState('');
+  const user = useUser()!;
 
   const handleDeleteAccount = async () => {
     try {
@@ -30,12 +29,9 @@ function DeleteAccountRoute() {
         return;
       }
 
-      // Delete the user account
       await pbClient.collection('users').delete(user.id);
 
-      // Clear auth state and redirect
       logout();
-      await router.invalidate();
       await navigate({ to: '/login' });
 
       toast.success('Your account has been deleted successfully');

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { updatePassword } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +17,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
-import { useUpdatePassword } from '@/store/auth';
 
 const passwordFormSchema = z
   .object({
@@ -38,7 +38,6 @@ export const Route = createFileRoute('/_protected/builds/user/password')({
 function PasswordEditRoute() {
   const router = useRouter();
   const navigate = Route.useNavigate();
-  const updatePassword = useUpdatePassword();
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
   });

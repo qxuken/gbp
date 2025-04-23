@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { passwordReset } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +23,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { usePasswordReset } from '@/store/auth';
 
 export const Route = createFileRoute('/_auth/forgot-password')({
   component: ForgotPassword,
@@ -35,7 +35,6 @@ const formSchema = z.object({
 });
 
 function ForgotPassword() {
-  const passwordReset = usePasswordReset();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
 

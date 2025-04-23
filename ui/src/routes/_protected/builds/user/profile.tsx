@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { pbClient } from '@/api/pocketbase';
+import { pbClient, updateProfile } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { AvatarInput } from '@/components/ui/avatar-input';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
-import { useUpdateProfile, useRecord } from '@/store/auth';
+import { useUser } from '@/store/auth';
 
 const profileFormSchema = z.object({
   name: z.string().min(2).max(50),
@@ -34,8 +34,7 @@ export const Route = createFileRoute('/_protected/builds/user/profile')({
 function ProfileEditRoute() {
   const router = useRouter();
   const navigate = Route.useNavigate();
-  const user = useRecord();
-  const updateProfile = useUpdateProfile();
+  const user = useUser();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {

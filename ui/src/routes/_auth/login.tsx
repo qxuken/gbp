@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { login } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useLogin } from '@/store/auth';
+import { queryClient } from '@/main';
 
 export const Route = createFileRoute('/_auth/login')({
   component: LoginComponent,
@@ -38,9 +39,6 @@ const formSchema = z.object({
 });
 
 function LoginComponent() {
-  const login = useLogin();
-  const router = useRouter();
-
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
       email: '',
@@ -52,7 +50,7 @@ function LoginComponent() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await login(values.email, values.password);
-      await router.invalidate();
+      queryClient.clear();
     } catch (e) {
       if (e instanceof Error) {
         toast.error(e.message);

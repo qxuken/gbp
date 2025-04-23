@@ -2,12 +2,12 @@ import { Link, createFileRoute, useRouter } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { login, requestVerification } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTimeoutButton } from '@/hooks/useTimeoutButton';
-import { useLogin, useRequestVerification } from '@/store/auth';
+import { useTimeoutButton } from '@/hooks/use-timeout-button';
 
 export const Route = createFileRoute('/_auth/confirm')({
   component: ConfirmComponent,
@@ -18,16 +18,12 @@ export const Route = createFileRoute('/_auth/confirm')({
 });
 
 function ConfirmComponent() {
-  const login = useLogin();
-  const requestVerification = useRequestVerification();
-  const router = useRouter();
   const search = Route.useSearch();
   const [resendTimeout, startResendTimeout] = useTimeoutButton();
 
   const tryLogin = async () => {
     try {
       await login(search.email, search.password);
-      await router.invalidate();
     } catch (e) {
       if (e instanceof Error) {
         toast.error(e.message);

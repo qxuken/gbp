@@ -1,29 +1,17 @@
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
-import { useEffect } from 'react';
-import { toast } from 'sonner';
 
-import { AppContext } from '@/main';
+import { authStore } from '@/api/pocketbase';
 import { router } from '@/router';
-import { useIsAuthenticated } from '@/store/auth';
 
-export const Route = createRootRouteWithContext<AppContext>()({
+export const Route = createRootRouteWithContext()({
   component: RootComponent,
-  beforeLoad(ctx) {
-    if (ctx.context.isAuthenticated && !ctx.context.initCheckComplete) {
-      ctx.context.authRefresh().catch(() => {
-        toast.error('You have been unauthorized');
-      });
-    }
-  },
+});
+
+authStore.onChange(() => {
+  router.invalidate();
 });
 
 function RootComponent() {
-  const isAuthenticated = useIsAuthenticated();
-
-  useEffect(() => {
-    router.invalidate();
-  }, [isAuthenticated]);
-
   return (
     <>
       <Outlet />

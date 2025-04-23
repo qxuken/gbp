@@ -1,13 +1,14 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
 
+import { authStore } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import { UserManagement } from '@/components/user-management';
 
 export const Route = createFileRoute('/_protected')({
-  beforeLoad({ context, location }) {
-    if (!context.isAuthenticated) {
+  beforeLoad({ location }) {
+    if (!authStore.isValid) {
       throw redirect({
         search: {
           redirect: location.href,

@@ -4,9 +4,9 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 
+import { logout } from '@/api/pocketbase';
 import { Button } from '@/components/ui/button';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
-import { useLogout } from '@/store/auth';
 
 export const Route = createFileRoute('/_protected/builds/user/logout')({
   component: LogoutRoute,
@@ -15,11 +15,9 @@ export const Route = createFileRoute('/_protected/builds/user/logout')({
 function LogoutRoute() {
   const router = useRouter();
   const navigate = useNavigate();
-  const logout = useLogout();
 
   const handleLogout = async () => {
     logout();
-    await router.invalidate();
     await navigate({ to: '/login' });
   };
 

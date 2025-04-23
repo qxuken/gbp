@@ -1,9 +1,11 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
 import { z } from 'zod';
 
+import { authStore } from '@/api/pocketbase';
+
 export const Route = createFileRoute('/_auth')({
-  beforeLoad: ({ context, search }) => {
-    if (context.isAuthenticated) {
+  beforeLoad: ({ search }) => {
+    if (authStore.isValid) {
       throw redirect({ to: search.redirect || '/' });
     }
   },

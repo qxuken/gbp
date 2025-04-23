@@ -11,3 +11,33 @@ export const CHARACTER_PLANS_QUERY_PARAMS = queryOptions({
       .collection<CharacterPlans>('characterPlans')
       .getFullList({ sort: 'order' }),
 });
+
+export function newCharacterPlan(
+  id: string,
+  character: string,
+  order: number,
+): CharacterPlans {
+  if (!pbClient.authStore.record) {
+    throw new Error('User should be authorized at this point');
+  }
+  return {
+    collectionId: '',
+    collectionName: '',
+    id,
+    user: pbClient.authStore.record.id,
+    character,
+    order,
+    constellationCurrent: 0,
+    constellationTarget: 0,
+    levelCurrent: 1,
+    levelTarget: 90,
+    talentAtkCurrent: 1,
+    talentAtkTarget: 10,
+    talentSkillCurrent: 1,
+    talentSkillTarget: 10,
+    talentBurstCurrent: 1,
+    talentBurstTarget: 10,
+    substats: [],
+    note: '',
+  };
+}

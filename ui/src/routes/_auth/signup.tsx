@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { register, requestVerification } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { AvatarInput } from '@/components/ui/avatar-input';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useRegister, useRequestVerification } from '@/store/auth';
 
 export const Route = createFileRoute('/_auth/signup')({
   component: SignupComponent,
@@ -54,8 +54,6 @@ const formSchema = z
   });
 
 function SignupComponent() {
-  const register = useRegister();
-  const requestVerification = useRequestVerification();
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
 
