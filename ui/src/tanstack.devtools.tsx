@@ -2,7 +2,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import ReactDOM from 'react-dom/client';
 
-import { queryClient } from '@/main';
+import { queryClient } from '@/api/queryClient';
 import { router } from '@/router';
 
 function TanstackDevTools() {

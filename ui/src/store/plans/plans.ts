@@ -5,16 +5,16 @@ import {
   queryClientAtom,
 } from 'jotai-tanstack-query';
 
-import { PLANS_QUERY_PARAMS } from '@/api/plans/plans';
+import { PLANS_QUERY } from '@/api/plans/plans';
 import { pbClient } from '@/api/pocketbase';
 import { Plans } from '@/api/types';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 
-export const plansQueryAtom = atomWithQuery(() => PLANS_QUERY_PARAMS);
+export const plansQueryAtom = atomWithQuery(() => PLANS_QUERY);
 
 export const createPlanAtom = atom(null, (get, _set, plan: Plans) => {
   const client = get(queryClientAtom);
-  client.setQueryData(PLANS_QUERY_PARAMS.queryKey, (data) => {
+  client.setQueryData(PLANS_QUERY.queryKey, (data) => {
     if (!data) return;
     return [...data, plan];
   });
@@ -22,7 +22,7 @@ export const createPlanAtom = atom(null, (get, _set, plan: Plans) => {
 
 export const updatePlanAtom = atom(null, (get, _set, plan: Plans) => {
   const client = get(queryClientAtom);
-  client.setQueryData(PLANS_QUERY_PARAMS.queryKey, (data) => {
+  client.setQueryData(PLANS_QUERY.queryKey, (data) => {
     if (!data) return;
     return data.map((it) => (it.id == plan.id ? plan : it));
   });
@@ -30,7 +30,7 @@ export const updatePlanAtom = atom(null, (get, _set, plan: Plans) => {
 
 export const deletePlanAtom = atom(null, (get, _set, plan: Plans) => {
   const client = get(queryClientAtom);
-  client.setQueryData(PLANS_QUERY_PARAMS.queryKey, (data) => {
+  client.setQueryData(PLANS_QUERY.queryKey, (data) => {
     if (!data) return;
     return data.filter((it) => it.id != plan.id);
   });
@@ -61,7 +61,7 @@ const reorderMutationAtom = atomWithMutation((get) => ({
   },
   onSuccess: async (_, reorderedPlans) => {
     const client = get(queryClientAtom);
-    client.setQueryData(PLANS_QUERY_PARAMS.queryKey, (data) => {
+    client.setQueryData(PLANS_QUERY.queryKey, (data) => {
       if (!data) return;
       return data.map((it, i) =>
         reorderedPlans[i] && it.id != reorderedPlans[i].id

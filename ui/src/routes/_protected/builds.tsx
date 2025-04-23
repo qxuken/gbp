@@ -7,7 +7,7 @@ import { Outlet } from '@tanstack/react-router';
 import { lazy, useEffect } from 'react';
 import { z } from 'zod';
 
-import { PLANS_QUERY_PARAMS } from '@/api/plans/plans';
+import { PLANS_QUERY } from '@/api/plans/plans';
 import { Icons } from '@/components/icons';
 import { Label } from '@/components/ui/label';
 import {
@@ -62,7 +62,7 @@ export const Route = createFileRoute('/_protected/builds')({
     page,
     perPage,
   }),
-  loader: () => queryClient.ensureQueryData(PLANS_QUERY_PARAMS),
+  loader: () => queryClient.ensureQueryData(PLANS_QUERY),
   pendingComponent: () => (
     <div className="w-full p-4 flex justify-center">
       <Icons.Spinner className="animate-spin size-12" />

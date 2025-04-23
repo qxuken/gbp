@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '@/api/dictionaries/db';
-import { ARTIFACT_TYPE_PLANS_QUERY_KEY } from '@/api/plans/artifactTypePlans';
+import { ARTIFACT_TYPE_PLANS_QUERY_KEY } from '@/api/plans/artifact-types-plans';
 import { pbClient } from '@/api/pocketbase';
 import { ArtifactTypePlans, Specials } from '@/api/types';
 import { Icons } from '@/components/icons';

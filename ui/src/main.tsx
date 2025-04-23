@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
 import { enableMapSet } from 'immer';
 import { PropsWithChildren } from 'react';
@@ -9,6 +9,8 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { router } from '@/router';
 
+import { queryClient } from './api/queryClient';
+
 import('@/api/dictionaries/loader');
 
 if (!import.meta.env.PROD) {
@@ -16,14 +18,6 @@ if (!import.meta.env.PROD) {
 }
 
 enableMapSet();
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: Infinity,
-    },
-  },
-});
 
 function AppContext({ children }: PropsWithChildren) {
   return (
