@@ -69,7 +69,6 @@ const reorderMutationAtom = atomWithMutation((get) => ({
           : it,
       );
     });
-
     get(reorderMutationAtom).reset();
   },
   onError: notifyWithRetry(
