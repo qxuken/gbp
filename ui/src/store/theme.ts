@@ -12,7 +12,7 @@ export interface Theme {
   setTheme(theme: ExtendedThemeValue): void;
 }
 
-export const theme = create(
+const useThemeStore = create(
   subscribeWithSelector(
     persist<Theme>(
       (set, get) => ({
@@ -29,8 +29,18 @@ export const theme = create(
   ),
 );
 
+export function useDisplayTheme() {
+  return useThemeStore((s) => s.displayTheme);
+}
+
+export function useTheme() {
+  const theme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
+  return [theme, setTheme] as const;
+}
+
 let systemSub: AbortController | null;
-theme.subscribe(
+useThemeStore.subscribe(
   (state) => state.theme,
   (themeValue) => {
     systemSub?.abort();
@@ -54,7 +64,7 @@ theme.subscribe(
 
 function setSystemTheme(displayTheme: ThemeValue) {
   updateDOM(displayTheme);
-  theme.setState({ displayTheme });
+  useThemeStore.setState({ displayTheme });
 }
 
 function updateDOM(theme: ThemeValue) {
