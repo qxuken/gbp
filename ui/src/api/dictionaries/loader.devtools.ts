@@ -1,7 +1,7 @@
 import { pane } from '@/tweakpane';
 
 import { db, DICTIONARY_VERSION_CONFIG_KEY } from './db';
-import { worker } from './loader';
+import { loadDictionaries, reloadDictionaries, worker } from './loader';
 
 const params = {
   _dictionaryVersion: 'none',
@@ -42,12 +42,10 @@ group.addBinding(params, 'messageStr', {
   rows: 10,
   readonly: true,
 });
-group.addButton({ title: 'Load dictionaries' }).on('click', () => {
-  worker.postMessage({ action: 'loadDictionaries' });
-});
-group.addButton({ title: 'Reload dictionaries' }).on('click', () => {
-  worker.postMessage({ action: 'reloadDictionaries' });
-});
+group.addButton({ title: 'Load dictionaries' }).on('click', loadDictionaries);
+group
+  .addButton({ title: 'Reload dictionaries' })
+  .on('click', reloadDictionaries);
 group.addButton({ title: 'Delete database' }).on('click', () => {
   db.delete();
 });

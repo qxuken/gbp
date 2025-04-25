@@ -43,7 +43,8 @@ async function loadDictionariesSafe(force = false) {
     await loadDictionaries(force);
   } catch (error) {
     postMessage({
-      message: 'Data loading error',
+      action: 'notify-error',
+      message: 'Genshin database loading error',
       error: error instanceof Error ? error.message : String(error),
     });
   } finally {

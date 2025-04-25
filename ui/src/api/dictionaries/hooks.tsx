@@ -1,5 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { createContext, PropsWithChildren, use, useMemo } from 'react';
+import {
+  createContext,
+  PropsWithChildren,
+  use,
+  useEffect,
+  useMemo,
+} from 'react';
 
 import { createRecordsMap } from '@/lib/create-records-atom';
 
@@ -15,6 +21,7 @@ import {
   WeaponTypes,
 } from '../types';
 import { db } from './db';
+import { reloadDictionaries } from './loader';
 
 interface DictionaryCollectionValue<Value> {
   items: Value[];
@@ -139,7 +146,18 @@ function createCollectionValueHooks<C extends keyof DictionaryContext>(
     },
     function useItem(id: string) {
       const value = use(DictionaryContext);
-      return useMemo(() => value[collectionName].map.get(id), [value, id]);
+      const item = useMemo(
+        () => value[collectionName].map.get(id),
+        [value, id],
+      );
+
+      useEffect(() => {
+        if (!item) {
+          reloadDictionaries();
+        }
+      }, [item]);
+
+      return item;
     },
     function useMap() {
       const value = use(DictionaryContext);
