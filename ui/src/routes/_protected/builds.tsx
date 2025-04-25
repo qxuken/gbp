@@ -4,14 +4,21 @@ import {
   linkOptions,
 } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
-import { lazy, useEffect } from 'react';
+import {
+  lazy,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
 import { z } from 'zod';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
+import { queryClient } from '@/api/queryClient';
 import { Icons } from '@/components/icons';
 import { Label } from '@/components/ui/label';
 import {
-  Pagination,
+  Pagination as UIPagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
@@ -26,9 +33,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { queryClient } from '@/main';
-import { useFilters } from '@/store/plans/filters';
-import { useRenderingPlanItems } from '@/store/plans/renderingItems';
+import { FiltersProvider, TPlansFilter } from '@/store/plans/filters';
+import {
+  RenderingItemsProvider,
+  useRenderingPlanTotal,
+} from '@/store/plans/renderingItems';
 
 const LazyBuilds = lazy(() => import('@/components/builds'));
 const LazyBuildFilters = lazy(
@@ -81,88 +90,6 @@ function generatePaginationLink(page: number, perPage?: number) {
   });
 }
 
-function HomeComponent() {
-  const deps = Route.useLoaderDeps();
-  const navigate = Route.useNavigate();
-  const search = Route.useSearch();
-  const renderingItems = useRenderingPlanItems();
-  const [filters, setFilters] = useFilters();
-
-  useEffect(() => {
-    setFilters({
-      name: search.cN ?? '',
-      elements: new Set(search.cE),
-      weaponTypes: new Set(search.cWT),
-      characters: new Set(search.cs),
-      artifactTypeSpecials: new Map(
-        search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
-      ),
-    });
-  }, []);
-
-  useEffect(() => {
-    const cN = filters.name;
-    const cE = Array.from(filters.elements);
-    const cWT = Array.from(filters.weaponTypes);
-    const cS = Array.from(filters.characters);
-    const cAt: [string, string[]][] = Array.from(
-      filters.artifactTypeSpecials.entries(),
-      ([key, value]) => [key, Array.from(value)],
-    );
-    navigate({
-      to: Route.to,
-      search: (state) => ({
-        ...state,
-        cN: cN.length > 0 ? cN : undefined,
-        cE: cE.length > 0 ? cE : undefined,
-        cWT: cWT.length > 0 ? cWT : undefined,
-        cs: cS.length > 0 ? cS : undefined,
-        cAT: cAt.length > 0 ? cAt : undefined,
-      }),
-    });
-  }, [filters]);
-
-  const totalItems = renderingItems.length;
-  const totalPages = Math.ceil(totalItems / deps.perPage);
-
-  useEffect(() => {
-    if (deps.page > totalPages) {
-      navigate(generatePaginationLink(totalPages));
-    }
-  }, [deps.page, totalPages]);
-
-  return (
-    <>
-      <section
-        aria-label="Builds with controls"
-        className="flex flex-wrap gap-2"
-      >
-        <aside
-          aria-label="Controls"
-          className="p-2 basis-80 grow flex flex-col gap-4"
-        >
-          <LazyBuildFilters />
-          <LazyBuildDomainsAnalysis />
-        </aside>
-        <section
-          aria-label="Build cards"
-          className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
-        >
-          <LazyBuilds page={deps.page} perPage={deps.perPage} />
-        </section>
-      </section>
-      <nav
-        aria-label="Page navigation"
-        className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3"
-      >
-        <PerPagePagination totalItems={totalItems} />
-        <PagePagination totalPages={totalPages} />
-      </nav>
-      <Outlet />
-    </>
-  );
-}
-
 function useLinkToDisplay(page: number, totalPages: number) {
   const items: [number, LinkOptions][] = [];
   const start = Math.max(2, page - 1);
@@ -177,16 +104,110 @@ function useLinkToDisplay(page: number, totalPages: number) {
   };
 }
 
-type PagePaginationProps = { totalPages: number };
-function PagePagination({ totalPages }: PagePaginationProps) {
+function HomeComponent() {
+  const deps = Route.useLoaderDeps();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
+
+  const filters = useMemo(
+    () => ({
+      name: search.cN ?? '',
+      elements: new Set(search.cE),
+      weaponTypes: new Set(search.cWT),
+      characters: new Set(search.cs),
+      artifactTypeSpecials: new Map(
+        search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
+      ),
+    }),
+    [search.cN, search.cE, search.cWT, search.cs, search.cAT],
+  );
+
+  const setFilters = useCallback(
+    (filters: TPlansFilter) => {
+      const cN = filters.name;
+      const cE = Array.from(filters.elements);
+      const cWT = Array.from(filters.weaponTypes);
+      const cS = Array.from(filters.characters);
+      const cAt: [string, string[]][] = Array.from(
+        filters.artifactTypeSpecials.entries(),
+        ([key, value]) => [key, Array.from(value)],
+      );
+      navigate({
+        to: Route.to,
+        search: (state) => ({
+          ...state,
+          cN: cN.length > 0 ? cN : undefined,
+          cE: cE.length > 0 ? cE : undefined,
+          cWT: cWT.length > 0 ? cWT : undefined,
+          cs: cS.length > 0 ? cS : undefined,
+          cAT: cAt.length > 0 ? cAt : undefined,
+        }),
+      });
+    },
+    [filters],
+  );
+
+  return (
+    <FiltersProvider value={filters} setValue={setFilters}>
+      <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
+        <RedirectOnBadPage>
+          <section
+            aria-label="Builds with controls"
+            className="flex flex-wrap gap-2"
+          >
+            <aside
+              aria-label="Controls"
+              className="p-2 basis-80 grow flex flex-col gap-4"
+            >
+              <LazyBuildFilters />
+              <LazyBuildDomainsAnalysis />
+            </aside>
+            <section
+              aria-label="Build cards"
+              className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
+            >
+              <LazyBuilds />
+            </section>
+          </section>
+          <nav
+            aria-label="Page navigation"
+            className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3"
+          >
+            <PerPageSelect />
+            <Pagination />
+          </nav>
+          <Outlet />
+        </RedirectOnBadPage>
+      </RenderingItemsProvider>
+    </FiltersProvider>
+  );
+}
+
+function RedirectOnBadPage({ children }: PropsWithChildren) {
+  const deps = Route.useLoaderDeps();
+  const navigate = Route.useNavigate();
+  const totalItems = useRenderingPlanTotal();
+  const totalPages = Math.ceil(totalItems / deps.perPage);
+  useEffect(() => {
+    if (deps.page > totalPages) {
+      navigate(generatePaginationLink(totalPages));
+    }
+  }, [deps.page, totalPages]);
+  return children;
+}
+
+function Pagination() {
+  const deps = Route.useLoaderDeps();
+  const totalItems = useRenderingPlanTotal();
   const { page: currentPage } = Route.useLoaderDeps();
+  const totalPages = Math.ceil(totalItems / deps.perPage);
   const pagesToDisplay = useLinkToDisplay(currentPage, totalPages);
   if (totalPages < 2) {
     return <div className="h-9" aria-hidden />;
   }
   return (
     <div>
-      <Pagination>
+      <UIPagination>
         <PaginationContent>
           <PaginationItem>
             {currentPage > 1 && (
@@ -234,16 +255,14 @@ function PagePagination({ totalPages }: PagePaginationProps) {
             )}
           </PaginationItem>
         </PaginationContent>
-      </Pagination>
+      </UIPagination>
     </div>
   );
 }
 
-type PerPagePaginationProps = {
-  totalItems: number;
-};
-function PerPagePagination({ totalItems }: PerPagePaginationProps) {
+function PerPageSelect() {
   const deps = Route.useLoaderDeps();
+  const totalItems = useRenderingPlanTotal();
   const navigate = Route.useNavigate();
   const perPageChange = (perPage: number) => {
     navigate(generatePaginationLink(1, perPage));

@@ -5,7 +5,9 @@ import {
   useArtifactTypes,
   useElements,
   useSpecialsMap,
-} from '@/api/dictionaries/atoms';
+} from '@/api/dictionaries/hooks';
+import { useSpecialsByArtifactTypePlansMap } from '@/api/plans/artifact-types-plans';
+import { useWeaponPlans } from '@/api/plans/weapon-plans';
 import { Specials } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -18,13 +20,12 @@ import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useArtifactTypesPlansSpecialsMap } from '@/store/plans/artifactTypePlans';
 import {
   useAvailableFilters,
   useFilters,
   useFiltersEnabled,
+  useSetFilters,
 } from '@/store/plans/filters';
-import { useWeaponPlans } from '@/store/plans/weaponsPlans';
 
 export default function BuildFilters() {
   const [isOpen, setIsOpen] = useState(true);
@@ -32,13 +33,14 @@ export default function BuildFilters() {
   const weaponTypes = useWeaponPlans();
   const artifactTypes = useArtifactTypes();
 
-  const [filters, setFilters] = useFilters();
+  const filters = useFilters();
+  const setFilters = useSetFilters();
   const availableFilters = useAvailableFilters();
   const filtersEnabled = useFiltersEnabled();
 
   const specialsMap = useSpecialsMap();
 
-  const activeArtifactTypesPlans = useArtifactTypesPlansSpecialsMap();
+  const activeArtifactTypesPlans = useSpecialsByArtifactTypePlansMap();
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>

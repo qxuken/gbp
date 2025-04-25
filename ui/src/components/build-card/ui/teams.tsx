@@ -4,6 +4,7 @@ import { Fragment } from 'react/jsx-runtime';
 
 import { db } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
+import { queryClient } from '@/api/queryClient';
 import { TeamPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
-import { queryClient } from '@/main';
 
 import { CharacterPicker } from './character-picker';
 

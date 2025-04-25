@@ -1,11 +1,18 @@
 import fuzzysearch from 'fuzzysearch';
-import { createContext, useMemo, ReactNode, use, useCallback } from 'react';
+import { Immer, produce, WritableDraft } from 'immer';
+import {
+  createContext,
+  useMemo,
+  use,
+  useCallback,
+  PropsWithChildren,
+} from 'react';
 
 import { useCharactersMap } from '@/api/dictionaries/hooks';
 import { usePlans } from '@/api/plans/plans';
 import { Characters, Plans } from '@/api/types';
 
-export type TBuildFilter = {
+export type TPlansFilter = {
   name: string;
   elements: Set<string>;
   weaponTypes: Set<string>;
@@ -15,29 +22,23 @@ export type TBuildFilter = {
 };
 
 interface FiltersContextType {
-  value: TBuildFilter;
+  value: TPlansFilter;
+  setValue(v: TPlansFilter): void;
   isFiltersEnabled: boolean;
 }
 
-const initialFilters: FiltersContextType = {
-  value: {
-    name: '',
-    elements: new Set(),
-    characters: new Set(),
-    weaponTypes: new Set(),
-    artifactTypeSpecials: new Map(),
-  },
-  isFiltersEnabled: false,
-};
+const FiltersContext = createContext<FiltersContextType | null>(null);
 
-const FiltersContext = createContext<FiltersContextType>(initialFilters);
+type Props = PropsWithChildren<{
+  value: TPlansFilter;
+  setValue(v: TPlansFilter): void;
+}>;
 
-type Props = { children: ReactNode; value: TBuildFilter };
-
-export function FiltersProvider({ children, value }: Props) {
+export function FiltersProvider({ children, value, setValue }: Props) {
   const context = useMemo(
     () => ({
       value,
+      setValue,
       isFiltersEnabled:
         value.name.length > 0 ||
         value.elements.size > 0 ||
@@ -57,11 +58,28 @@ export function FiltersProvider({ children, value }: Props) {
 
 export function useFilters() {
   const context = use(FiltersContext);
+  if (!context)
+    throw new Error('useFilters should be used inside FiltersContext');
   return context.value;
+}
+
+export function useSetFilters() {
+  const context = use(FiltersContext);
+  if (!context)
+    throw new Error('useFilters should be used inside FiltersContext');
+  return useCallback(
+    (cb: (v: WritableDraft<TPlansFilter>) => void) => {
+      const newValue = produce(context.value, cb);
+      context.setValue(newValue);
+    },
+    [context],
+  );
 }
 
 export function useFiltersEnabled() {
   const context = use(FiltersContext);
+  if (!context)
+    throw new Error('useFiltersEnabled should be used inside FiltersContext');
   return context.isFiltersEnabled;
 }
 

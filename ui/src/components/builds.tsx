@@ -14,28 +14,19 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 
+import { usePlans, useReorderPlans } from '@/api/plans/plans';
 import { BuildInfo } from '@/components/build-card/build-info';
 import { handleReorder } from '@/lib/handle-reorder';
-import { usePlans, useReorderPlans } from '@/store/plans/plans';
 import { useRenderingPlanItems } from '@/store/plans/renderingItems';
 
 import { CreateBuild } from './build-card/create-build';
-import { PendingBuildInfo } from './build-card/pending-build-info';
+import { PendingPlanPlaceholder } from './build-card/pending-build-info';
 import { Card } from './ui/card';
 
-type Props = {
-  page: number;
-  perPage: number;
-};
-export default function Builds({ page, perPage }: Props) {
+export default function Builds() {
   const reorderItems = useReorderPlans();
   const plans = usePlans();
   const renderingItems = useRenderingPlanItems();
-
-  const paginatedItems = renderingItems.slice(
-    perPage * (page - 1),
-    perPage * page,
-  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -55,21 +46,26 @@ export default function Builds({ page, perPage }: Props) {
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={plans} strategy={rectSortingStrategy}>
-        {paginatedItems.map((item) => {
+        {renderingItems.map((item) => {
           switch (item.type) {
-            case 'build': {
-              const { build } = item;
+            case 'committed': {
               return (
                 <BuildInfo
-                  key={build.id}
-                  buildId={build.id}
-                  characterId={build.character}
+                  key={item.plan.id}
+                  plan={item.plan}
+                  character={item.character}
                 />
               );
             }
             case 'pending': {
-              const { pending } = item;
-              return <PendingBuildInfo key={pending.id} pending={pending} />;
+              return (
+                <PendingPlanPlaceholder
+                  key={item.plan.id}
+                  plan={item.plan}
+                  character={item.character}
+                  visible={item.visible}
+                />
+              );
             }
             case 'create':
               return (

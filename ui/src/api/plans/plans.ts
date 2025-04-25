@@ -4,6 +4,7 @@ import {
   useMutationState,
   useQuery,
 } from '@tanstack/react-query';
+import { produce } from 'immer';
 import { useMemo } from 'react';
 
 import { pbClient } from '@/api/pocketbase';
@@ -61,19 +62,20 @@ export function useReorderPlans() {
         res.map((items) => items.body),
       );
       queryClient.setQueryData(PLANS_QUERY.queryKey, (data) => {
-        if (!data) return;
-        const items = data.map((it) => {
-          const updated = reorderedPlans.get(it.id);
-          if (updated && it.order != updated.order) {
-            return {
-              ...it,
-              order: updated.order,
-            };
+        if (!data) {
+          console.error('useReorderPlans got empty plans array on success');
+          return;
+        }
+
+        return produce(data, (plans) => {
+          for (const it of plans) {
+            const updated = reorderedPlans.get(it.id);
+            if (updated && it.order != updated.order) {
+              it.order = updated.order;
+            }
           }
-          return it;
+          plans.sort((a, b) => a.order - b.order);
         });
-        items.sort((a, b) => b.order - a.order);
-        return items;
       });
       reset();
     },
@@ -87,9 +89,9 @@ export function useReorderPlans() {
 
 const reorderPlansGoodStatus = new Set(['idle', 'success']);
 export function useReorderPlansIsPending() {
-  const val = useMutationState({
+  const vals = useMutationState({
     filters: { mutationKey: PLANS_REORDERING_MUTATION_KEY },
     select: (data) => !reorderPlansGoodStatus.has(data.state.status),
   });
-  return val;
+  return vals.at(-1) ?? false;
 }

@@ -3,6 +3,11 @@ import {
   useCharactersItem,
   useDomainOfBlessing,
 } from '@/api/dictionaries/atoms';
+import {
+  DomainsByArtifactSets,
+  useDomainsByArtifactSets,
+} from '@/api/plans/domains-of-blessing';
+import { usePlansIsLoading } from '@/api/plans/plans';
 import { DomainsOfBlessing } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -18,11 +23,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  DomainsByArtifactSets,
-  useDomainsByArtifactSets,
-} from '@/store/plans/domainsOfBlessing';
-import { usePlansIsLoading } from '@/store/plans/plans';
 
 import { CharacterInfoContent } from './ui/character-info';
 

@@ -15,7 +15,9 @@ export function reloadDictionaries() {
 worker.addEventListener('message', (e) => {
   if (e.data.action == 'notify-error') {
     toast.error(e.data.message, {
-      description: 'consider reloading page',
+      dismissible: false,
+      duration: Infinity,
+      description: 'Reload page to continue',
       action: {
         label: 'Reload',
         onClick() {

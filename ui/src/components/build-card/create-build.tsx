@@ -1,16 +1,21 @@
+import { useReorderPlansIsPending } from '@/api/plans/plans';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { useAddNewCharacterPlan } from '@/store/plans/pendingPlans';
-import { useReorderPlansIsPending } from '@/store/plans/plans';
+import { useAddPendingPlans } from '@/store/plans/pendingPlans';
+import { useRenderingPlanTotal } from '@/store/plans/renderingItems';
 
 import { CharacterPicker } from './ui/character-picker';
 
 export function CreateBuild() {
-  const addNew = useAddNewCharacterPlan();
+  const addNew = useAddPendingPlans();
+  const total = useRenderingPlanTotal();
   const reorderIsPending = useReorderPlansIsPending();
 
   return (
-    <CharacterPicker title="Create new build" onSelect={addNew}>
+    <CharacterPicker
+      title="Create new build"
+      onSelect={(charactedId) => addNew(charactedId, total)}
+    >
       <Button disabled={reorderIsPending}>
         <Icons.New />
         <span>Create new build</span>

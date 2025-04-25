@@ -7,12 +7,9 @@ import { Separator } from '@/components/ui/separator';
 import { UserManagement } from '@/components/user-management';
 
 export const Route = createFileRoute('/_protected')({
-  beforeLoad({ location }) {
+  beforeLoad() {
     if (!authStore.isValid) {
       throw redirect({
-        search: {
-          redirect: location.href,
-        },
         to: '/login',
       });
     }

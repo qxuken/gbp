@@ -3,8 +3,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 import { db } from '@/api/dictionaries/db';
-import { ARTIFACT_TYPE_PLANS_QUERY_KEY } from '@/api/plans/artifact-types-plans';
 import { pbClient } from '@/api/pocketbase';
+import { queryClient } from '@/api/queryClient';
 import { ArtifactTypePlans, Specials } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,6 @@ import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
-import { queryClient } from '@/main';
 
 type Props = { buildId: string; enabled?: boolean };
 export function ArtifactStats({ buildId, enabled }: Props) {
@@ -74,9 +73,6 @@ function ArtifactStatsLoaded({ buildId, items, queryKey }: PropsLoaded) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey });
-      await queryClient.invalidateQueries({
-        queryKey: ARTIFACT_TYPE_PLANS_QUERY_KEY,
-      });
     },
     onError: notifyWithRetry((v) => {
       mutate(v);

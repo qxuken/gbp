@@ -1,25 +1,25 @@
-import { useCharactersItem } from '@/api/dictionaries/atoms';
+import { useEffect } from 'react';
+
+import { useNewCharacterPlanMutation } from '@/api/plans/character-plans';
+import { Characters } from '@/api/types';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  PendingCharacter,
-  useRetryPendingPlan,
-} from '@/store/plans/pendingPlans';
+import { PendingPlan } from '@/store/plans/pendingPlans';
 
 import { Button } from '../ui/button';
 import { CharacterInfo } from './ui/character-info';
 import { MainStatSkeleton } from './ui/main-stats';
 
-type Props = { pending: PendingCharacter };
-export function PendingBuildInfo({ pending }: Props) {
-  const character = useCharactersItem(pending.characterId);
-  const planRetry = useRetryPendingPlan(pending.id);
+type Props = { plan: PendingPlan; character: Characters; visible: boolean };
+export function PendingPlanPlaceholder({ plan, character, visible }: Props) {
+  const mutation = useNewCharacterPlanMutation(plan);
 
-  if (!character) {
-    return null;
-  }
+  useEffect(() => {
+    mutation.mutateAsync();
+  }, [plan.id]);
 
+  if (!visible) return null;
   return (
     <Card className="w-full overflow-hidden">
       <div className="w-full flex justify-center pt-1">
@@ -42,8 +42,8 @@ export function PendingBuildInfo({ pending }: Props) {
           />
           <div />
         </div>
-        {pending.state == 'failed' && (
-          <Button onClick={planRetry}>Retry</Button>
+        {mutation.isError && (
+          <Button onClick={() => mutation.mutate()}>Retry</Button>
         )}
       </CardContent>
     </Card>

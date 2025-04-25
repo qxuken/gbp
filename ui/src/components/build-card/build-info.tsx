@@ -1,13 +1,13 @@
 import { useSortable } from '@dnd-kit/sortable';
 // import { CSS } from '@dnd-kit/utilities';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { motion, useInView } from 'motion/react';
 import { useMemo, useRef } from 'react';
 
-import { db } from '@/api/dictionaries/db';
+import { useReorderPlansIsPending } from '@/api/plans/plans';
 import { pbClient } from '@/api/pocketbase';
-import type { CharacterPlans } from '@/api/types';
+import { queryClient } from '@/api/queryClient';
+import type { CharacterPlans, Characters, Plans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -21,9 +21,7 @@ import { AsyncDebounce } from '@/lib/async-debounce';
 import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
-import { queryClient } from '@/main';
 import { useFiltersEnabled } from '@/store/plans/filters';
-import { useReorderPlansIsPending } from '@/store/plans/plans';
 
 import { Skeleton } from '../ui/skeleton';
 import { ArtifactSets, ArtifactSetsSkeleton } from './ui/artifact-sets';
@@ -39,28 +37,24 @@ import { Teams, TeamsSkeleton } from './ui/teams';
 import { Weapons, WeaponsSkeleton } from './ui/weapons';
 
 type Props = {
-  buildId: string;
-  characterId: string;
+  plan: Plans;
+  character: Characters;
 };
 
-export function BuildInfo({ buildId, characterId }: Props) {
+export function BuildInfo({ plan, character }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true });
 
   const reorderIsPending = useReorderPlansIsPending();
   const dndEnabled = !useFiltersEnabled();
 
-  const queryKey = ['characterPlans', buildId];
+  const queryKey = ['characterPlans', plan.id];
   const query = useQuery({
     queryKey,
     queryFn: () =>
-      pbClient.collection<CharacterPlans>('characterPlans').getOne(buildId),
+      pbClient.collection<CharacterPlans>('characterPlans').getOne(plan.id),
     enabled: isInView,
   });
-  const character = useLiveQuery(
-    () => db.characters.get(characterId),
-    [characterId],
-  );
 
   const mutationDebouncer = useMemo(
     () =>
@@ -68,7 +62,7 @@ export function BuildInfo({ buildId, characterId }: Props) {
         (update: CharacterPlans) =>
           pbClient
             .collection<CharacterPlans>('characterPlans')
-            .update(buildId, update),
+            .update(plan.id, update),
         1000,
       ),
     [],
@@ -93,7 +87,7 @@ export function BuildInfo({ buildId, characterId }: Props) {
     isSuccess: isDeleted,
   } = useMutation({
     mutationFn: () =>
-      pbClient.collection<CharacterPlans>('characterPlans').delete(buildId),
+      pbClient.collection<CharacterPlans>('characterPlans').delete(plan.id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ['characterPlans', 'page'],
@@ -112,7 +106,7 @@ export function BuildInfo({ buildId, characterId }: Props) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: buildId });
+  } = useSortable({ id: plan.id });
 
   const isPending = updateIsPending || deleteIsPending;
 
@@ -132,14 +126,14 @@ export function BuildInfo({ buildId, characterId }: Props) {
 
   if (!character) {
     return (
-      <article id={buildId} ref={cardRef}>
+      <article id={plan.id} ref={cardRef}>
         <BuildInfoSkeleton ref={cardRef} />;
       </article>
     );
   }
 
   return (
-    <article id={buildId} ref={cardRef}>
+    <article id={plan.id} ref={cardRef}>
       <Card
         ref={setNodeRef}
         className={cn('w-full overflow-hidden', {
@@ -214,20 +208,16 @@ export function BuildInfo({ buildId, characterId }: Props) {
           </div>
           <Weapons
             weaponType={character.weaponType}
-            buildId={buildId}
+            buildId={plan.id}
             enabled={isInView}
           />
-          <ArtifactSets buildId={buildId} enabled={isInView} />
-          <ArtifactStats buildId={buildId} enabled={isInView} />
+          <ArtifactSets buildId={plan.id} enabled={isInView} />
+          <ArtifactStats buildId={plan.id} enabled={isInView} />
           <ArtifactSubstats
             substats={build?.substats}
             mutate={mutateField(mutate, build, 'substats')}
           />
-          <Teams
-            buildId={buildId}
-            characterId={characterId}
-            enabled={isInView}
-          />
+          <Teams buildId={plan.id} characterId={plan.id} enabled={isInView} />
           <Note
             note={build?.note}
             mutate={mutateField(mutate, build, 'note')}

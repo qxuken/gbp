@@ -23,6 +23,7 @@ import { useMemo, useState } from 'react';
 
 import { db } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
+import { queryClient } from '@/api/queryClient';
 import { WeaponPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -39,7 +40,6 @@ import { handleReorder } from '@/lib/handle-reorder';
 import { mutateField } from '@/lib/mutate-field';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
-import { queryClient } from '@/main';
 
 import {
   DoubleInputLabeled,
