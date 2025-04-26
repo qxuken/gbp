@@ -78,23 +78,23 @@ export function UserManagement() {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link
-            to="/builds/user/logout"
-            search={(s) => s}
-            className="flex items-center gap-2"
-          >
-            <Icons.Logout className="size-4" />
-            Log out
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link
             to="/builds/user/delete"
             search={(s) => s}
             className="flex items-center gap-2 text-destructive"
           >
             <Icons.Remove className="size-4" />
             Delete Account
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link
+            to="/builds/user/logout"
+            search={(s) => s}
+            className="flex items-center gap-2"
+          >
+            <Icons.Logout className="size-4" />
+            Log out
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
