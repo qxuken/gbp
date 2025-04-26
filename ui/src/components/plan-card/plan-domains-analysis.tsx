@@ -26,7 +26,7 @@ import {
 
 import { CharacterInfoContent } from './ui/character-info';
 
-export default function BuildDomainsAnalysis() {
+export default function PlanDomainsAnalysis() {
   return (
     <Collapsible asChild>
       <section

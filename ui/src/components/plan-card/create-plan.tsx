@@ -6,7 +6,7 @@ import { useRenderingPlanTotal } from '@/store/plans/renderingItems';
 
 import { CharacterPicker } from './ui/character-picker';
 
-export function CreateBuild() {
+export function CreatePlan() {
   const addNew = useAddPendingPlans();
   const total = useRenderingPlanTotal();
   const reorderIsPending = useReorderPlansIsPending();

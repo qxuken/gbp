@@ -27,7 +27,7 @@ import {
   useSetFilters,
 } from '@/store/plans/filters';
 
-export default function BuildFilters() {
+export default function PlanFilters() {
   const [isOpen, setIsOpen] = useState(true);
 
   return (

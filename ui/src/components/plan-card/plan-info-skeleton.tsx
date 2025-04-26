@@ -9,7 +9,7 @@ import { NoteSkeleton } from './ui/note-skeleton';
 import { TeamsSkeleton } from './ui/teams-skeleton';
 import { WeaponsSkeleton } from './ui/weapons-skeleton';
 
-export function BuildInfoSkeleton({
+export function PlanInfoSkeleton({
   ref,
 }: {
   ref?: React.Ref<HTMLDivElement | null>;

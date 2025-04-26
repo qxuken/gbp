@@ -23,25 +23,22 @@ import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
 import { useFiltersEnabled } from '@/store/plans/filters';
 
-import { Skeleton } from '../ui/skeleton';
-import { ArtifactSets, ArtifactSetsSkeleton } from './ui/artifact-sets';
-import { ArtifactStats, ArtifactStatsSkeleton } from './ui/artifact-stats';
-import {
-  ArtifactSubstats,
-  ArtifactSubstatsSkeleton,
-} from './ui/artifact-substats';
+import { PlanInfoSkeleton } from './plan-info-skeleton';
+import { ArtifactSets } from './ui/artifact-sets';
+import { ArtifactStats } from './ui/artifact-stats';
+import { ArtifactSubstats } from './ui/artifact-substats';
 import { CharacterInfo } from './ui/character-info';
-import { MainStat, MainStatSkeleton } from './ui/main-stats';
-import { Note, NoteSkeleton } from './ui/note';
-import { Teams, TeamsSkeleton } from './ui/teams';
-import { Weapons, WeaponsSkeleton } from './ui/weapons';
+import { MainStat } from './ui/main-stats';
+import { Note } from './ui/note';
+import { Teams } from './ui/teams';
+import { Weapons } from './ui/weapons';
 
 type Props = {
   plan: Plans;
   character: Characters;
 };
 
-export function BuildInfo({ plan, character }: Props) {
+export function PlanInfo({ plan, character }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true });
 
@@ -127,7 +124,7 @@ export function BuildInfo({ plan, character }: Props) {
   if (!character) {
     return (
       <article id={plan.id} ref={cardRef}>
-        <BuildInfoSkeleton ref={cardRef} />;
+        <PlanInfoSkeleton ref={cardRef} />;
       </article>
     );
   }

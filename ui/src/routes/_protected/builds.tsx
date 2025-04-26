@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
-import { BuildInfoSkeleton } from '@/components/plan-card/build-info-skeleton';
+import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
 import { Label } from '@/components/ui/label';
 import {
   Pagination as UIPagination,
@@ -33,12 +33,12 @@ import {
   useRenderingPlanTotal,
 } from '@/store/plans/renderingItems';
 
-const LazyBuilds = lazy(() => import('@/components/builds'));
-const LazyBuildFilters = lazy(
-  () => import('@/components/plan-card/build-filters'),
+const LazyPlans = lazy(() => import('@/components/plans'));
+const LazyPlanFilters = lazy(
+  () => import('@/components/plan-card/plan-filters'),
 );
-const LazyBuildDomainsAnalysis = lazy(
-  () => import('@/components/plan-card/build-domains-analysis'),
+const LazyPlanDomainsAnalysis = lazy(
+  () => import('@/components/plan-card/plan-domains-analysis'),
 );
 
 const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
@@ -139,7 +139,7 @@ function HomeComponent() {
       <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
         <RedirectOnBadPage>
           <Layout>
-            <LazyBuilds />
+            <LazyPlans />
           </Layout>
           <Outlet />
         </RedirectOnBadPage>
@@ -153,8 +153,8 @@ function HomeLoader() {
   return (
     <FiltersProvider value={filters} setValue={setFilters}>
       <Layout>
-        <BuildInfoSkeleton />
-        <BuildInfoSkeleton />
+        <PlanInfoSkeleton />
+        <PlanInfoSkeleton />
       </Layout>
       <Outlet />
     </FiltersProvider>
@@ -173,8 +173,8 @@ function Layout({ children }: PropsWithChildren) {
           aria-label="Controls"
           className="p-2 basis-80 grow flex flex-col gap-4"
         >
-          <LazyBuildFilters />
-          <LazyBuildDomainsAnalysis />
+          <LazyPlanFilters />
+          <LazyPlanDomainsAnalysis />
         </aside>
         <section
           aria-label="Build cards"

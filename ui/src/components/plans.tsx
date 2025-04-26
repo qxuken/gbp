@@ -15,15 +15,15 @@ import {
 } from '@dnd-kit/sortable';
 
 import { usePlans, useReorderPlans } from '@/api/plans/plans';
-import { BuildInfo } from '@/components/plan-card/build-info';
+import { PlanInfo } from '@/components/plan-card/plan-info';
 import { handleReorder } from '@/lib/handle-reorder';
 import { useRenderingPlanItems } from '@/store/plans/renderingItems';
 
-import { CreateBuild } from './plan-card/create-build';
-import { PendingPlanPlaceholder } from './plan-card/pending-build-info';
+import { CreatePlan } from './plan-card/create-plan';
+import { PendingPlanPlaceholder } from './plan-card/pending-plan-info';
 import { Card } from './ui/card';
 
-export default function Builds() {
+export default function Plans() {
   const reorderItems = useReorderPlans();
   const plans = usePlans();
   const renderingItems = useRenderingPlanItems();
@@ -50,7 +50,7 @@ export default function Builds() {
           switch (item.type) {
             case 'committed': {
               return (
-                <BuildInfo
+                <PlanInfo
                   key={item.plan.id}
                   plan={item.plan}
                   character={item.character}
@@ -74,7 +74,7 @@ export default function Builds() {
                   className="w-full border-2 border-dashed border-muted bg-muted/5"
                 >
                   <div className="w-full h-full flex items-center justify-center p-12">
-                    <CreateBuild />
+                    <CreatePlan />
                   </div>
                 </Card>
               );
