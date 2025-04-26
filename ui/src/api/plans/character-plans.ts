@@ -4,6 +4,7 @@ import { produce } from 'immer';
 import { pbClient } from '@/api/pocketbase';
 import { CharacterPlans } from '@/api/types';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
+import { useRemovePendingPlans } from '@/store/plans/pendingPlans';
 
 import { queryClient } from '../queryClient';
 import { PLANS_QUERY } from './plans';
@@ -18,6 +19,7 @@ type MutationParams = {
   order: number;
 };
 export function useNewCharacterPlanMutation(params: MutationParams) {
+  const removePendingPlan = useRemovePendingPlans();
   const mutation = useMutation({
     mutationKey: newCharacterPlansMutationKey(params.id),
     mutationFn: () =>
@@ -38,6 +40,7 @@ export function useNewCharacterPlanMutation(params: MutationParams) {
           plans.sort((a, b) => a.order - b.order);
         });
       });
+      removePendingPlan(params);
     },
     onError: notifyWithRetry(
       (v) => void mutation.mutate(v),
