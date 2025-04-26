@@ -9,6 +9,8 @@ import { z } from 'zod';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
+import PlanDomainsAnalysisSkeleton from '@/components/plan-card/plan-domains-analysis-skeleton';
+import PlanFiltersSkeleton from '@/components/plan-card/plan-filters-skeleton';
 import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
 import { Label } from '@/components/ui/label';
 import {
@@ -140,9 +142,31 @@ function HomeComponent() {
     <FiltersProvider value={filters} setValue={setFilters}>
       <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
         <RedirectOnBadPage>
-          <Layout>
-            <LazyPlans />
-          </Layout>
+          <section
+            aria-label="Builds with controls"
+            className="flex flex-wrap gap-2"
+          >
+            <aside
+              aria-label="Controls"
+              className="p-2 basis-80 grow flex flex-col gap-4"
+            >
+              <LazyPlanFilters />
+              <LazyPlanDomainsAnalysis />
+            </aside>
+            <section
+              aria-label="Build cards"
+              className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
+            >
+              <LazyPlans />
+            </section>
+          </section>
+          <nav
+            aria-label="Page navigation"
+            className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3"
+          >
+            <PerPageSelect />
+            <Pagination />
+          </nav>
           <Outlet />
         </RedirectOnBadPage>
       </RenderingItemsProvider>
@@ -151,25 +175,8 @@ function HomeComponent() {
 }
 
 function HomeLoader() {
-  const deps = Route.useLoaderDeps();
-  const [filters, setFilters] = useSearchFilters();
-  return (
-    <FiltersProvider value={filters} setValue={setFilters}>
-      <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
-        <Layout>
-          <PlanInfoSkeleton />
-          <PlanInfoSkeleton />
-        </Layout>
-        <Outlet />
-      </RenderingItemsProvider>
-    </FiltersProvider>
-  );
-}
-
-function Layout({ children }: PropsWithChildren) {
   return (
     <>
-      {' '}
       <section
         aria-label="Builds with controls"
         className="flex flex-wrap gap-2"
@@ -178,23 +185,18 @@ function Layout({ children }: PropsWithChildren) {
           aria-label="Controls"
           className="p-2 basis-80 grow flex flex-col gap-4"
         >
-          <LazyPlanFilters />
-          <LazyPlanDomainsAnalysis />
+          <PlanFiltersSkeleton />
+          <PlanDomainsAnalysisSkeleton />
         </aside>
         <section
           aria-label="Build cards"
           className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
         >
-          {children}
+          <PlanInfoSkeleton />
+          <PlanInfoSkeleton />
         </section>
       </section>
-      <nav
-        aria-label="Page navigation"
-        className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3"
-      >
-        <PerPageSelect />
-        <Pagination />
-      </nav>
+      <Outlet />
     </>
   );
 }

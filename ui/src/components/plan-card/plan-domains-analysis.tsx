@@ -17,13 +17,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+import { BuildDomainsAnalysisContentSkeleton } from './plan-domains-analysis-skeleton';
 import { CharacterInfoContent } from './ui/character-info';
 
 export default function PlanDomainsAnalysis() {
@@ -43,67 +43,37 @@ export default function PlanDomainsAnalysis() {
           </CollapsibleTrigger>
         </div>
         <CollapsibleContent className="grid gap-2">
-          <BuildDomainsAnalysisContent />
+          <PlanDomainsAnalysisContent />
         </CollapsibleContent>
       </section>
     </Collapsible>
   );
 }
 
-function BuildDomainsAnalysisSkeleton() {
-  return (
-    <div className="flex flex-wrap gap-2">
-      <div className="pt-1 pb-2 px-2 bg-accent/50 rounded-lg">
-        <div className="flex gap-1">
-          {[1, 2].map((j) => (
-            <Skeleton key={j} className="size-10 rounded-2xl" />
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2 mt-1">
-          <Skeleton className="h-3 w-10 rounded-md" />
-          <Skeleton className="h-3 w-10 rounded-md" />
-          <Skeleton className="h-3 w-10 rounded-md" />
-        </div>
-      </div>
-      <div className="pt-1 pb-2 px-2 bg-accent rounded-lg">
-        <div className="flex gap-1">
-          <Skeleton className="size-10 rounded-2xl" />
-        </div>
-        <div className="flex flex-wrap gap-2 mt-1">
-          <Skeleton className="h-3 w-16 rounded-md" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BuildDomainsAnalysisContent() {
+function PlanDomainsAnalysisContent() {
   const isLoading = usePlansIsLoading();
   const items = useDomainsByArtifactSets();
 
   if (isLoading) {
-    return <BuildDomainsAnalysisSkeleton />;
+    return <BuildDomainsAnalysisContentSkeleton />;
   }
 
   return (
     <div className="flex flex-wrap gap-2">
       {items.map((it) => (
-        <BuildDomainsAnalysisItem key={it.domain} item={it} />
+        <PlanDomainsAnalysisItem key={it.domain} item={it} />
       ))}
     </div>
   );
 }
 
-type BuildDomainsAnalysisItemProps = {
-  item: DomainsByArtifactSets;
-};
-function BuildDomainsAnalysisItem({ item }: BuildDomainsAnalysisItemProps) {
+function PlanDomainsAnalysisItem({ item }: { item: DomainsByArtifactSets }) {
   const domain = useDomainOfBlessing(item.domain)!;
   return (
     <div className="pt-1 pb-2 px-2 bg-accent rounded-lg">
       <div className="flex gap-1">
         {item.artifactSets.map((it) => (
-          <BuildDomainsAnalysisItemArtifactSets
+          <PlanDomainsAnalysisItemArtifactSets
             key={it}
             domain={domain}
             item={it}
@@ -112,21 +82,20 @@ function BuildDomainsAnalysisItem({ item }: BuildDomainsAnalysisItemProps) {
       </div>
       <ul className="flex flex-wrap mt-1">
         {item.characters.map((it) => (
-          <BuildDomainsAnalysisItemCharacter key={it} item={it} />
+          <PlanDomainsAnalysisItemCharacter key={it} item={it} />
         ))}
       </ul>
     </div>
   );
 }
 
-type BuildDomainsAnalysisItemArtifactSetsProps = {
-  item: string;
-  domain: DomainsOfBlessing;
-};
-function BuildDomainsAnalysisItemArtifactSets({
+function PlanDomainsAnalysisItemArtifactSets({
   item,
   domain,
-}: BuildDomainsAnalysisItemArtifactSetsProps) {
+}: {
+  item: string;
+  domain: DomainsOfBlessing;
+}) {
   const artifactSet = useArtifactSet(item);
   if (!artifactSet) return null;
   return (
@@ -149,12 +118,7 @@ function BuildDomainsAnalysisItemArtifactSets({
   );
 }
 
-type BuildDomainsAnalysisItemCharacterProps = {
-  item: string;
-};
-function BuildDomainsAnalysisItemCharacter({
-  item,
-}: BuildDomainsAnalysisItemCharacterProps) {
+function PlanDomainsAnalysisItemCharacter({ item }: { item: string }) {
   const character = useCharactersItem(item);
   if (!character) return null;
   return (
