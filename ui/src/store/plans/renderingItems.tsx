@@ -39,7 +39,6 @@ export function RenderingItemsProvider({ children, page, perPage }: Props) {
   const plans = usePlans();
   const pendingPlans = usePendingPlans();
   const filter = useCharacterFilterFn();
-  console.log(plans);
 
   const plansRenderItems: PlansRenderItem[] = useMemo(
     () =>

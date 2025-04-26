@@ -10,6 +10,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useState,
 } from 'react';
 import { z } from 'zod';
 
@@ -33,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FiltersProvider, TPlansFilter } from '@/store/plans/filters';
+import { FiltersProvider, PlansFilters } from '@/store/plans/filters';
 import {
   RenderingItemsProvider,
   useRenderingPlanTotal,
@@ -104,48 +105,46 @@ function useLinkToDisplay(page: number, totalPages: number) {
   };
 }
 
-function HomeComponent() {
-  const deps = Route.useLoaderDeps();
+function useSearchFilters() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
+  const [filters, setFilters] = useState<PlansFilters>(() => ({
+    name: search.cN ?? '',
+    elements: new Set(search.cE),
+    weaponTypes: new Set(search.cWT),
+    characters: new Set(search.cs),
+    specialsByArtifactTypePlans: new Map(
+      search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
+    ),
+  }));
 
-  const filters = useMemo(
-    () => ({
-      name: search.cN ?? '',
-      elements: new Set(search.cE),
-      weaponTypes: new Set(search.cWT),
-      characters: new Set(search.cs),
-      artifactTypeSpecials: new Map(
-        search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
-      ),
-    }),
-    [search.cN, search.cE, search.cWT, search.cs, search.cAT],
-  );
+  useEffect(() => {
+    const cN = filters.name;
+    const cE = Array.from(filters.elements);
+    const cWT = Array.from(filters.weaponTypes);
+    const cS = Array.from(filters.characters);
+    const cAt: [string, string[]][] = Array.from(
+      filters.specialsByArtifactTypePlans.entries(),
+      ([key, value]) => [key, Array.from(value)],
+    );
+    navigate({
+      to: Route.to,
+      search: (state) => ({
+        ...state,
+        cN: cN.length > 0 ? cN : undefined,
+        cE: cE.length > 0 ? cE : undefined,
+        cWT: cWT.length > 0 ? cWT : undefined,
+        cs: cS.length > 0 ? cS : undefined,
+        cAT: cAt.length > 0 ? cAt : undefined,
+      }),
+    });
+  }, [filters]);
+  return [filters, setFilters] as const;
+}
 
-  const setFilters = useCallback(
-    (filters: TPlansFilter) => {
-      const cN = filters.name;
-      const cE = Array.from(filters.elements);
-      const cWT = Array.from(filters.weaponTypes);
-      const cS = Array.from(filters.characters);
-      const cAt: [string, string[]][] = Array.from(
-        filters.artifactTypeSpecials.entries(),
-        ([key, value]) => [key, Array.from(value)],
-      );
-      navigate({
-        to: Route.to,
-        search: (state) => ({
-          ...state,
-          cN: cN.length > 0 ? cN : undefined,
-          cE: cE.length > 0 ? cE : undefined,
-          cWT: cWT.length > 0 ? cWT : undefined,
-          cs: cS.length > 0 ? cS : undefined,
-          cAT: cAt.length > 0 ? cAt : undefined,
-        }),
-      });
-    },
-    [filters],
-  );
+function HomeComponent() {
+  const deps = Route.useLoaderDeps();
+  const [filters, setFilters] = useSearchFilters();
 
   return (
     <FiltersProvider value={filters} setValue={setFilters}>
