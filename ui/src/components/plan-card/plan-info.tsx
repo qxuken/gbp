@@ -1,13 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable';
 // import { CSS } from '@dnd-kit/utilities';
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { motion, useInView } from 'motion/react';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 
+import { useUpdateCharacterPlan } from '@/api/plans/character-plans';
 import { useReorderPlansIsPending } from '@/api/plans/plans';
-import { pbClient } from '@/api/pocketbase';
-import { queryClient } from '@/api/queryClient';
-import type { CharacterPlans, Characters, Plans } from '@/api/types';
+import type { Characters, Plans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -17,13 +15,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { AsyncDebounce } from '@/lib/async-debounce';
-import { mutateField } from '@/lib/mutate-field';
-import { notifyWithRetry } from '@/lib/notify-with-retry';
+import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
 import { useFiltersEnabled } from '@/store/plans/filters';
 
-import { PlanInfoSkeleton } from './plan-info-skeleton';
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactStats } from './ui/artifact-stats';
 import { ArtifactSubstats } from './ui/artifact-substats';
@@ -41,60 +36,20 @@ type Props = {
 export function PlanInfo({ plan, character }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true });
+  const filtersEnabled = useFiltersEnabled();
 
   const reorderIsPending = useReorderPlansIsPending();
-  const dndEnabled = !useFiltersEnabled();
 
-  const queryKey = ['characterPlans', plan.id];
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      pbClient.collection<CharacterPlans>('characterPlans').getOne(plan.id),
-    enabled: isInView,
-  });
+  const {
+    record,
+    updateRecord,
+    deleteRecord,
+    isPending,
+    isDeleted,
+    isPendingDeletion,
+  } = useUpdateCharacterPlan(plan);
 
-  const mutationDebouncer = useMemo(
-    () =>
-      new AsyncDebounce(
-        (update: CharacterPlans) =>
-          pbClient
-            .collection<CharacterPlans>('characterPlans')
-            .update(plan.id, update),
-        1000,
-      ),
-    [],
-  );
-  const {
-    variables,
-    mutate,
-    isPending: updateIsPending,
-  } = useMutation({
-    mutationFn: (v: CharacterPlans) => mutationDebouncer.run(v),
-    onSettled: async (data) =>
-      data
-        ? queryClient.setQueryData(queryKey, data)
-        : queryClient.invalidateQueries({ queryKey, exact: true }),
-    onError: notifyWithRetry((v) => {
-      mutate(v);
-    }),
-  });
-  const {
-    mutate: deleteBuild,
-    isPending: deleteIsPending,
-    isSuccess: isDeleted,
-  } = useMutation({
-    mutationFn: () =>
-      pbClient.collection<CharacterPlans>('characterPlans').delete(plan.id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ['characterPlans', 'page'],
-      });
-      queryClient.removeQueries({ queryKey });
-    },
-    onError: notifyWithRetry(() => {
-      deleteBuild();
-    }),
-  });
+  const dndEnabled = !filtersEnabled && !isPendingDeletion;
 
   const {
     attributes,
@@ -105,8 +60,6 @@ export function PlanInfo({ plan, character }: Props) {
     isDragging,
   } = useSortable({ id: plan.id });
 
-  const isPending = updateIsPending || deleteIsPending;
-
   const style = {
     transform: transform
       ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
@@ -115,18 +68,8 @@ export function PlanInfo({ plan, character }: Props) {
     transition,
   };
 
-  const build = variables || query.data;
-
   if (isDeleted) {
     return null;
-  }
-
-  if (!character) {
-    return (
-      <article id={plan.id} ref={cardRef}>
-        <PlanInfoSkeleton ref={cardRef} />;
-      </article>
-    );
   }
 
   return (
@@ -185,7 +128,7 @@ export function PlanInfo({ plan, character }: Props) {
                 variant="destructive"
                 className="w-full"
                 disabled={isPending}
-                onClick={() => deleteBuild()}
+                onClick={() => deleteRecord()}
               >
                 Yes i really want to delete
               </Button>
@@ -194,7 +137,11 @@ export function PlanInfo({ plan, character }: Props) {
         </CardTitle>
         <CardContent className="w-full pt-4 flex flex-col gap-3">
           <div className="flex items-start justify-around">
-            <MainStat build={build} mutate={mutate} />
+            <MainStat
+              plan={record}
+              mutate={updateRecord}
+              disabled={isPendingDeletion}
+            />
             <CollectionAvatar
               className="size-35 rounded-2xl ml-6"
               record={character}
@@ -211,13 +158,13 @@ export function PlanInfo({ plan, character }: Props) {
           <ArtifactSets buildId={plan.id} enabled={isInView} />
           <ArtifactStats buildId={plan.id} enabled={isInView} />
           <ArtifactSubstats
-            substats={build?.substats}
-            mutate={mutateField(mutate, build, 'substats')}
+            substats={record?.substats}
+            mutate={mutateFieldImmer(updateRecord, 'substats')}
           />
           <Teams buildId={plan.id} characterId={plan.id} enabled={isInView} />
           <Note
-            note={build?.note}
-            mutate={mutateField(mutate, build, 'note')}
+            note={record?.note}
+            mutate={mutateFieldImmer(updateRecord, 'note')}
           />
         </CardContent>
       </Card>

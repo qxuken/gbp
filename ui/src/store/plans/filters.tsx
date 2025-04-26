@@ -89,8 +89,7 @@ export function FiltersProvider({ children, value, setValue }: Props) {
         value.specialsByArtifactTypePlans.size > 0 ||
         value.characters.size > 0,
       setValue(cb: (v: WritableDraft<PlansFilters>) => void) {
-        const newValue = produce(context.value, cb);
-        setValue(newValue);
+        setValue(produce(context.value, (d) => void cb(d)));
       },
     }),
     [value, availableFilters, setValue],

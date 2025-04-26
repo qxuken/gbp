@@ -21,6 +21,14 @@ export class AsyncDebounce<T, R> {
     return this.current.promise;
   }
 
+  cancel() {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    this.current = null;
+  }
+
   private execTimeout(v: T) {
     if (this.timeout) {
       clearTimeout(this.timeout);

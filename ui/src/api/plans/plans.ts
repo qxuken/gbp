@@ -16,24 +16,23 @@ import { notifyWithRetry } from '@/lib/notify-with-retry';
 export const PLANS_QUERY = queryOptions({
   queryKey: ['plans'],
   queryFn: () => pbClient.collection<Plans>('plans').getFullList(),
-  initialData: [],
 });
 
 export const PLANS_REORDERING_MUTATION_KEY = ['plans', 'reorder'];
 
 export function usePlans() {
   const query = useQuery(PLANS_QUERY);
-  return query.data;
+  return query.data ?? [];
+}
+
+export function usePlansMap() {
+  const plans = usePlans();
+  return useMemo(() => createRecordsMap(plans), [plans]);
 }
 
 export function usePlansIsLoading() {
   const query = useQuery(PLANS_QUERY);
   return query.isLoading;
-}
-
-export function usePlansMap() {
-  const query = useQuery(PLANS_QUERY);
-  return useMemo(() => createRecordsMap(query.data), [query.data]);
 }
 
 export function useReorderPlans() {

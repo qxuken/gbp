@@ -32,7 +32,7 @@ import {
   MAX_ITEMS,
   RenderingItemsProvider,
   useRenderingPlanTotal,
-} from '@/store/plans/renderingItems';
+} from '@/store/plans/rendering-items';
 
 const LazyPlans = lazy(() => import('@/components/plans'));
 const LazyPlanFilters = lazy(
@@ -151,14 +151,17 @@ function HomeComponent() {
 }
 
 function HomeLoader() {
+  const deps = Route.useLoaderDeps();
   const [filters, setFilters] = useSearchFilters();
   return (
     <FiltersProvider value={filters} setValue={setFilters}>
-      <Layout>
-        <PlanInfoSkeleton />
-        <PlanInfoSkeleton />
-      </Layout>
-      <Outlet />
+      <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
+        <Layout>
+          <PlanInfoSkeleton />
+          <PlanInfoSkeleton />
+        </Layout>
+        <Outlet />
+      </RenderingItemsProvider>
     </FiltersProvider>
   );
 }

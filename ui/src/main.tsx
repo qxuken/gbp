@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
-import { enableMapSet } from 'immer';
+import { enableMapSet, enablePatches } from 'immer';
 import { PropsWithChildren } from 'react';
 import ReactDOM from 'react-dom/client';
 
@@ -18,6 +18,7 @@ if (!import.meta.env.PROD) {
 }
 
 enableMapSet();
+enablePatches();
 
 function AppContext({ children }: PropsWithChildren) {
   return (

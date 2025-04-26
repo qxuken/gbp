@@ -10,3 +10,12 @@ export function mutateField<V>(
     mutate({ ...currentValue, [fieldName]: v });
   };
 }
+
+export function mutateFieldImmer<V, K extends keyof V>(
+  mutate: (cb: (v: V) => void) => void,
+  fieldName: K,
+) {
+  return function (v: V[K]) {
+    mutate((value) => (value[fieldName] = v));
+  };
+}

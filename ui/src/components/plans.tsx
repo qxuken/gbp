@@ -17,7 +17,7 @@ import {
 import { usePlans, useReorderPlans } from '@/api/plans/plans';
 import { PlanInfo } from '@/components/plan-card/plan-info';
 import { handleReorder } from '@/lib/handle-reorder';
-import { useRenderingPlanItems } from '@/store/plans/renderingItems';
+import { useRenderingPlanItems } from '@/store/plans/rendering-items';
 
 import { CreatePlan } from './plan-card/create-plan';
 import { PendingPlanPlaceholder } from './plan-card/pending-plan-info';

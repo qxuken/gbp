@@ -30,6 +30,7 @@ export type PlansRenderItem =
 interface RenderingItemsContext {
   items: PlansRenderItem[];
   total: number;
+  lastOrder: number;
 }
 const RenderingItemsContext = createContext<RenderingItemsContext | null>(null);
 
@@ -81,9 +82,10 @@ export function RenderingItemsProvider({ children, page, perPage }: Props) {
     [pendingPlans, characters, filter],
   );
 
-  const renderItems = useMemo(() => {
+  const [renderItems, lastOrder] = useMemo(() => {
     const renderItems = plansRenderItems.concat(pendingPlansRenderItems);
     renderItems.sort((a, b) => a.order - b.order);
+    const lastOrder = renderItems.at(-1)?.order ?? 0;
 
     if (
       plansRenderItems.length <= MAX_ITEMS - pendingPlansRenderItems.length &&
@@ -96,7 +98,7 @@ export function RenderingItemsProvider({ children, page, perPage }: Props) {
       });
     }
 
-    return renderItems;
+    return [renderItems, lastOrder] as const;
   }, [plansRenderItems, pendingPlansRenderItems]);
 
   const paginatedRenderItems = useMemo(() => {
@@ -111,10 +113,11 @@ export function RenderingItemsProvider({ children, page, perPage }: Props) {
       );
   }, [renderItems, perPage, page]);
 
-  const value = useMemo(
+  const value: RenderingItemsContext = useMemo(
     () => ({
       items: paginatedRenderItems,
       total: renderItems.length,
+      lastOrder,
     }),
     [paginatedRenderItems, renderItems],
   );
@@ -144,4 +147,14 @@ export function useRenderingPlanTotal() {
     );
   }
   return context.total;
+}
+
+export function useRenderingPlanLastOrder() {
+  const context = use(RenderingItemsContext);
+  if (!context) {
+    throw new Error(
+      'useRenderingPlanLastOrder should be inside RenderingItemsContext',
+    );
+  }
+  return context.lastOrder;
 }

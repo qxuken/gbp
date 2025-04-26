@@ -11,17 +11,17 @@ interface State {
 }
 
 interface Actions {
-  add(characterId: string, plansCount: number): void;
+  add(characterId: string, order: number): void;
   remove(plan: PendingPlan): void;
 }
 
-export const usePendingPlansStore = create<State & Actions>((set, get) => ({
+export const usePendingPlansStore = create<State & Actions>((set) => ({
   items: [],
-  add: (characterId, plansCount) => {
+  add: (characterId, order) => {
     const plan = {
       id: Date.now().toString(),
       characterId,
-      order: get().items.length + plansCount,
+      order,
     };
     set((state) => ({
       items: [...state.items, plan],

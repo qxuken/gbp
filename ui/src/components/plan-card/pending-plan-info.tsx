@@ -5,11 +5,11 @@ import { Characters } from '@/api/types';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PendingPlan } from '@/store/plans/pendingPlans';
+import { PendingPlan } from '@/store/plans/pending-plans';
 
 import { Button } from '../ui/button';
 import { CharacterInfo } from './ui/character-info';
-import { MainStatSkeleton } from './ui/main-stats';
+import { MainStatSkeleton } from './ui/main-stats-skeleton';
 
 type Props = { plan: PendingPlan; character: Characters; visible: boolean };
 export function PendingPlanPlaceholder({ plan, character, visible }: Props) {

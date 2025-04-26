@@ -4,7 +4,7 @@ import { Skeleton } from '../ui/skeleton';
 import { ArtifactSetsSkeleton } from './ui/artifact-sets-skeleton';
 import { ArtifactStatsSkeleton } from './ui/artifact-stats-skeleton';
 import { ArtifactSubstatsSkeleton } from './ui/artifact-substats-skeleton';
-import { MainStatSkeleton } from './ui/main-stats';
+import { MainStatSkeleton } from './ui/main-stats-skeleton';
 import { NoteSkeleton } from './ui/note-skeleton';
 import { TeamsSkeleton } from './ui/teams-skeleton';
 import { WeaponsSkeleton } from './ui/weapons-skeleton';
