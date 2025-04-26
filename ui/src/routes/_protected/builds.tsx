@@ -4,19 +4,12 @@ import {
   linkOptions,
 } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
-import {
-  lazy,
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { lazy, PropsWithChildren, useEffect, useState } from 'react';
 import { z } from 'zod';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
-import { Icons } from '@/components/icons';
+import { BuildInfoSkeleton } from '@/components/plan-card/build-info-skeleton';
 import { Label } from '@/components/ui/label';
 import {
   Pagination as UIPagination,
@@ -42,10 +35,10 @@ import {
 
 const LazyBuilds = lazy(() => import('@/components/builds'));
 const LazyBuildFilters = lazy(
-  () => import('@/components/build-card/build-filters'),
+  () => import('@/components/plan-card/build-filters'),
 );
 const LazyBuildDomainsAnalysis = lazy(
-  () => import('@/components/build-card/build-domains-analysis'),
+  () => import('@/components/plan-card/build-domains-analysis'),
 );
 
 const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
@@ -73,11 +66,7 @@ export const Route = createFileRoute('/_protected/builds')({
     perPage,
   }),
   loader: () => queryClient.ensureQueryData(PLANS_QUERY),
-  pendingComponent: () => (
-    <div className="w-full p-4 flex justify-center">
-      <Icons.Spinner className="animate-spin size-12" />
-    </div>
-  ),
+  pendingComponent: HomeLoader,
 });
 
 function generatePaginationLink(page: number, perPage?: number) {
@@ -145,40 +134,63 @@ function useSearchFilters() {
 function HomeComponent() {
   const deps = Route.useLoaderDeps();
   const [filters, setFilters] = useSearchFilters();
-
   return (
     <FiltersProvider value={filters} setValue={setFilters}>
       <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
         <RedirectOnBadPage>
-          <section
-            aria-label="Builds with controls"
-            className="flex flex-wrap gap-2"
-          >
-            <aside
-              aria-label="Controls"
-              className="p-2 basis-80 grow flex flex-col gap-4"
-            >
-              <LazyBuildFilters />
-              <LazyBuildDomainsAnalysis />
-            </aside>
-            <section
-              aria-label="Build cards"
-              className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
-            >
-              <LazyBuilds />
-            </section>
-          </section>
-          <nav
-            aria-label="Page navigation"
-            className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3"
-          >
-            <PerPageSelect />
-            <Pagination />
-          </nav>
+          <Layout>
+            <LazyBuilds />
+          </Layout>
           <Outlet />
         </RedirectOnBadPage>
       </RenderingItemsProvider>
     </FiltersProvider>
+  );
+}
+
+function HomeLoader() {
+  const [filters, setFilters] = useSearchFilters();
+  return (
+    <FiltersProvider value={filters} setValue={setFilters}>
+      <Layout>
+        <BuildInfoSkeleton />
+        <BuildInfoSkeleton />
+      </Layout>
+      <Outlet />
+    </FiltersProvider>
+  );
+}
+
+function Layout({ children }: PropsWithChildren) {
+  return (
+    <>
+      {' '}
+      <section
+        aria-label="Builds with controls"
+        className="flex flex-wrap gap-2"
+      >
+        <aside
+          aria-label="Controls"
+          className="p-2 basis-80 grow flex flex-col gap-4"
+        >
+          <LazyBuildFilters />
+          <LazyBuildDomainsAnalysis />
+        </aside>
+        <section
+          aria-label="Build cards"
+          className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
+        >
+          {children}
+        </section>
+      </section>
+      <nav
+        aria-label="Page navigation"
+        className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3"
+      >
+        <PerPageSelect />
+        <Pagination />
+      </nav>
+    </>
   );
 }
 

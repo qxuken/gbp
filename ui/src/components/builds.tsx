@@ -15,12 +15,12 @@ import {
 } from '@dnd-kit/sortable';
 
 import { usePlans, useReorderPlans } from '@/api/plans/plans';
-import { BuildInfo } from '@/components/build-card/build-info';
+import { BuildInfo } from '@/components/plan-card/build-info';
 import { handleReorder } from '@/lib/handle-reorder';
 import { useRenderingPlanItems } from '@/store/plans/renderingItems';
 
-import { CreateBuild } from './build-card/create-build';
-import { PendingPlanPlaceholder } from './build-card/pending-build-info';
+import { CreateBuild } from './plan-card/create-build';
+import { PendingPlanPlaceholder } from './plan-card/pending-build-info';
 import { Card } from './ui/card';
 
 export default function Builds() {

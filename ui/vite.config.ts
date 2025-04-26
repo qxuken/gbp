@@ -12,7 +12,7 @@ const ReactCompilerConfig = {
 export default defineConfig({
   plugins: [
     tailwindcss(),
-    TanStackRouterVite({ autoCodeSplitting: true }),
+    TanStackRouterVite({ target: 'react', autoCodeSplitting: true }),
     react({
       babel: {
         plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],

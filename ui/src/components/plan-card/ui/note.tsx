@@ -4,7 +4,8 @@ import { Icons } from '@/components/icons';
 import { AutoTextarea } from '@/components/ui/auto-textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
+
+import { NoteSkeleton } from './note-skeleton';
 
 type Props = { note?: string; mutate?: (v: string) => void };
 export function Note({ note, mutate }: Props) {
@@ -42,14 +43,6 @@ function NoteLoaded({ note, mutate }: PropsLoaded) {
         autoFocus={!collapsed && note.length === 0}
         onChange={(e) => mutate(e.target.value)}
       />
-    </div>
-  );
-}
-
-export function NoteSkeleton() {
-  return (
-    <div className="mt-1 w-full grid gap-2">
-      <Skeleton className="h-5 w-24 rounded-md justify-self-center" />
     </div>
   );
 }
