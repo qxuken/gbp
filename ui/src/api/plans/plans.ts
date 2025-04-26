@@ -57,7 +57,7 @@ export function useReorderPlans() {
       }
       return res;
     },
-    onSuccess: async (res) => {
+    onSuccess(res) {
       const reorderedPlans = createRecordsMap<{ id: string; order: number }>(
         res.map((items) => items.body),
       );
