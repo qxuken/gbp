@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { FiltersProvider, PlansFilters } from '@/store/plans/filters';
 import {
+  MAX_ITEMS,
   RenderingItemsProvider,
   useRenderingPlanTotal,
 } from '@/store/plans/renderingItems';
@@ -41,7 +42,7 @@ const LazyPlanDomainsAnalysis = lazy(
   () => import('@/components/plan-card/plan-domains-analysis'),
 );
 
-const PAGE_SIZE_OPTIONS = [30, 50, 80] as const;
+const PAGE_SIZE_OPTIONS = [30, 50, 80, MAX_ITEMS] as const;
 
 const SEARCH_SCHEMA = z.object({
   page: z.number().optional(),
@@ -118,6 +119,7 @@ function useSearchFilters() {
     );
     navigate({
       to: Route.to,
+      resetScroll: false,
       search: (state) => ({
         ...state,
         cN: cN.length > 0 ? cN : undefined,

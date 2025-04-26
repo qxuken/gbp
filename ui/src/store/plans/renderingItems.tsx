@@ -8,7 +8,7 @@ import { CharacterPlans, Characters } from '@/api/types';
 import { useCharacterFilterFn } from './filters';
 import { PendingPlan, usePendingPlans } from './pendingPlans';
 
-const MAX_ITEMS = 130;
+export const MAX_ITEMS = 130;
 const MAX_PENDING_ITEMS = 2;
 
 export type PlansRenderItem =
