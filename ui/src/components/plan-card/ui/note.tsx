@@ -5,20 +5,9 @@ import { AutoTextarea } from '@/components/ui/auto-textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
-import { NoteSkeleton } from './note-skeleton';
-
-type Props = { note?: string; mutate?: (v: string) => void };
-export function Note({ note, mutate }: Props) {
-  if (note === undefined || !mutate) {
-    return <NoteSkeleton />;
-  }
-  return <NoteLoaded note={note} mutate={mutate} />;
-}
-
-type PropsLoaded = Required<Props>;
-function NoteLoaded({ note, mutate }: PropsLoaded) {
-  const [collapsed, setCollapsed] = useState(note.length == 0);
-  const id = useId();
+type Props = { note: string; mutate: (v: string) => void };
+export function Note(props: Props) {
+  const [collapsed, setCollapsed] = useState(() => props.note.length == 0);
   if (collapsed) {
     return (
       <Button
@@ -31,6 +20,11 @@ function NoteLoaded({ note, mutate }: PropsLoaded) {
       </Button>
     );
   }
+  return <NoteField {...props} />;
+}
+
+function NoteField({ note, mutate }: Props) {
+  const id = useId();
   return (
     <div className="mt-1 w-full grid gap-2">
       <Label htmlFor={id + '_note'} className="text-muted-foreground">
@@ -40,7 +34,7 @@ function NoteLoaded({ note, mutate }: PropsLoaded) {
         id={id + '_note'}
         placeholder="Additional build notes"
         value={note}
-        autoFocus={!collapsed && note.length === 0}
+        autoFocus={note.length === 0}
         onChange={(e) => mutate(e.target.value)}
       />
     </div>

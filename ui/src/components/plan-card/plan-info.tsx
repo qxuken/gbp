@@ -164,7 +164,7 @@ export function PlanInfo({ plan, character }: Props) {
           />
           <Teams buildId={plan.id} characterId={plan.id} enabled={isInView} />
           <Note
-            note={record?.note}
+            note={record.note}
             mutate={mutateFieldImmer(updateRecord, 'note')}
           />
         </CardContent>
