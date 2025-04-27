@@ -158,8 +158,9 @@ export function PlanInfo({ plan, character }: Props) {
           <ArtifactSets buildId={plan.id} enabled={isInView} />
           <ArtifactStats buildId={plan.id} enabled={isInView} />
           <ArtifactSubstats
-            substats={record?.substats}
-            mutate={mutateFieldImmer(updateRecord, 'substats')}
+            substats={record.substats}
+            mutate={updateRecord}
+            disabled={isPendingDeletion}
           />
           <Teams buildId={plan.id} characterId={plan.id} enabled={isInView} />
           <Note

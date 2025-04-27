@@ -39,7 +39,9 @@ function arrayToDictionaryCollectionValue<Value extends { id: string }>(
 
 interface DictionaryContext {
   elements: DictionaryCollectionValue<Elements>;
-  specials: DictionaryCollectionValue<Specials>;
+  specials: DictionaryCollectionValue<Specials> & {
+    substats: Specials[];
+  };
   characterRoles: DictionaryCollectionValue<CharacterRoles>;
   weaponTypes: DictionaryCollectionValue<WeaponTypes>;
   weapons: DictionaryCollectionValue<Weapons>;
@@ -63,7 +65,7 @@ export function getDomainsByArtifactSetId(items: DomainsOfBlessing[]) {
 
 const dictionaryContextInitialValue: DictionaryContext = {
   elements: { items: [], map: new Map() },
-  specials: { items: [], map: new Map() },
+  specials: { items: [], map: new Map(), substats: [] },
   characterRoles: { items: [], map: new Map() },
   weaponTypes: { items: [], map: new Map() },
   weapons: { items: [], map: new Map() },
@@ -107,7 +109,10 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
       ]);
       return {
         elements,
-        specials,
+        specials: {
+          ...specials,
+          substats: specials.items.filter((s) => s.substat == 1),
+        },
         characterRoles,
         weaponTypes,
         weapons,
@@ -142,7 +147,7 @@ function createCollectionValueHooks<C extends keyof DictionaryContext>(
   return [
     function useItems() {
       const value = use(DictionaryContext);
-      return useMemo(() => value[collectionName].items, [value]);
+      return value[collectionName].items;
     },
     function useItem(id: string) {
       const value = use(DictionaryContext);
@@ -161,7 +166,7 @@ function createCollectionValueHooks<C extends keyof DictionaryContext>(
     },
     function useMap() {
       const value = use(DictionaryContext);
-      return useMemo(() => value[collectionName].map, [value]);
+      return value[collectionName].map;
     },
   ];
 }
@@ -171,6 +176,11 @@ export const [useElements, useElementsItem, useElementsMap] =
 
 export const [useSpecials, useSpecialsItem, useSpecialsMap] =
   createCollectionValueHooks('specials');
+
+export function useSubstats() {
+  const value = use(DictionaryContext);
+  return value.specials.substats;
+}
 
 export const [useCharacterRoles, useCharacterRolesItem, useCharacterRolesMap] =
   createCollectionValueHooks('characterRoles');
