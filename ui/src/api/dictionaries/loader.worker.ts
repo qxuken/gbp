@@ -4,6 +4,7 @@ import {
   DICTIONARY_VERSION_CONFIG_KEY,
 } from '@/api/dictionaries/db';
 import { pbClient } from '@/api/pocketbase';
+import { PlansCollections } from '@/api/types';
 
 export async function loadDictionaries(reload = false) {
   const version = await pbClient.send('/api/dictionaryVersion', {});
@@ -15,9 +16,12 @@ export async function loadDictionaries(reload = false) {
 
   postMessage({ message: 'Cleared old cache' });
 
-  const collections = await Promise.all(
-    DB_COLLECTIONS.map((c) => pbClient.collection(c).getFullList()),
-  );
+  const [collections, planCollectionIds] = await Promise.all([
+    Promise.all(
+      DB_COLLECTIONS.map((c) => pbClient.collection(c).getFullList()),
+    ),
+    pbClient.send<PlansCollections[]>('/api/plansCollections', {}),
+  ]);
   postMessage({ message: 'Fetched collections' });
 
   await Promise.all(
@@ -27,6 +31,7 @@ export async function loadDictionaries(reload = false) {
       await db_col.bulkPut(collections[i]);
     }),
   );
+  db.plansCollections.bulkPut(planCollectionIds);
   postMessage({ message: 'Stored to indexedDB' });
 
   db.config.put({ key: DICTIONARY_VERSION_CONFIG_KEY, value: version });

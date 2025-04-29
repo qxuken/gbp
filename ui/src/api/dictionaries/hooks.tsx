@@ -16,6 +16,7 @@ import {
   Characters,
   DomainsOfBlessing,
   Elements,
+  PlansCollections,
   Specials,
   Weapons,
   WeaponTypes,
@@ -38,6 +39,7 @@ function arrayToDictionaryCollectionValue<Value extends { id: string }>(
 }
 
 interface DictionaryContext {
+  plansCollections: DictionaryCollectionValue<PlansCollections>;
   elements: DictionaryCollectionValue<Elements>;
   specials: DictionaryCollectionValue<Specials> & {
     substats: Specials[];
@@ -64,6 +66,7 @@ export function getDomainsByArtifactSetId(items: DomainsOfBlessing[]) {
 }
 
 const dictionaryContextInitialValue: DictionaryContext = {
+  plansCollections: { items: [], map: new Map() },
   elements: { items: [], map: new Map() },
   specials: { items: [], map: new Map(), substats: [] },
   characterRoles: { items: [], map: new Map() },
@@ -81,6 +84,7 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
   const value: DictionaryContext = useLiveQuery(
     async () => {
       const [
+        plansCollections,
         elements,
         specials,
         characterRoles,
@@ -91,6 +95,7 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
         artifactTypes,
         domainsOfBlessing,
       ] = await Promise.all([
+        db.plansCollections.toArray().then(arrayToDictionaryCollectionValue),
         db.elements.toArray().then(arrayToDictionaryCollectionValue),
         db.specials
           .orderBy('order')
@@ -108,6 +113,7 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
         db.domainsOfBlessing.toArray().then(arrayToDictionaryCollectionValue),
       ]);
       return {
+        plansCollections,
         elements,
         specials: {
           ...specials,
@@ -170,6 +176,12 @@ function createCollectionValueHooks<C extends keyof DictionaryContext>(
     },
   ];
 }
+
+export const [
+  usePlansCollections,
+  usePlansCollectionsItem,
+  usePlansCollectionsMap,
+] = createCollectionValueHooks('plansCollections');
 
 export const [useElements, useElementsItem, useElementsMap] =
   createCollectionValueHooks('elements');

@@ -19,6 +19,29 @@ import (
 	"github.com/qxuken/gbp/ui"
 )
 
+type planCollectionDict struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+var PLANS_COLLECTIONS = []string{
+	models.CHARACTER_PLANS_COLLECTION_NAME,
+	models.WEAPON_PLANS_COLLECTION_NAME,
+	models.ARTIFACT_SETS_PLANS_COLLECTION_NAME,
+	models.ARTIFACT_TYPE_PLANS_COLLECTION_NAME,
+	models.TEAM_PLANS_COLLECTION_NAME,
+}
+
+func loadCollectionsDictionary(app core.App) []planCollectionDict {
+	plansCollections := make([]planCollectionDict, 0, len(PLANS_COLLECTIONS))
+	for i, collectionName := range PLANS_COLLECTIONS {
+		if loadedCollection, err := app.FindCollectionByNameOrId(collectionName); err == nil {
+			plansCollections = append(plansCollections, planCollectionDict{loadedCollection.Id, loadedCollection.Name})
+		}
+	}
+	return plansCollections
+}
+
 func main() {
 	isDevMode := strings.HasPrefix(os.Args[0], os.TempDir()) || strings.HasSuffix(os.Args[0], "/tmp/main.exe")
 
@@ -48,6 +71,11 @@ func main() {
 				return err
 			}
 			return e.JSON(http.StatusOK, rec.Value())
+		})
+
+		plansCollections := loadCollectionsDictionary(app)
+		g.GET("/plansCollections", func(e *core.RequestEvent) error {
+			return e.JSON(http.StatusOK, plansCollections)
 		})
 		return se.Next()
 	})

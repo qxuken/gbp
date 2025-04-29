@@ -7,6 +7,7 @@ import type {
   Characters,
   DomainsOfBlessing,
   Elements,
+  PlansCollections,
   Specials,
   Weapons,
   WeaponTypes,
@@ -33,6 +34,7 @@ export const DB_COLLECTIONS = [
 export type DBCollections = (typeof DB_COLLECTIONS)[number];
 export type DBCollectionValues = {
   config: EntityTable<Config, 'key'>;
+  plansCollections: EntityTable<PlansCollections, 'name'>;
   elements: EntityTable<Elements, 'id'>;
   specials: EntityTable<Specials, 'id'>;
   characterRoles: EntityTable<CharacterRoles, 'id'>;
@@ -50,6 +52,7 @@ export const db = new Dexie('Dictionaries') as DB;
 
 db.version(1).stores({
   config: '++key, value',
+  plansCollections: '++name, id',
   elements: '++id, name, color, inverseTextColor, icon',
   specials: '++id, name, substat, order',
   characterRoles: '++id, name',
