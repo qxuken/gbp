@@ -4,6 +4,7 @@ import {
   useMutationState,
   useQuery,
 } from '@tanstack/react-query';
+import { useBlocker } from '@tanstack/react-router';
 import { produce } from 'immer';
 import { useMemo } from 'react';
 
@@ -12,6 +13,9 @@ import { queryClient } from '@/api/queryClient';
 import { Plans } from '@/api/types';
 import { createRecordsMap } from '@/lib/create-records-atom';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
+
+import { newArtifactTypesPlansMutation } from './artifact-types-plans';
+import { newUpdateCharacterPlanMutationKey } from './character-plans';
 
 export const PLANS_QUERY = queryOptions({
   queryKey: ['plans'],
@@ -38,7 +42,7 @@ export function usePlansIsLoading() {
 export function useReorderPlans() {
   const plansMap = usePlansMap();
 
-  const { mutate, reset } = useMutation({
+  const mutation = useMutation({
     mutationKey: PLANS_REORDERING_MUTATION_KEY,
     async mutationFn(reorderedPlans: Plans[]) {
       const batch = pbClient.createBatch();
@@ -76,21 +80,63 @@ export function useReorderPlans() {
           plans.sort((a, b) => a.order - b.order);
         });
       });
-      reset();
+      mutation.reset();
     },
     onError: notifyWithRetry(
-      (v) => void mutate(v),
-      () => void reset(),
+      (v) => void mutation.mutate(v),
+      () => void mutation.reset(),
     ),
   });
-  return mutate;
-}
 
-const reorderPlansGoodStatus = new Set(['idle', 'success']);
+  useBlocker({
+    shouldBlockFn: () => {
+      if (!mutation.isPending) return false;
+      const shouldLeave = confirm('Are you sure you want to leave?');
+      return !shouldLeave;
+    },
+    disabled: !mutation.isPending,
+  });
+
+  return mutation.mutate;
+}
 export function useReorderPlansIsPending() {
   const vals = useMutationState({
-    filters: { mutationKey: PLANS_REORDERING_MUTATION_KEY },
-    select: (data) => !reorderPlansGoodStatus.has(data.state.status),
+    filters: { exact: true, mutationKey: PLANS_REORDERING_MUTATION_KEY },
+    select: (data) => data.state.status == 'pending',
   });
-  return vals.at(-1) ?? false;
+  return Boolean(vals.at(-1));
+}
+
+export function usePlansItemIsLoading(planId: string) {
+  const reorder = useMutationState({
+    filters: { exact: true, mutationKey: PLANS_REORDERING_MUTATION_KEY },
+    select: (data) => data.state.status == 'pending',
+  });
+
+  const updateCharacterPlan = useMutationState({
+    filters: {
+      exact: true,
+      mutationKey: newUpdateCharacterPlanMutationKey(planId),
+    },
+    select: (data) => data.state.status == 'pending',
+  });
+
+  const updateArtifactTypesPlans = useMutationState({
+    filters: {
+      exact: true,
+      mutationKey: newArtifactTypesPlansMutation(planId),
+    },
+    select: (data) => data.state.status == 'pending',
+  });
+  console.log({
+    reorder,
+    updateCharacterPlan,
+    updateArtifactTypesPlans,
+  });
+
+  return Boolean(
+    reorder.at(-1) ||
+      updateCharacterPlan.at(-1) ||
+      updateArtifactTypesPlans.at(-1),
+  );
 }

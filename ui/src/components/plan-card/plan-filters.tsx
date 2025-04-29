@@ -205,7 +205,7 @@ function FilterArtifactTypes() {
                 ['opacity-50']: selectedArr.length === 0,
               })}
             />
-            <div className="flex flex-wrap gap-1 items-start">
+            <div className="flex flex-wrap gap-1 items-center">
               {selectedArr.map((s, i) => {
                 const special = specialsMap?.get(s);
                 if (!special) {
@@ -213,8 +213,9 @@ function FilterArtifactTypes() {
                 }
                 return (
                   <div key={special.id} className="flex gap-1 items-center">
-                    <button
-                      className="text-md after:text-gray-400 cursor-pointer hover:line-through focus:line-through"
+                    <Button
+                      variant="destructive"
+                      className="text-md leading-none py-0 px-2 not-hover:bg-transparent not-focus:bg-transparent"
                       onClick={() => {
                         setFilters((filters) => {
                           const artifactTypeSpecials =
@@ -229,7 +230,7 @@ function FilterArtifactTypes() {
                       }}
                     >
                       {special.name}
-                    </button>
+                    </Button>
                     {selectedArr.length - 1 !== i && (
                       <Icons.Divide className="text-gray-400 size-4" />
                     )}

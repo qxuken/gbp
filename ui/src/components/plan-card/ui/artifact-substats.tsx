@@ -43,7 +43,7 @@ export function ArtifactSubstats({ substats, mutate, disabled }: Props) {
   return (
     <div>
       <span className="text-xs text-muted-foreground">Substats</span>
-      <div className="flex flex-wrap gap-1 items-start">
+      <div className="flex flex-wrap gap-1 items-center">
         {substats.map((s, i) => (
           <ArtifactSubstatsItem
             key={s}
@@ -104,12 +104,13 @@ export function ArtifactSubstatsItem({
     <div className="flex gap-1 items-center">
       <Popover>
         <PopoverTrigger asChild>
-          <button
-            className="text-md after:text-gray-400 not-disabled:cursor-pointer hover:line-through focus:line-through"
+          <Button
+            variant="destructive"
+            className="text-md leading-none py-0 px-2 not-hover:bg-transparent not-focus:bg-transparent"
             disabled={disabled}
           >
             {special.name}
-          </button>
+          </Button>
         </PopoverTrigger>
         <PopoverContent className="p-0" side="top">
           <Button

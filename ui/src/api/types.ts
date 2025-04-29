@@ -11,6 +11,11 @@ export interface Users extends RecordModel {
 
 // Dictionaries
 
+export interface PlansCollections {
+  id: string;
+  name: string;
+}
+
 export interface Elements extends RecordModel {
   id: string;
   name: string;
@@ -86,7 +91,7 @@ export interface Plans extends CharacterPlans {
   teamPlans?: TeamPlans[];
 }
 
-export interface CharacterPlans extends RecordModel {
+export interface CharacterPlans {
   id: string;
   user: string;
   character: string;
@@ -104,15 +109,19 @@ export interface CharacterPlans extends RecordModel {
   talentBurstTarget: number;
   substats: string[];
   note: string;
+  created: string;
+  updated: string;
 }
 
-export interface TeamPlans extends RecordModel {
+export interface TeamPlans {
   id: string;
   characterPlan: string;
   characters: string[];
+  created: string;
+  updated: string;
 }
 
-export interface WeaponPlans extends RecordModel {
+export interface WeaponPlans {
   id: string;
   characterPlan: string;
   weapon: string;
@@ -122,17 +131,23 @@ export interface WeaponPlans extends RecordModel {
   refinementTarget: number;
   tag?: 'now' | 'need';
   order: number;
+  created: string;
+  updated: string;
 }
 
-export interface ArtifactTypePlans extends RecordModel {
+export interface ArtifactTypePlans {
   id: string;
   characterPlan: string;
   artifactType: string;
   special: string;
+  created: string;
+  updated: string;
 }
 
-export interface ArtifactSetsPlans extends RecordModel {
+export interface ArtifactSetsPlans {
   id: string;
   characterPlan: string;
   artifactSets: string[];
+  created: string;
+  updated: string;
 }

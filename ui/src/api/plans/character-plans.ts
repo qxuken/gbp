@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { useBlocker } from '@tanstack/react-router';
 import {
   applyPatches,
   Patch,
@@ -6,7 +7,7 @@ import {
   produceWithPatches,
   WritableDraft,
 } from 'immer';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { pbClient } from '@/api/pocketbase';
 import { CharacterPlans, Plans } from '@/api/types';
@@ -17,16 +18,44 @@ import { useRemovePendingPlans } from '@/store/plans/pending-plans';
 import { queryClient } from '../queryClient';
 import { PLANS_QUERY } from './plans';
 
-export function newCharacterPlansMutationKey(id: string) {
-  return ['characterPlans', id];
+export function newCharacterPlan(
+  character: string,
+  order: number,
+): Omit<CharacterPlans, 'id' | 'updated' | 'created'> {
+  if (!pbClient.authStore.record) {
+    throw new Error('User should be authorized at this point');
+  }
+  return {
+    user: pbClient.authStore.record.id,
+    character,
+    order,
+    constellationCurrent: 0,
+    constellationTarget: 0,
+    levelCurrent: 1,
+    levelTarget: 90,
+    talentAtkCurrent: 1,
+    talentAtkTarget: 10,
+    talentSkillCurrent: 1,
+    talentSkillTarget: 10,
+    talentBurstCurrent: 1,
+    talentBurstTarget: 10,
+    substats: [],
+    note: '',
+  };
 }
 
-type MutationParams = {
+export function newCharacterPlansMutationKey(id: string) {
+  return ['plans', 'new', id];
+}
+
+type NewCharacterPlanMutationParams = {
   id: string;
   characterId: string;
   order: number;
 };
-export function useNewCharacterPlanMutation(params: MutationParams) {
+export function useNewCharacterPlanMutation(
+  params: NewCharacterPlanMutationParams,
+) {
   const removePendingPlan = useRemovePendingPlans();
   const mutation = useMutation({
     mutationKey: newCharacterPlansMutationKey(params.id),
@@ -55,11 +84,11 @@ export function useNewCharacterPlanMutation(params: MutationParams) {
   return mutation;
 }
 
-function newUpdateCharacterPlanMutationKey(id: string) {
+export function newUpdateCharacterPlanMutationKey(id: string) {
   return ['plans', id];
 }
 
-type UpdateAction = { type: 'update' } | { type: 'delete' };
+type MutationAction = { type: 'update' } | { type: 'delete' };
 
 const PLAN_TO_CHARACTER_PLAN_PATCHES: readonly Patch[] = [
   { op: 'remove', path: ['artifactSetsPlans'] },
@@ -69,9 +98,11 @@ const PLAN_TO_CHARACTER_PLAN_PATCHES: readonly Patch[] = [
   { op: 'remove', path: ['order'] },
 ];
 
-export function useUpdateCharacterPlan(plan: Plans) {
-  const [shadowRecord, setShadowRecord] = useState<Plans | null>(null);
+const MUTATION_DEBOUNCE_MS = 750;
+
+export function useCharacterPlanMutation(plan: Plans) {
   const patches = useRef<Patch[]>([]);
+  const [shadowRecord, setShadowRecord] = useState<Plans | null>(null);
   const mutationKey = newUpdateCharacterPlanMutationKey(plan.id);
   const mutationDebouncer = useMemo(
     () =>
@@ -87,13 +118,13 @@ export function useUpdateCharacterPlan(plan: Plans) {
           .update(plan.id, applyPatches(plan, patchSlice));
         patches.current.splice(0, size);
         return res;
-      }, 1000),
+      }, MUTATION_DEBOUNCE_MS),
     [plan.id],
   );
 
   const mutation = useMutation({
     mutationKey,
-    async mutationFn(action: UpdateAction) {
+    async mutationFn(action: MutationAction) {
       switch (action.type) {
         case 'update':
           return mutationDebouncer.run(plan);
@@ -112,7 +143,7 @@ export function useUpdateCharacterPlan(plan: Plans) {
           queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
             if (!plans) {
               console.error(
-                'useUpdateCharacterPlan got empty plans array on success',
+                'useCharacterPlanMutation got empty plans array on success',
               );
               return;
             }
@@ -120,7 +151,7 @@ export function useUpdateCharacterPlan(plan: Plans) {
               const planIndex = plans.findIndex((p) => p.id == plan.id);
               if (planIndex < 0) {
                 console.error(
-                  "useUpdateCharacterPlan could not find plan it's intended to update",
+                  "useCharacterPlanMutation could not find plan it's intended to update",
                 );
                 return;
               }
@@ -138,7 +169,7 @@ export function useUpdateCharacterPlan(plan: Plans) {
           queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
             if (!plans) {
               console.error(
-                'useUpdateCharacterPlan got empty plans array on success',
+                'useCharacterPlanMutation got empty plans array on success',
               );
               return;
             }
@@ -153,9 +184,14 @@ export function useUpdateCharacterPlan(plan: Plans) {
     ),
   });
 
-  useEffect(() => {
-    patches.current = [];
-  }, [plan.id]);
+  useBlocker({
+    shouldBlockFn: () => {
+      if (!mutation.isPending) return false;
+      const shouldLeave = confirm('Are you sure you want to leave?');
+      return !shouldLeave;
+    },
+    disabled: !mutation.isPending,
+  });
 
   const updateHandler = (cb: (v: WritableDraft<CharacterPlans>) => void) => {
     if (mutation.variables?.type == 'delete') return;
@@ -184,33 +220,5 @@ export function useUpdateCharacterPlan(plan: Plans) {
     isDeleted: mutation.isSuccess && mutation.variables?.type == 'delete',
     isPendingDeletion:
       mutation.isPending && mutation.variables?.type == 'delete',
-  };
-}
-
-export function newCharacterPlan(
-  character: string,
-  order: number,
-): Omit<CharacterPlans, 'id'> {
-  if (!pbClient.authStore.record) {
-    throw new Error('User should be authorized at this point');
-  }
-  return {
-    collectionId: '',
-    collectionName: '',
-    user: pbClient.authStore.record.id,
-    character,
-    order,
-    constellationCurrent: 0,
-    constellationTarget: 0,
-    levelCurrent: 1,
-    levelTarget: 90,
-    talentAtkCurrent: 1,
-    talentAtkTarget: 10,
-    talentSkillCurrent: 1,
-    talentSkillTarget: 10,
-    talentBurstCurrent: 1,
-    talentBurstTarget: 10,
-    substats: [],
-    note: '',
   };
 }

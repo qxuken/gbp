@@ -2,7 +2,7 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 
 import { Skeleton } from '../ui/skeleton';
 import { ArtifactSetsSkeleton } from './ui/artifact-sets-skeleton';
-import { ArtifactStatsSkeleton } from './ui/artifact-stats-skeleton';
+import { ArtifactTypesSkeleton } from './ui/artifact-types-skeleton';
 import { ArtifactSubstatsSkeleton } from './ui/artifact-substats-skeleton';
 import { MainStatSkeleton } from './ui/main-stats-skeleton';
 import { NoteSkeleton } from './ui/note-skeleton';
@@ -33,7 +33,7 @@ export function PlanInfoSkeleton({
         </div>
         <WeaponsSkeleton />
         <ArtifactSetsSkeleton />
-        <ArtifactStatsSkeleton />
+        <ArtifactTypesSkeleton />
         <ArtifactSubstatsSkeleton />
         <TeamsSkeleton />
         <NoteSkeleton />
