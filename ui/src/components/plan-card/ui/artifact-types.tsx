@@ -1,6 +1,5 @@
 import { Trigger as SelectTrigger } from '@radix-ui/react-select';
 import { useMemo } from 'react';
-import { record } from 'zod';
 
 import { useArtifactTypes, useSpecialsMap } from '@/api/dictionaries/hooks';
 import {
@@ -103,6 +102,7 @@ export function ArtifactTypes(props: Props) {
                                 'opacity-75 animate-pulse': s.optimistic,
                               },
                             )}
+                            disabled={props.disabled}
                           >
                             {special.name}
                           </Button>
@@ -112,7 +112,7 @@ export function ArtifactTypes(props: Props) {
                             variant="destructive"
                             className="w-full"
                             onClick={() => deleteRecord(s.id)}
-                            disabled={s.optimistic}
+                            disabled={s.optimistic || props.disabled}
                           >
                             Yes i really want to delete
                           </Button>
@@ -130,12 +130,14 @@ export function ArtifactTypes(props: Props) {
                       createRecord({ artifactType: at.id, special })
                     }
                     value=""
+                    disabled={props.disabled}
                   >
                     <SelectTrigger data-slot="select-trigger" asChild>
                       <Button
                         size="icon"
                         variant="ghost"
                         className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
+                        disabled={props.disabled}
                       >
                         <Icons.Add />
                       </Button>

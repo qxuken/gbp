@@ -115,28 +115,10 @@ export function usePlansItemIsLoading(planId: string) {
 
   const updateCharacterPlan = useMutationState({
     filters: {
-      exact: true,
       mutationKey: newUpdateCharacterPlanMutationKey(planId),
     },
     select: (data) => data.state.status == 'pending',
   });
 
-  const updateArtifactTypesPlans = useMutationState({
-    filters: {
-      exact: true,
-      mutationKey: newArtifactTypesPlansMutation(planId),
-    },
-    select: (data) => data.state.status == 'pending',
-  });
-  console.log({
-    reorder,
-    updateCharacterPlan,
-    updateArtifactTypesPlans,
-  });
-
-  return Boolean(
-    reorder.at(-1) ||
-      updateCharacterPlan.at(-1) ||
-      updateArtifactTypesPlans.at(-1),
-  );
+  return reorder.some(Boolean) || updateCharacterPlan.some(Boolean);
 }

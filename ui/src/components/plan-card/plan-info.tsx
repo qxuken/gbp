@@ -179,7 +179,11 @@ export function PlanInfo({ plan, character }: Props) {
             buildId={plan.id}
             enabled={isInView}
           />
-          <ArtifactSets buildId={plan.id} enabled={isInView} />
+          <ArtifactSets
+            planId={plan.id}
+            artifactSets={plan.artifactSetsPlans}
+            disabled={isPendingDeletion}
+          />
           <ArtifactTypes
             planId={plan.id}
             artfactTypes={plan.artifactTypePlans}
