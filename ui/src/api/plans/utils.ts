@@ -1,68 +1,161 @@
-import { useMutation } from '@tanstack/react-query';
+import { MutationKey, useMutation } from '@tanstack/react-query';
 import { useBlocker } from '@tanstack/react-router';
 import {
   applyPatches,
+  castDraft,
+  createDraft,
   Patch,
   produce,
   produceWithPatches,
   WritableDraft,
 } from 'immer';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useImmerReducer } from 'use-immer';
 
 import { pbClient } from '@/api/pocketbase';
 import { removeByPredMut } from '@/lib/array-remove-mut';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 
 import { queryClient } from '../queryClient';
-import { ArtifactSetsPlans } from '../types';
-import { PLANS_QUERY, usePlans } from './plans';
+import { PLANS_QUERY } from './plans';
 
-export function useArtifactSetsPlans() {
-  const plans = usePlans();
-  return useMemo(
-    () => plans.flatMap((p) => p.artifactSetsPlans ?? []),
-    [plans],
-  );
+interface CreateAction<T> {
+  type: 'create';
+  id: string;
+  value: T;
 }
-
-type CreateArtifactSets = { type: 'create'; value: ArtifactSetsPlans };
-type UpdateArtifactSets = {
+interface UpdateAction<T> {
   type: 'update';
-  value: ArtifactSetsPlans;
+  id: string;
+  value: T;
   patches: Patch[];
-};
-type DeleteArtifactSets = { type: 'delete'; value: string };
-type MutationAction =
-  | CreateArtifactSets
-  | UpdateArtifactSets
-  | DeleteArtifactSets;
-
-type MutationState = {
-  pending: MutationAction[];
-  current: (MutationAction & { state: 'pending' | 'success' | 'error' }) | null;
-};
-
-export function newArtifactSetsPlansMutation(planId: string) {
-  return ['plans', planId, 'artifactSetsPlans'];
 }
-
-export interface OptimisticArtifactTypePlans extends ArtifactSetsPlans {
-  optimistic?: boolean;
+interface DeleteAction {
+  type: 'delete';
+  id: string;
 }
+type MutationAction<T> = CreateAction<T> | UpdateAction<T> | DeleteAction;
 
-function updatesReduces(state: MutationState, action: MutationAction) {}
+type CurrentMutationAction<T> = MutationAction<T> & {
+  state: 'scheduled' | 'pending' | 'error';
+};
+interface MutationReducerState<T> {
+  meta: { collectionName: string };
+  pending: MutationAction<T>[];
+  current: CurrentMutationAction<T> | null;
+}
+interface MarkCurrentAction {
+  type: 'markCurrent';
+  value: 'done' | 'error' | 'pending' | 'scheduled';
+}
+type MutationReducerActions<T> = MutationAction<T> | MarkCurrentAction;
 
-export function useArtifactSetsMutation(
-  planId: string,
-  artfactSets?: ArtifactSetsPlans[],
+export type OptimisticArtifactTypePlans<T> = T & {
+  isOptimistic?: boolean;
+};
+
+function updatesReducer<T>(
+  state: WritableDraft<MutationReducerState<T>>,
+  action: MutationReducerActions<T>,
 ) {
-  const pendingUpdates = useRef<MutationAction[]>([]);
+  const addOrSetCurrent = (action: MutationAction<T>) => {
+    if (!state.current) {
+      state.current = castDraft({
+        ...action,
+        state: 'scheduled',
+      });
+    } else {
+      state.pending.push(castDraft(action));
+    }
+  };
+  const findExistingUpdateIndex = (id: string) =>
+    state.pending.findIndex((p) => p.id == id);
+  switch (action.type) {
+    case 'create': {
+      addOrSetCurrent(action);
+      break;
+    }
+    case 'update': {
+      const i = findExistingUpdateIndex(action.id);
+      if (i >= 0) {
+        const update = state.pending[i];
+        if (update.type == 'delete' || update.type == 'create') break;
+        update.value = castDraft(action.value);
+        update.patches.push(...action.patches);
+      } else {
+        addOrSetCurrent(action);
+      }
+      break;
+    }
+    case 'delete': {
+      const i = findExistingUpdateIndex(action.id);
+      if (i >= 0) {
+        const update = state.pending[i];
+        if (update.type == 'delete' || update.type == 'create') break;
+        state.pending.splice(i, 1);
+      } else {
+        addOrSetCurrent(action);
+      }
+      break;
+    }
+    case 'markCurrent':
+      switch (action.value) {
+        case 'done':
+          state.current = null;
+          break;
+        case 'pending':
+          if (state.current) {
+            state.current.state = 'pending';
+          } else {
+            console.error(
+              `(${state.meta.collectionName}) requested to change current action state to 'pending', but current action is gone`,
+            );
+          }
+          break;
+        case 'error':
+          if (state.current) {
+            state.current.state = 'error';
+          } else {
+            console.error(
+              `(${state.meta.collectionName}) requested to change current action state to 'error', but current action is gone`,
+            );
+          }
+          break;
+        case 'scheduled': {
+          if (state.current) {
+            state.current.state = 'pending';
+          } else {
+            console.error(
+              `(${state.meta.collectionName}) requested to change current action state to 'scheduled', but current action is gone`,
+            );
+          }
+        }
+      }
+      break;
+  }
+}
+
+export function useCollectionMutation<T>(
+  collectionName: string,
+  planId: string,
+  artfactSets?: T[],
+  mutationKey?: MutationKey,
+) {
+  const [updates, dispatch] = useImmerReducer<
+    MutationReducerState<T>,
+    MutationReducerActions<T>,
+    string
+  >(updatesReducer, collectionName, (collectionName) => ({
+    meta: { collectionName },
+    pending: [],
+    current: null,
+  }));
   const [shadowRecords, setShadowRecords] = useState<
     OptimisticArtifactTypePlans[] | null
   >(null);
 
   const mutation = useMutation({
-    mutationKey: newArtifactSetsPlansMutation(planId),
+    mutationKey,
     async mutationFn(variables: MutationAction) {
       switch (variables.type) {
         case 'create':
@@ -231,7 +324,7 @@ export function useArtifactSetsMutation(
   const createHandler = (value: Pick<ArtifactSetsPlans, 'artifactSets'>) => {
     const id = Date.now().toString();
     const ts = new Date().toString();
-    const action: CreateArtifactSets = {
+    const action: CreateAction = {
       type: 'create',
       value: {
         id,
@@ -268,7 +361,7 @@ export function useArtifactSetsMutation(
         return;
       }
       default: {
-        const action: UpdateArtifactSets = {
+        const action: UpdateAction = {
           type: 'update',
           value: A,
         };
@@ -281,7 +374,7 @@ export function useArtifactSetsMutation(
       (u) => u.type == 'delete' && u.value == value,
     );
     if (existingUpdate) return;
-    const action: DeleteArtifactSets = {
+    const action: DeleteAction = {
       type: 'delete',
       value,
     };

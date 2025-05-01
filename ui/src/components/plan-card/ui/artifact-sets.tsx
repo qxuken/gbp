@@ -17,21 +17,9 @@ import { Separator } from '@/components/ui/separator';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
-import { ArtifactSetsSkeleton } from './artifact-sets-skeleton';
 
-type ShortItem = Pick<ArtifactSetsPlans, 'id'>;
-type Props = { buildId: string; enabled?: boolean };
-export function ArtifactSets({ buildId, enabled }: Props) {
-  const queryKey = ['characterPlans', buildId, 'artifactSetsPlans'];
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      pbClient.collection<ShortItem>('artifactSetsPlans').getFullList({
-        filter: `characterPlan = '${buildId}'`,
-        fields: 'id',
-      }),
-    enabled,
-  });
+type Props = { planId: string; artifactSets?: ArtifactSetsPlans[]; disabled?: boolean };
+export function ArtifactSets(props: Props) {
   const { mutate: addSetPlan } = useMutation({
     mutationFn: (artifactSetsId: string) =>
       pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').create({
@@ -47,26 +35,6 @@ export function ArtifactSets({ buildId, enabled }: Props) {
     }),
   });
 
-  const artifactSets = query.data;
-
-  if (query.isPending || !artifactSets) {
-    return <ArtifactSetsSkeleton />;
-  }
-
-  return (
-    <ArtifactSetsLoaded
-      buildId={buildId}
-      queryKey={queryKey}
-      artifactSets={artifactSets}
-    />
-  );
-}
-
-type PropsLoaded = Omit<Props, 'enabled'> & {
-  artifactSets: ShortItem[];
-  queryKey: string[];
-};
-function ArtifactSetsLoaded({ buildId, queryKey, artifactSets }: PropsLoaded) {
   const { mutate: addSetPlan } = useMutation({
     mutationFn: (artifactSetsId: string) =>
       pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').create({
@@ -113,21 +81,8 @@ function ArtifactSetsLoaded({ buildId, queryKey, artifactSets }: PropsLoaded) {
   );
 }
 
-type ArtifactSetProps = { buildId: string; artifactSetPlanId: string };
+type ArtifactSetProps = { planId: string; artifactSet: ArtifactSetsPlans };
 function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
-  const queryKey = [
-    'characterPlans',
-    buildId,
-    'artifactSetsPlans',
-    artifactSetPlanId,
-  ];
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      pbClient
-        .collection<ArtifactSetsPlans>('artifactSetsPlans')
-        .getOne(artifactSetPlanId),
-  });
   const {
     mutate: deleteSetPlan,
     isPending: deleteIsPending,
