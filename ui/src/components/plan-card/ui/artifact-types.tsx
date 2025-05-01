@@ -31,6 +31,7 @@ export function ArtifactTypes(props: Props) {
   const mutation = useArtifactTypesPlansMutation(
     props.planId,
     props.artfactTypes,
+    props.disabled,
   );
   const artifactTypes = useArtifactTypes();
 

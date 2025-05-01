@@ -22,6 +22,7 @@ import { motion } from 'motion/react';
 import { useMemo, useState } from 'react';
 
 import { db } from '@/api/dictionaries/db';
+import { useWeaponMutation } from '@/api/plans/weapon-plans';
 import { pbClient } from '@/api/pocketbase';
 import { queryClient } from '@/api/queryClient';
 import { WeaponPlans } from '@/api/types';
@@ -43,51 +44,19 @@ import { cn } from '@/lib/utils';
 
 import { DoubleInputLabeled } from './double-input-labeled';
 import { WeaponPicker } from './weapon-picker';
-import { WeaponsSkeleton } from './weapons-skeleton';
 
-type ShortItem = Pick<WeaponPlans, 'id' | 'weapon' | 'order'>;
-type Props = { buildId: string; weaponType: string; enabled?: boolean };
-
-export function Weapons({ buildId, weaponType, enabled }: Props) {
-  const queryKey = ['characterPlans', buildId, 'weapons'];
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      pbClient.collection<ShortItem>('weaponPlans').getFullList({
-        filter: `characterPlan = '${buildId}'`,
-        fields: 'id, weapon, order',
-        sort: 'order',
-      }),
-    enabled,
-  });
-  const weapons = query.data;
-
-  if (query.isPending || !weapons) {
-    return <WeaponsSkeleton />;
-  }
-
-  return (
-    <WeaponsLoaded
-      buildId={buildId}
-      weaponType={weaponType}
-      queryKey={queryKey}
-      weapons={weapons}
-    />
-  );
-}
-
-type PropsLoaded = Omit<Props, 'enabled'> & {
-  weapons: ShortItem[];
-  queryKey: string[];
+type Props = {
+  planId: string;
+  weaponType: string;
+  weaponPlans?: WeaponPlans[];
+  disabled?: boolean;
 };
-
-function WeaponsLoaded({
-  buildId,
-  weaponType,
-  queryKey,
-  weapons,
-}: PropsLoaded) {
-  const ignoreWeapons = new Set(weapons.map((it) => it.weapon));
+export function Weapons(props: Props) {
+  const mutation = useWeaponMutation(props.planId, props.weaponPlans);
+  const ignoreWeapons = useMemo(
+    () => new Set(mutation.records.map((w) => w.weapon)),
+    [mutation.records],
+  );
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(TouchSensor),
@@ -95,26 +64,6 @@ function WeaponsLoaded({
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-
-  const { mutate: createWeapon } = useMutation({
-    mutationFn: (weaponId: string) =>
-      pbClient.collection<WeaponPlans>('weaponPlans').create({
-        characterPlan: buildId,
-        weapon: weaponId,
-        levelCurrent: 0,
-        levelTarget: 90,
-        refinementCurrent: 1,
-        refinementTarget: 5,
-        order: weapons.length + 1,
-      }),
-    onSuccess(data) {
-      queryClient.setQueryData([...queryKey, data.id], data);
-      return queryClient.invalidateQueries({ queryKey });
-    },
-    onError: notifyWithRetry((v) => {
-      createWeapon(v);
-    }),
-  });
 
   const {
     variables,
@@ -140,8 +89,6 @@ function WeaponsLoaded({
       reorderWeapons(v);
     }),
   });
-
-  const items = variables || weapons;
 
   function handleDragEnd(event: DragEndEvent) {
     handleReorder(event, weapons, reorderWeapons);

@@ -24,12 +24,14 @@ export type OptimisticArtifactTypePlans = OptimisticRecord<ArtifactSetsPlans>;
 export function useArtifactSetsMutation(
   planId: string,
   artifactSets?: ArtifactSetsPlans[],
+  disabled?: boolean,
 ) {
   const mutation = usePlansInnerCollectionMutation(
     'artifactSetsPlans',
     'artifactSetsPlans',
     planId,
     artifactSets,
+    disabled,
     newArtifactSetsPlansMutation(planId),
   );
 

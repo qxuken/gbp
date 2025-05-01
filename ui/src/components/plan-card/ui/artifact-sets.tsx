@@ -23,7 +23,11 @@ type Props = {
   disabled?: boolean;
 };
 export function ArtifactSets(props: Props) {
-  const mutate = useArtifactSetsMutation(props.planId, props.artifactSets);
+  const mutate = useArtifactSetsMutation(
+    props.planId,
+    props.artifactSets,
+    props.disabled,
+  );
 
   return (
     <div className="flex flex-col gap-2">

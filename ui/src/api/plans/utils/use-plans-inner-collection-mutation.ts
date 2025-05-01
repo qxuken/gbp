@@ -163,6 +163,7 @@ export function usePlansInnerCollectionMutation<
   collectionAccessor: Key,
   planId: string,
   records?: T[],
+  disabled?: boolean,
   mutationKey?: MutationKey,
 ) {
   const [updates, dispatch] = useImmerReducer<
@@ -304,11 +305,11 @@ export function usePlansInnerCollectionMutation<
 
   useEffect(() => {
     startTransition(async () => {
-      if (updates.current?.state == 'pending') {
+      if (updates.current?.state == 'pending' && !disabled) {
         await mutation.mutateAsync(updates.current);
       }
     });
-  }, [updates.current?.state]);
+  }, [updates.current?.state, disabled]);
 
   const shadowRecords = useMemo(() => {
     if (updates.pending.length == 0 && !updates.current) {

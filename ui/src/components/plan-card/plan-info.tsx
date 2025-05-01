@@ -175,9 +175,10 @@ export function PlanInfo({ plan, character }: Props) {
             <div />
           </div>
           <Weapons
+            planId={plan.id}
             weaponType={character.weaponType}
-            buildId={plan.id}
-            enabled={isInView}
+            weaponPlans={plan.weaponPlans}
+            disabled={isPendingDeletion}
           />
           <ArtifactSets
             planId={plan.id}
