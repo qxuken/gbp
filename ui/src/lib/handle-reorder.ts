@@ -1,6 +1,7 @@
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { WritableDraft } from 'immer';
+import { startTransition } from 'react';
 
 type ReorderableItem = {
   id: string;
@@ -28,11 +29,13 @@ export function handleReorder<T extends ReorderableItem>(
     return;
   }
 
-  onReorder(
-    arrayMove(items, oldIndex, newIndex).map((it, i) => ({
-      ...it,
-      order: i + 1,
-    })),
+  startTransition(() =>
+    onReorder(
+      arrayMove(items, oldIndex, newIndex).map((it, i) => ({
+        ...it,
+        order: i + 1,
+      })),
+    ),
   );
 }
 
@@ -57,10 +60,12 @@ export function handleReorderImmer<T extends ReorderableItem>(
     return;
   }
 
-  arrayMove(items, oldIndex, newIndex).forEach((v, i) =>
-    update(v, (draft) => {
-      // @ts-expect-error immer wtf
-      draft.order = i + 1;
-    }),
-  );
+  startTransition(() => {
+    arrayMove(items, oldIndex, newIndex).forEach((v, i) =>
+      update(v, (draft) => {
+        // @ts-expect-error immer wtf
+        draft.order = i + 1;
+      }),
+    );
+  });
 }
