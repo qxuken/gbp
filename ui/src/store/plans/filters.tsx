@@ -9,7 +9,6 @@ import {
 } from 'react';
 
 import { useCharactersMap } from '@/api/dictionaries/hooks';
-import { reloadDictionaries } from '@/api/dictionaries/loader';
 import { usePlans } from '@/api/plans/plans';
 import { Characters, Plans } from '@/api/types';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
@@ -59,7 +58,6 @@ export function FiltersProvider({ children, value, setValue }: Props) {
     for (const item of plans) {
       const character = charactersMap.get(item.character);
       if (!character) {
-        reloadDictionaries();
         continue;
       }
       if (character.element) {

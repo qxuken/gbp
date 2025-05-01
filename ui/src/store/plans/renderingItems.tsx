@@ -1,6 +1,9 @@
 import { useMemo, createContext, PropsWithChildren, use } from 'react';
 
-import { useCharactersMap } from '@/api/dictionaries/hooks';
+import {
+  useCharactersMap,
+  useDictionaryIsLoaded,
+} from '@/api/dictionaries/hooks';
 import { reloadDictionaries } from '@/api/dictionaries/loader';
 import { usePlans } from '@/api/plans/plans';
 import { CharacterPlans, Characters } from '@/api/types';
@@ -36,6 +39,7 @@ const RenderingItemsContext = createContext<RenderingItemsContext | null>(null);
 type Props = PropsWithChildren<{ page: number; perPage: number }>;
 export function RenderingItemsProvider({ children, page, perPage }: Props) {
   const characters = useCharactersMap();
+  const dictionaryIsLoaded = useDictionaryIsLoaded();
   const plans = usePlans();
   const pendingPlans = usePendingPlans();
   const filter = useCharacterFilterFn();
@@ -46,7 +50,9 @@ export function RenderingItemsProvider({ children, page, perPage }: Props) {
         .filter((plan) => {
           const character = characters.get(plan.character);
           if (!character) {
-            reloadDictionaries();
+            if (dictionaryIsLoaded) {
+              reloadDictionaries();
+            }
             return false;
           }
           return filter(character, plan);
@@ -66,7 +72,9 @@ export function RenderingItemsProvider({ children, page, perPage }: Props) {
         .filter((pending) => {
           const character = characters.get(pending.characterId);
           if (!character) {
-            reloadDictionaries();
+            if (dictionaryIsLoaded) {
+              reloadDictionaries();
+            }
             return false;
           }
           return filter(character);

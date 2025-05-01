@@ -21,7 +21,7 @@ import {
   Weapons,
   WeaponTypes,
 } from '../types';
-import { db } from './db';
+import { db, DBCollections } from './db';
 import { reloadDictionaries } from './loader';
 
 interface DictionaryCollectionValue<Value> {
@@ -39,6 +39,9 @@ function arrayToDictionaryCollectionValue<Value extends { id: string }>(
 }
 
 interface DictionaryContext {
+  meta: {
+    loaded: boolean;
+  };
   plansCollections: DictionaryCollectionValue<PlansCollections>;
   elements: DictionaryCollectionValue<Elements>;
   specials: DictionaryCollectionValue<Specials> & {
@@ -66,6 +69,9 @@ export function getDomainsByArtifactSetId(items: DomainsOfBlessing[]) {
 }
 
 const dictionaryContextInitialValue: DictionaryContext = {
+  meta: {
+    loaded: false,
+  },
   plansCollections: { items: [], map: new Map() },
   elements: { items: [], map: new Map() },
   specials: { items: [], map: new Map(), substats: [] },
@@ -125,6 +131,9 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
         db.domainsOfBlessing.toArray().then(arrayToDictionaryCollectionValue),
       ]);
       return {
+        meta: {
+          loaded: true,
+        },
         plansCollections,
         elements,
         specials: {
@@ -159,7 +168,9 @@ type CollectionValueHooks<Value> = [
   () => Map<string, Value>,
 ];
 
-function createCollectionValueHooks<C extends keyof DictionaryContext>(
+function createCollectionValueHooks<
+  C extends keyof DictionaryContext & (DBCollections | 'plansCollections'),
+>(
   collectionName: C,
 ): CollectionValueHooks<DictionaryContext[C]['items'][number]> {
   return [
@@ -175,10 +186,12 @@ function createCollectionValueHooks<C extends keyof DictionaryContext>(
       );
 
       useEffect(() => {
-        if (!item && reportMissing) {
+        if (value.meta.loaded && !item && reportMissing) {
+          console.error('missing', collectionName, id);
+
           reloadDictionaries();
         }
-      }, [item, reportMissing]);
+      }, [value.meta.loaded, reportMissing]);
 
       return item;
     },
@@ -187,6 +200,11 @@ function createCollectionValueHooks<C extends keyof DictionaryContext>(
       return value[collectionName].map;
     },
   ];
+}
+
+export function useDictionaryIsLoaded() {
+  const value = use(DictionaryContext);
+  return value.meta.loaded;
 }
 
 export const [
