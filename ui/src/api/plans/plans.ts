@@ -14,12 +14,40 @@ import { Plans } from '@/api/types';
 import { createRecordsMap } from '@/lib/create-records-atom';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 
-import { newArtifactTypesPlansMutation } from './artifact-types-plans';
 import { newUpdateCharacterPlanMutationKey } from './character-plans';
 
 export const PLANS_QUERY = queryOptions({
   queryKey: ['plans'],
-  queryFn: () => pbClient.collection<Plans>('plans').getFullList(),
+  async queryFn() {
+    const res = await pbClient.collection<Plans>('plans').getFullList();
+    return res.map((plan) => ({
+      ...plan,
+      created: new Date(plan.created),
+      updated: new Date(plan.updated),
+      artifactSetsPlans: plan.artifactSetsPlans?.map((asp) => ({
+        ...asp,
+        artifactSets: JSON.parse(asp.artifactSets as unknown as string),
+        created: new Date(asp.created),
+        updated: new Date(asp.updated),
+      })),
+      artifactTypePlans: plan.artifactTypePlans?.map((atp) => ({
+        ...atp,
+        created: new Date(atp.created),
+        updated: new Date(atp.updated),
+      })),
+      weaponPlans: plan.weaponPlans?.map((wp) => ({
+        ...wp,
+        created: new Date(wp.created),
+        updated: new Date(wp.updated),
+      })),
+      teamPlans: plan.teamPlans?.map((tp) => ({
+        ...tp,
+        characters: JSON.parse(tp.characters as unknown as string),
+        created: new Date(tp.created),
+        updated: new Date(tp.updated),
+      })),
+    }));
+  },
 });
 
 export const PLANS_REORDERING_MUTATION_KEY = ['plans', 'reorder'];
