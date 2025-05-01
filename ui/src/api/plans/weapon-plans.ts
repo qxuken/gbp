@@ -18,7 +18,7 @@ export function newWeaponPlansMutation(planId: string) {
 
 export type OptimisticWeaponPlans = OptimisticRecord<WeaponPlans>;
 
-export function useWeaponMutation(
+export function useWeaponPlansMutation(
   planId: string,
   weaponPlans?: WeaponPlans[],
   disabled?: boolean,

@@ -21,7 +21,7 @@ import { motion } from 'motion/react';
 import { useMemo, useState } from 'react';
 
 import { useWeaponsItem } from '@/api/dictionaries/hooks';
-import { useWeaponMutation } from '@/api/plans/weapon-plans';
+import { useWeaponPlansMutation } from '@/api/plans/weapon-plans';
 import { WeaponPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,7 @@ type Props = {
   disabled?: boolean;
 };
 export function Weapons(props: Props) {
-  const mutation = useWeaponMutation(
+  const mutation = useWeaponPlansMutation(
     props.planId,
     props.weaponPlans,
     props.disabled,

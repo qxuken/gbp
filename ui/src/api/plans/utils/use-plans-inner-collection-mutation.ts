@@ -110,6 +110,8 @@ function updatesReducer<T>(
       break;
     }
     case 'markCurrent':
+      console.log('currentMarked', action.value);
+
       switch (action.value) {
         case 'done': {
           const next = state.pending.shift();

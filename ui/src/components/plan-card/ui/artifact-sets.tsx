@@ -1,7 +1,7 @@
 import { WritableDraft } from 'immer';
 
 import { useArtifactSetsItem } from '@/api/dictionaries/hooks';
-import { useArtifactSetsMutation } from '@/api/plans/artifact-sets-plans';
+import { useArtifactSetsPlansMutation } from '@/api/plans/artifact-sets-plans';
 import { ArtifactSetsPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ type Props = {
   disabled?: boolean;
 };
 export function ArtifactSets(props: Props) {
-  const mutate = useArtifactSetsMutation(
+  const mutate = useArtifactSetsPlansMutation(
     props.planId,
     props.artifactSets,
     props.disabled,

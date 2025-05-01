@@ -21,7 +21,7 @@ export function newArtifactSetsPlansMutation(planId: string) {
 
 export type OptimisticArtifactTypePlans = OptimisticRecord<ArtifactSetsPlans>;
 
-export function useArtifactSetsMutation(
+export function useArtifactSetsPlansMutation(
   planId: string,
   artifactSets?: ArtifactSetsPlans[],
   disabled?: boolean,
