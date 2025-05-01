@@ -1,9 +1,7 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { WritableDraft } from 'immer';
 
-import { db } from '@/api/dictionaries/db';
-import { pbClient } from '@/api/pocketbase';
-import { queryClient } from '@/api/queryClient';
+import { useArtifactSetsItem } from '@/api/dictionaries/hooks';
+import { useArtifactSetsMutation } from '@/api/plans/artifact-sets-plans';
 import { ArtifactSetsPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -14,41 +12,18 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { notifyWithRetry } from '@/lib/notify-with-retry';
+import { removeByPredMut } from '@/lib/array-remove-mut';
+import { cn } from '@/lib/utils';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
 
-type Props = { planId: string; artifactSets?: ArtifactSetsPlans[]; disabled?: boolean };
+type Props = {
+  planId: string;
+  artifactSets?: ArtifactSetsPlans[];
+  disabled?: boolean;
+};
 export function ArtifactSets(props: Props) {
-  const { mutate: addSetPlan } = useMutation({
-    mutationFn: (artifactSetsId: string) =>
-      pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').create({
-        characterPlan: buildId,
-        artifactSets: [artifactSetsId],
-      }),
-    onSuccess(data) {
-      queryClient.setQueryData([...queryKey, data.id], data);
-      return queryClient.invalidateQueries({ queryKey });
-    },
-    onError: notifyWithRetry((v) => {
-      addSetPlan(v);
-    }),
-  });
-
-  const { mutate: addSetPlan } = useMutation({
-    mutationFn: (artifactSetsId: string) =>
-      pbClient.collection<ArtifactSetsPlans>('artifactSetsPlans').create({
-        characterPlan: buildId,
-        artifactSets: [artifactSetsId],
-      }),
-    onSuccess(data) {
-      queryClient.setQueryData([...queryKey, data.id], data);
-      return queryClient.invalidateQueries({ queryKey });
-    },
-    onError: notifyWithRetry((v) => {
-      addSetPlan(v);
-    }),
-  });
+  const mutate = useArtifactSetsMutation(props.planId, props.artifactSets);
 
   return (
     <div className="flex flex-col gap-2">
@@ -56,22 +31,29 @@ export function ArtifactSets(props: Props) {
         <span className="text-sm">Artifacts</span>
         <ArtifactSetPicker
           title="New artifact set"
-          onSelect={(as) => addSetPlan(as)}
+          onSelect={(as) => mutate.create({ artifactSets: [as] })}
         >
           <Button
             variant="ghost"
             size="icon"
             className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+            disabled={props.disabled}
           >
             <Icons.Add />
           </Button>
         </ArtifactSetPicker>
       </div>
       <div className="grid gap-1 w-full">
-        {artifactSets.map((as, i) => (
+        {mutate.records.map((as, i) => (
           <div key={as.id}>
-            <ArtifactSet buildId={buildId} artifactSetPlanId={as.id} />
-            {artifactSets.length - 1 !== i && (
+            <ArtifactSetPlan
+              artifactSetPlan={as}
+              update={(cb) => mutate.update(as, cb)}
+              delete={() => mutate.delete(as.id)}
+              isLoading={as.isOptimistic}
+              disabled={as.isOptimisticBlocked || props.disabled}
+            />
+            {mutate.records.length - 1 !== i && (
               <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
             )}
           </div>
@@ -81,118 +63,51 @@ export function ArtifactSets(props: Props) {
   );
 }
 
-type ArtifactSetProps = { planId: string; artifactSet: ArtifactSetsPlans };
-function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
-  const {
-    mutate: deleteSetPlan,
-    isPending: deleteIsPending,
-    isSuccess: isDeleted,
-  } = useMutation({
-    mutationFn: () =>
-      pbClient
-        .collection<ArtifactSetsPlans>('artifactSetsPlans')
-        .delete(artifactSetPlanId),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ['characterPlans', buildId, 'artifactSetsPlans'],
-        exact: true,
-      });
-      queryClient.removeQueries({ queryKey });
-    },
-    onError: notifyWithRetry(() => {
-      deleteSetPlan();
-    }),
-  });
-  const { mutate: update, variables } = useMutation({
-    mutationFn: (v: string[]) =>
-      pbClient
-        .collection<ArtifactSetsPlans>('artifactSetsPlans')
-        .update(artifactSetPlanId, {
-          artifactSets: v,
-        }),
-    onSuccess: async (data) => {
-      queryClient.setQueryData(queryKey, data);
-    },
-    onError: notifyWithRetry((vars) => {
-      update(vars);
-    }),
-  });
-  const artifactsSets = useLiveQuery(
-    () =>
-      db.artifactSets
-        .bulkGet(variables ?? query.data?.artifactSets ?? [])
-        .then((r) => r.filter((it) => it != undefined)),
-    [variables, query.data?.artifactSets],
-  );
-
+type ArtifactSetPlanProps = {
+  artifactSetPlan: ArtifactSetsPlans;
+  update: (cb: (v: WritableDraft<ArtifactSetsPlans>) => void) => void;
+  delete: () => void;
+  isLoading?: boolean;
+  disabled?: boolean;
+};
+function ArtifactSetPlan(props: ArtifactSetPlanProps) {
+  const artifactSets = props.artifactSetPlan.artifactSets;
+  const artifactSetsSet = new Set(artifactSets);
   const deleteSet = (setId: string) => {
-    switch (artifactsSets?.length) {
+    switch (artifactSets.length) {
       case 1:
-        return deleteSetPlan();
+        return props.delete();
       case 2:
-        update(artifactsSets.filter((it) => it.id != setId).map((it) => it.id));
+        return props.update((state) => {
+          removeByPredMut(state.artifactSets, (it) => it == setId);
+        });
     }
   };
 
   const addSet = (setId: string) => {
-    switch (artifactsSets?.length) {
-      case 1:
-        update([...artifactsSets.map((it) => it.id), setId]);
+    if (artifactSets.length == 1) {
+      props.update((state) => {
+        state.artifactSets.push(setId);
+      });
     }
   };
 
-  if (isDeleted) {
-    return null;
-  }
-
   return (
-    <div>
-      {artifactsSets?.map((artifactSet) => (
-        <div key={artifactSet.id} className="flex gap-2 w-full nth-2:mt-1">
-          <CollectionAvatar
-            record={artifactSet}
-            fileName={artifactSet.icon}
-            name={artifactSet.name}
-            className="size-12"
-          />
-          <div className="flex-1">
-            <div className="flex justify-between">
-              <span className="flex-1">{artifactSet.name}</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-                    disabled={deleteIsPending}
-                  >
-                    <Icons.Remove />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" side="top">
-                  <Button
-                    variant="destructive"
-                    className="w-full"
-                    onClick={() => deleteSet(artifactSet.id)}
-                    disabled={deleteIsPending}
-                  >
-                    Yes i really want to delete
-                  </Button>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {artifactsSets.length == 2 ? '2 pcs' : '4 pcs'}
-            </span>
-          </div>
-        </div>
+    <div className={cn({ 'animate-pulse': props.isLoading })}>
+      {artifactSets.map((artifactSet, _, items) => (
+        <ArtifactSet
+          key={artifactSet}
+          artifactSet={artifactSet}
+          isSplit={items.length == 2}
+          delete={() => deleteSet(artifactSet)}
+        />
       ))}
       <div className="min-h-2 text-center">
-        {artifactsSets?.length === 1 && (
+        {artifactSets.length === 1 && (
           <ArtifactSetPicker
             title="Split into two peaces"
             onSelect={(as) => addSet(as)}
-            ignoreArifacts={new Set(artifactsSets.map((it) => it.id))}
+            ignoreArifacts={artifactSetsSet}
           >
             <Button
               variant="ghost"
@@ -203,6 +118,59 @@ function ArtifactSet({ buildId, artifactSetPlanId }: ArtifactSetProps) {
             </Button>
           </ArtifactSetPicker>
         )}
+      </div>
+    </div>
+  );
+}
+
+type ArtifactSetProps = {
+  artifactSet: string;
+  isSplit: boolean;
+  delete: () => void;
+  disabled?: boolean;
+};
+function ArtifactSet(props: ArtifactSetProps) {
+  const artifactSet = useArtifactSetsItem(props.artifactSet);
+  if (!artifactSet) {
+    return null;
+  }
+  return (
+    <div className="flex gap-2 w-full nth-2:mt-1">
+      <CollectionAvatar
+        record={artifactSet}
+        fileName={artifactSet.icon}
+        name={artifactSet.name}
+        className="size-12"
+      />
+      <div className="flex-1">
+        <div className="flex justify-between">
+          <span className="flex-1">{artifactSet.name}</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                disabled={props.disabled}
+              >
+                <Icons.Remove />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" side="top">
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={props.delete}
+                disabled={props.disabled}
+              >
+                Yes i really want to delete
+              </Button>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {props.isSplit ? '2 pcs' : '4 pcs'}
+        </span>
       </div>
     </div>
   );

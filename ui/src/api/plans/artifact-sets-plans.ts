@@ -1,21 +1,11 @@
-import { useMutation } from '@tanstack/react-query';
-import { useBlocker } from '@tanstack/react-router';
-import {
-  applyPatches,
-  Patch,
-  produce,
-  produceWithPatches,
-  WritableDraft,
-} from 'immer';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 
-import { pbClient } from '@/api/pocketbase';
-import { removeByPredMut } from '@/lib/array-remove-mut';
-import { notifyWithRetry } from '@/lib/notify-with-retry';
-
-import { queryClient } from '../queryClient';
 import { ArtifactSetsPlans } from '../types';
-import { PLANS_QUERY, usePlans } from './plans';
+import { usePlans } from './plans';
+import {
+  OptimisticRecord,
+  usePlansInnerCollectionMutation,
+} from './utils/use-plans-inner-collection-mutation';
 
 export function useArtifactSetsPlans() {
   const plans = usePlans();
@@ -25,277 +15,35 @@ export function useArtifactSetsPlans() {
   );
 }
 
-type CreateArtifactSets = { type: 'create'; value: ArtifactSetsPlans };
-type UpdateArtifactSets = {
-  type: 'update';
-  value: ArtifactSetsPlans;
-  patches: Patch[];
-};
-type DeleteArtifactSets = { type: 'delete'; value: string };
-type MutationAction =
-  | CreateArtifactSets
-  | UpdateArtifactSets
-  | DeleteArtifactSets;
-
-type MutationState = {
-  pending: MutationAction[];
-  current: (MutationAction & { state: 'pending' | 'success' | 'error' }) | null;
-};
-
 export function newArtifactSetsPlansMutation(planId: string) {
   return ['plans', planId, 'artifactSetsPlans'];
 }
 
-export interface OptimisticArtifactTypePlans extends ArtifactSetsPlans {
-  optimistic?: boolean;
-}
-
-function updatesReduces(state: MutationState, action: MutationAction) {}
+export type OptimisticArtifactTypePlans = OptimisticRecord<ArtifactSetsPlans>;
 
 export function useArtifactSetsMutation(
   planId: string,
-  artfactSets?: ArtifactSetsPlans[],
+  artifactSets?: ArtifactSetsPlans[],
 ) {
-  const pendingUpdates = useRef<MutationAction[]>([]);
-  const [shadowRecords, setShadowRecords] = useState<
-    OptimisticArtifactTypePlans[] | null
-  >(null);
-
-  const mutation = useMutation({
-    mutationKey: newArtifactSetsPlansMutation(planId),
-    async mutationFn(variables: MutationAction) {
-      switch (variables.type) {
-        case 'create':
-          return pbClient
-            .collection<ArtifactSetsPlans>('artifactSetsPlans')
-            .create({
-              ...variables.value,
-              id: undefined,
-            });
-        case 'update':
-          return pbClient
-            .collection<ArtifactSetsPlans>('artifactSetsPlans')
-            .update(
-              variables.value.id,
-              applyPatches(variables.value, variables.patches),
-            );
-        case 'delete':
-          await pbClient
-            .collection<ArtifactSetsPlans>('artifactSetsPlans')
-            .delete(variables.value);
-          return;
-      }
-    },
-    async onSuccess(data, action) {
-      switch (action.type) {
-        case 'create':
-          if (!data) {
-            console.error('useArtifactSetsMutation got empty data on success');
-            return;
-          }
-          queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
-            if (!plans) {
-              console.error(
-                'useArtifactSetsMutation got empty plans array on success',
-              );
-              return;
-            }
-            return produce(plans, (plans) => {
-              const plan = plans.find((p) => p.id == planId);
-              if (!plan) {
-                console.error(
-                  "useArtifactSetsMutation could not find plan it's intended to update",
-                );
-                return;
-              }
-              plan.artifactSetsPlans ??= [];
-              plan.artifactSetsPlans.push(data);
-            });
-          });
-          break;
-
-        case 'update':
-          if (!data) {
-            console.error('useArtifactSetsMutation got empty data on success');
-            return;
-          }
-          queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
-            if (!plans) {
-              console.error(
-                'useArtifactSetsMutation got empty plans array on success',
-              );
-              return;
-            }
-            return produce(plans, (plans) => {
-              const plan = plans.find((p) => p.id == planId);
-              if (!plan?.artifactSetsPlans) {
-                console.error(
-                  "useArtifactSetsMutation could not find plan?.artifactSetsPlans it's intended to update",
-                );
-                return;
-              }
-              const index = plan.artifactSetsPlans.findIndex(
-                (p) => p.id == data.id,
-              );
-              if (index < 0) {
-                console.error(
-                  "useArtifactSetsMutation could not find artifactSetsPlans it's intended to update",
-                );
-                return;
-              }
-              plan.artifactSetsPlans[index] = {
-                ...plan.artifactSetsPlans[index],
-                ...data,
-              };
-            });
-          });
-          break;
-
-        case 'delete':
-          queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
-            if (!plans) {
-              console.error(
-                'useArtifactSetsMutation got empty plans array on success',
-              );
-              return;
-            }
-            return produce(plans, (plans) => {
-              const plan = plans.find((p) => p.id == planId);
-              if (!plan?.artifactSetsPlans) {
-                console.error(
-                  "useArtifactSetsMutation could not find plan?.artifactSetsPlans it's intended to update",
-                );
-                return;
-              }
-              removeByPredMut(
-                plan.artifactSetsPlans,
-                (it) => it.id == action.value,
-              );
-            });
-          });
-          break;
-      }
-      const nextUpdate = pendingUpdates.current.shift();
-      if (nextUpdate) {
-        mutation.mutateAsync(nextUpdate);
-      } else {
-        mutation.reset();
-      }
-    },
-    onError: notifyWithRetry((v) => {
-      mutation.mutate(v);
-    }),
-  });
-
-  const updateShadowRecords = (action?: MutationAction) => {
-    if (pendingUpdates.current.length == 0 && !mutation.variables && !action) {
-      return setShadowRecords(null);
-    }
-    const updates = [...pendingUpdates.current, mutation.variables, action];
-    const toDelete = new Set(
-      updates.filter((f) => f?.type == 'delete').map((f) => f.value),
-    );
-    const newRecords = new Map(
-      updates
-        .filter((f) => f?.type == 'create')
-        .map((u) => [u.value.id, { ...u.value, optimistic: true }]),
-    );
-    const records: OptimisticArtifactTypePlans[] = (
-      artfactSets?.filter((p) => !toDelete.has(p.id)) ?? []
-    ).concat(Array.from(newRecords.values()));
-    setShadowRecords(records);
-  };
-
-  useEffect(() => {
-    updateShadowRecords();
-  }, [artfactSets]);
-
-  useBlocker({
-    shouldBlockFn: () => {
-      if (!mutation.isPending) return false;
-      const shouldLeave = confirm('Are you sure you want to leave?');
-      return !shouldLeave;
-    },
-    disabled: !mutation.isPending,
-  });
-
-  const mutate = (action: MutationAction) => {
-    if (!mutation.isPending) {
-      mutation.mutateAsync(action);
-    } else {
-      pendingUpdates.current.push(action);
-    }
-    updateShadowRecords(action);
-  };
+  const mutation = usePlansInnerCollectionMutation(
+    'artifactSetsPlans',
+    'artifactSetsPlans',
+    planId,
+    artifactSets,
+    newArtifactSetsPlansMutation(planId),
+  );
 
   const createHandler = (value: Pick<ArtifactSetsPlans, 'artifactSets'>) => {
     const id = Date.now().toString();
     const ts = new Date().toString();
-    const action: CreateArtifactSets = {
-      type: 'create',
-      value: {
-        id,
-        created: ts,
-        updated: ts,
-        characterPlan: planId,
-        ...value,
-      },
-    };
-    mutate(action);
+    mutation.create({
+      id,
+      created: ts,
+      updated: ts,
+      characterPlan: planId,
+      ...value,
+    });
   };
 
-  const updateHandler = (
-    artifactSet: ArtifactSetsPlans,
-    cb: (v: WritableDraft<ArtifactSetsPlans>) => void,
-  ) => {
-    // need mux
-    const existingUpdate = pendingUpdates.current.find(
-      (u) =>
-        (u.type == 'delete' && u.value == artifactSet.id) ||
-        (u.type == 'update' && u.value.id == artifactSet.id),
-    );
-    switch (existingUpdate?.type) {
-      case 'delete':
-        return;
-      case 'update': {
-        const patches = existingUpdate.patches;
-        const current = applyPatches(artifactSet, patches);
-        const [newPlan, newPatches] = produceWithPatches(
-          current,
-          (d) => void cb(d),
-        );
-        patches.push(...newPatches);
-        return;
-      }
-      default: {
-        const action: UpdateArtifactSets = {
-          type: 'update',
-          value: A,
-        };
-      }
-    }
-  };
-
-  const deleteHandler = (value: string) => {
-    const existingUpdate = pendingUpdates.current.find(
-      (u) => u.type == 'delete' && u.value == value,
-    );
-    if (existingUpdate) return;
-    const action: DeleteArtifactSets = {
-      type: 'delete',
-      value,
-    };
-    mutate(action);
-  };
-
-  return {
-    records:
-      shadowRecords ??
-      (artfactSets as OptimisticArtifactTypePlans[] | undefined) ??
-      [],
-    create: createHandler,
-    update: updateHandler,
-    delete: deleteHandler,
-    isPending: mutation.isPending,
-  };
+  return { ...mutation, create: createHandler };
 }

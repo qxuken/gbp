@@ -3,21 +3,33 @@ import { useBlocker } from '@tanstack/react-router';
 import {
   applyPatches,
   castDraft,
-  createDraft,
   Patch,
   produce,
   produceWithPatches,
   WritableDraft,
 } from 'immer';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useTransition } from 'react';
 import { useImmerReducer } from 'use-immer';
 
 import { pbClient } from '@/api/pocketbase';
 import { removeByPredMut } from '@/lib/array-remove-mut';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 
-import { queryClient } from '../queryClient';
-import { PLANS_QUERY } from './plans';
+import { queryClient } from '../../queryClient';
+import { Plans } from '../../types';
+import { PLANS_QUERY } from '../plans';
+
+const MARK_OPTIMISTIC_PATCH: Patch = {
+  op: 'add',
+  path: ['isOptimistic'],
+  value: true,
+};
+
+const BLOCK_OPTIMISTIC_PATCH: Patch = {
+  op: 'add',
+  path: ['isOptimisticBlocked'],
+  value: true,
+};
 
 interface CreateAction<T> {
   type: 'create';
@@ -50,8 +62,9 @@ interface MarkCurrentAction {
 }
 type MutationReducerActions<T> = MutationAction<T> | MarkCurrentAction;
 
-export type OptimisticArtifactTypePlans<T> = T & {
+export type OptimisticRecord<T> = T & {
   isOptimistic?: boolean;
+  isOptimisticBlocked?: boolean;
 };
 
 function updatesReducer<T>(
@@ -62,7 +75,7 @@ function updatesReducer<T>(
     if (!state.current) {
       state.current = castDraft({
         ...action,
-        state: 'scheduled',
+        state: 'pending',
       });
     } else {
       state.pending.push(castDraft(action));
@@ -80,7 +93,6 @@ function updatesReducer<T>(
       if (i >= 0) {
         const update = state.pending[i];
         if (update.type == 'delete' || update.type == 'create') break;
-        update.value = castDraft(action.value);
         update.patches.push(...action.patches);
       } else {
         addOrSetCurrent(action);
@@ -93,19 +105,20 @@ function updatesReducer<T>(
         const update = state.pending[i];
         if (update.type == 'delete' || update.type == 'create') break;
         state.pending.splice(i, 1);
-      } else {
-        addOrSetCurrent(action);
       }
+      addOrSetCurrent(action);
       break;
     }
     case 'markCurrent':
       switch (action.value) {
-        case 'done':
-          state.current = null;
+        case 'done': {
+          const next = state.pending.shift();
+          state.current = next ? { ...next, state: 'pending' } : null;
           break;
+        }
         case 'pending':
           if (state.current) {
-            state.current.state = 'pending';
+            if (state.current.state == 'error') state.current.state = 'pending';
           } else {
             console.error(
               `(${state.meta.collectionName}) requested to change current action state to 'pending', but current action is gone`,
@@ -114,7 +127,8 @@ function updatesReducer<T>(
           break;
         case 'error':
           if (state.current) {
-            state.current.state = 'error';
+            if (state.current.state == 'scheduled')
+              state.current.state = 'error';
           } else {
             console.error(
               `(${state.meta.collectionName}) requested to change current action state to 'error', but current action is gone`,
@@ -123,7 +137,8 @@ function updatesReducer<T>(
           break;
         case 'scheduled': {
           if (state.current) {
-            state.current.state = 'pending';
+            if (state.current.state == 'pending')
+              state.current.state = 'scheduled';
           } else {
             console.error(
               `(${state.meta.collectionName}) requested to change current action state to 'scheduled', but current action is gone`,
@@ -135,10 +150,19 @@ function updatesReducer<T>(
   }
 }
 
-export function useCollectionMutation<T>(
+export function usePlansInnerCollectionMutation<
+  Key extends keyof Pick<
+    Plans,
+    'artifactSetsPlans' | 'artifactTypePlans' | 'weaponPlans' | 'teamPlans'
+  >,
+  T extends Plans[Key] extends (infer T)[] | undefined
+    ? { id: string } & T
+    : { id: string },
+>(
   collectionName: string,
+  collectionAccessor: Key,
   planId: string,
-  artfactSets?: T[],
+  records?: T[],
   mutationKey?: MutationKey,
 ) {
   const [updates, dispatch] = useImmerReducer<
@@ -150,46 +174,42 @@ export function useCollectionMutation<T>(
     pending: [],
     current: null,
   }));
-  const [shadowRecords, setShadowRecords] = useState<
-    OptimisticArtifactTypePlans[] | null
-  >(null);
 
   const mutation = useMutation({
     mutationKey,
-    async mutationFn(variables: MutationAction) {
+    async mutationFn(variables: MutationAction<T>) {
       switch (variables.type) {
         case 'create':
-          return pbClient
-            .collection<ArtifactSetsPlans>('artifactSetsPlans')
-            .create({
-              ...variables.value,
-              id: undefined,
-            });
+          return pbClient.collection<T>(collectionName).create({
+            ...variables.value,
+            id: undefined,
+          });
         case 'update':
           return pbClient
-            .collection<ArtifactSetsPlans>('artifactSetsPlans')
+            .collection<T>(collectionName)
             .update(
-              variables.value.id,
+              variables.id,
               applyPatches(variables.value, variables.patches),
             );
         case 'delete':
-          await pbClient
-            .collection<ArtifactSetsPlans>('artifactSetsPlans')
-            .delete(variables.value);
+          await pbClient.collection<T>(collectionName).delete(variables.id);
           return;
       }
+    },
+    onMutate() {
+      dispatch({ type: 'markCurrent', value: 'scheduled' });
     },
     async onSuccess(data, action) {
       switch (action.type) {
         case 'create':
           if (!data) {
-            console.error('useArtifactSetsMutation got empty data on success');
+            console.error(`${collectionName} got empty data on success`);
             return;
           }
           queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
             if (!plans) {
               console.error(
-                'useArtifactSetsMutation got empty plans array on success',
+                `${collectionName} got empty plans array on success`,
               );
               return;
             }
@@ -197,47 +217,48 @@ export function useCollectionMutation<T>(
               const plan = plans.find((p) => p.id == planId);
               if (!plan) {
                 console.error(
-                  "useArtifactSetsMutation could not find plan it's intended to update",
+                  `${collectionName} could not find plan(${planId}) it's intended to update`,
                 );
                 return;
               }
-              plan.artifactSetsPlans ??= [];
-              plan.artifactSetsPlans.push(data);
+              plan[collectionAccessor] ??= [];
+              // @ts-expect-error Too much for ts (or me) to handle
+              plan[collectionAccessor].push(data);
             });
           });
           break;
 
         case 'update':
           if (!data) {
-            console.error('useArtifactSetsMutation got empty data on success');
+            console.error(`${collectionName} got empty data on success`);
             return;
           }
           queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
             if (!plans) {
               console.error(
-                'useArtifactSetsMutation got empty plans array on success',
+                `${collectionName} got empty plans array on success`,
               );
               return;
             }
             return produce(plans, (plans) => {
               const plan = plans.find((p) => p.id == planId);
-              if (!plan?.artifactSetsPlans) {
+              if (!plan?.[collectionAccessor]) {
                 console.error(
-                  "useArtifactSetsMutation could not find plan?.artifactSetsPlans it's intended to update",
+                  `${collectionName} could not find plan it's intended to update or ${collectionAccessor} is empty`,
                 );
                 return;
               }
-              const index = plan.artifactSetsPlans.findIndex(
+              const index = plan[collectionAccessor].findIndex(
                 (p) => p.id == data.id,
               );
               if (index < 0) {
                 console.error(
-                  "useArtifactSetsMutation could not find artifactSetsPlans it's intended to update",
+                  `${collectionName} could not find ${collectionAccessor} it's intended to update`,
                 );
                 return;
               }
-              plan.artifactSetsPlans[index] = {
-                ...plan.artifactSetsPlans[index],
+              plan[collectionAccessor][index] = {
+                ...plan[collectionAccessor][index],
                 ...data,
               };
             });
@@ -248,144 +269,118 @@ export function useCollectionMutation<T>(
           queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
             if (!plans) {
               console.error(
-                'useArtifactSetsMutation got empty plans array on success',
+                `${collectionName} got empty plans array on success`,
               );
               return;
             }
             return produce(plans, (plans) => {
               const plan = plans.find((p) => p.id == planId);
-              if (!plan?.artifactSetsPlans) {
+              if (!plan?.[collectionAccessor]) {
                 console.error(
-                  "useArtifactSetsMutation could not find plan?.artifactSetsPlans it's intended to update",
+                  `${collectionName} could not find plan it's intended to update or ${collectionAccessor} is empty`,
                 );
                 return;
               }
               removeByPredMut(
-                plan.artifactSetsPlans,
-                (it) => it.id == action.value,
+                // @ts-expect-error Too much for ts (or me) to handle
+                plan[collectionAccessor],
+                (it) => it.id == action.id,
               );
             });
           });
           break;
       }
-      const nextUpdate = pendingUpdates.current.shift();
-      if (nextUpdate) {
-        mutation.mutateAsync(nextUpdate);
-      } else {
-        mutation.reset();
-      }
+      dispatch({ type: 'markCurrent', value: 'done' });
     },
-    onError: notifyWithRetry((v) => {
-      mutation.mutate(v);
-    }),
+    onError(err) {
+      dispatch({ type: 'markCurrent', value: 'error' });
+      notifyWithRetry(() => {
+        dispatch({ type: 'markCurrent', value: 'pending' });
+      })(err);
+    },
   });
 
-  const updateShadowRecords = (action?: MutationAction) => {
-    if (pendingUpdates.current.length == 0 && !mutation.variables && !action) {
-      return setShadowRecords(null);
-    }
-    const updates = [...pendingUpdates.current, mutation.variables, action];
-    const toDelete = new Set(
-      updates.filter((f) => f?.type == 'delete').map((f) => f.value),
-    );
-    const newRecords = new Map(
-      updates
-        .filter((f) => f?.type == 'create')
-        .map((u) => [u.value.id, { ...u.value, optimistic: true }]),
-    );
-    const records: OptimisticArtifactTypePlans[] = (
-      artfactSets?.filter((p) => !toDelete.has(p.id)) ?? []
-    ).concat(Array.from(newRecords.values()));
-    setShadowRecords(records);
-  };
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
-    updateShadowRecords();
-  }, [artfactSets]);
+    startTransition(async () => {
+      if (updates.current?.state == 'pending') {
+        await mutation.mutateAsync(updates.current);
+      }
+    });
+  }, [updates.current?.state]);
+
+  const shadowRecords = useMemo(() => {
+    if (updates.pending.length == 0 && !updates.current) {
+      return null;
+    }
+    const pendingUpdates = [...updates.pending, updates.current];
+    const newRecords = pendingUpdates
+      .filter((f) => f?.type == 'create')
+      .map((u) =>
+        applyPatches(
+          u.value,
+          updates.current?.id == u.id
+            ? [MARK_OPTIMISTIC_PATCH, BLOCK_OPTIMISTIC_PATCH]
+            : [MARK_OPTIMISTIC_PATCH],
+        ),
+      ) as OptimisticRecord<T>[];
+    const updatedRecords = new Map(
+      pendingUpdates
+        .filter((f) => f?.type == 'update')
+        .map((u) => [
+          u.id,
+          applyPatches(
+            u.value,
+            u.patches.concat([MARK_OPTIMISTIC_PATCH]),
+          ) as OptimisticRecord<T>,
+        ]),
+    );
+    const toDelete = new Set(
+      pendingUpdates.filter((f) => f?.type == 'delete').map((f) => f.id),
+    );
+    const res: OptimisticRecord<T>[] = [];
+    if (records) {
+      for (const plan of records) {
+        if (toDelete.has(plan.id)) continue;
+        if (updatedRecords.has(plan.id)) {
+          res.push(updatedRecords.get(plan.id)!);
+        } else {
+          res.push(plan as OptimisticRecord<T>);
+        }
+      }
+    }
+    return res.concat(newRecords);
+  }, [updates]);
 
   useBlocker({
     shouldBlockFn: () => {
-      if (!mutation.isPending) return false;
+      if (!updates.current) return false;
       const shouldLeave = confirm('Are you sure you want to leave?');
       return !shouldLeave;
     },
-    disabled: !mutation.isPending,
+    disabled: !updates.current,
   });
 
-  const mutate = (action: MutationAction) => {
-    if (!mutation.isPending) {
-      mutation.mutateAsync(action);
-    } else {
-      pendingUpdates.current.push(action);
-    }
-    updateShadowRecords(action);
+  const createHandler = (value: T) => {
+    dispatch({ type: 'create', id: value.id, value });
   };
 
-  const createHandler = (value: Pick<ArtifactSetsPlans, 'artifactSets'>) => {
-    const id = Date.now().toString();
-    const ts = new Date().toString();
-    const action: CreateAction = {
-      type: 'create',
-      value: {
-        id,
-        created: ts,
-        updated: ts,
-        characterPlan: planId,
-        ...value,
-      },
-    };
-    mutate(action);
-  };
-
-  const updateHandler = (
-    artifactSet: ArtifactSetsPlans,
-    cb: (v: WritableDraft<ArtifactSetsPlans>) => void,
-  ) => {
-    // need mux
-    const existingUpdate = pendingUpdates.current.find(
-      (u) =>
-        (u.type == 'delete' && u.value == artifactSet.id) ||
-        (u.type == 'update' && u.value.id == artifactSet.id),
-    );
-    switch (existingUpdate?.type) {
-      case 'delete':
-        return;
-      case 'update': {
-        const patches = existingUpdate.patches;
-        const current = applyPatches(artifactSet, patches);
-        const [newPlan, newPatches] = produceWithPatches(
-          current,
-          (d) => void cb(d),
-        );
-        patches.push(...newPatches);
-        return;
-      }
-      default: {
-        const action: UpdateAction = {
-          type: 'update',
-          value: A,
-        };
-      }
-    }
-  };
-
-  const deleteHandler = (value: string) => {
-    const existingUpdate = pendingUpdates.current.find(
-      (u) => u.type == 'delete' && u.value == value,
-    );
-    if (existingUpdate) return;
-    const action: DeleteAction = {
-      type: 'delete',
+  const updateHandler = (value: T, cb: (v: WritableDraft<T>) => void) => {
+    const [, patches] = produceWithPatches(
       value,
-    };
-    mutate(action);
+      (d) => void cb(d as WritableDraft<T>),
+    );
+    dispatch({ type: 'update', id: value.id, value, patches });
+  };
+
+  const deleteHandler = (id: string) => {
+    dispatch({ type: 'delete', id });
   };
 
   return {
     records:
-      shadowRecords ??
-      (artfactSets as OptimisticArtifactTypePlans[] | undefined) ??
-      [],
+      shadowRecords ?? (records as OptimisticRecord<T>[] | undefined) ?? [],
     create: createHandler,
     update: updateHandler,
     delete: deleteHandler,
