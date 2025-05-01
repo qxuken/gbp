@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
 
+const MAX_SETS = 10;
+
 type Props = {
   planId: string;
   artifactSetsPlans?: ArtifactSetsPlans[];
@@ -33,19 +35,21 @@ export function ArtifactSets(props: Props) {
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
         <span className="text-sm">Artifacts</span>
-        <ArtifactSetPicker
-          title="New artifact set"
-          onSelect={(as) => mutate.create({ artifactSets: [as] })}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
-            disabled={props.disabled}
+        {mutate.records.length < MAX_SETS && (
+          <ArtifactSetPicker
+            title="New artifact set"
+            onSelect={(as) => mutate.create({ artifactSets: [as] })}
           >
-            <Icons.Add />
-          </Button>
-        </ArtifactSetPicker>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+              disabled={props.disabled}
+            >
+              <Icons.Add />
+            </Button>
+          </ArtifactSetPicker>
+        )}
       </div>
       <div className="grid gap-1 w-full">
         {mutate.records.map((as, i) => (

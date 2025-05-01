@@ -39,6 +39,8 @@ import { cn } from '@/lib/utils';
 import { DoubleInputLabeled } from './double-input-labeled';
 import { WeaponPicker } from './weapon-picker';
 
+const MAX_WEAPONS = 10;
+
 type Props = {
   planId: string;
   weaponType: string;
@@ -73,21 +75,23 @@ export function Weapons(props: Props) {
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
         <span className="text-sm">Weapons</span>
-        <WeaponPicker
-          title="New weapon"
-          onSelect={mutation.create}
-          weaponTypeId={props.weaponType}
-          ignoreWeapons={ignoreWeapons}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
-            disabled={props.disabled}
+        {mutation.records.length < MAX_WEAPONS && (
+          <WeaponPicker
+            title="New weapon"
+            onSelect={mutation.create}
+            weaponTypeId={props.weaponType}
+            ignoreWeapons={ignoreWeapons}
           >
-            <Icons.Add />
-          </Button>
-        </WeaponPicker>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+              disabled={props.disabled}
+            >
+              <Icons.Add />
+            </Button>
+          </WeaponPicker>
+        )}
       </div>
       <div className="grid gap-2 w-full">
         <DndContext

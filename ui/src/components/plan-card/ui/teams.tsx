@@ -20,9 +20,10 @@ import {
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { removeByPredMut } from '@/lib/array-remove-mut';
-import { notifyWithRetry } from '@/lib/notify-with-retry';
 
 import { CharacterPicker } from './character-picker';
+
+const MAX_TEAMS = 10;
 
 type Props = {
   planId: string;
@@ -41,25 +42,26 @@ export function Teams(props: Props) {
     [props.character.id],
   );
 
-  // TODO: add limits for creation
   return (
     <div className="flex flex-col gap-2 group/teams">
       <div className="flex items-center gap-1">
         <span className="text-sm">Teams</span>
-        <CharacterPicker
-          title="Create new team"
-          onSelect={mutation.create}
-          ignoreCharacters={ignoreCharacters}
-        >
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
-            disabled={props.disabled}
+        {mutation.records.length < MAX_TEAMS && (
+          <CharacterPicker
+            title="Create new team"
+            onSelect={mutation.create}
+            ignoreCharacters={ignoreCharacters}
           >
-            <Icons.Add />
-          </Button>
-        </CharacterPicker>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
+              disabled={props.disabled}
+            >
+              <Icons.Add />
+            </Button>
+          </CharacterPicker>
+        )}
       </div>
       {mutation.records.length > 0 && (
         <div className="grid gap-4 w-full">
