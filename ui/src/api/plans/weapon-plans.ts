@@ -30,11 +30,16 @@ export function useWeaponMutation(
     weaponPlans,
     disabled,
     newWeaponPlansMutation(planId),
+    {
+      postUpdate(v) {
+        v.sort((a, b) => a.order - b.order);
+      },
+    },
   );
 
   const createHandler = (weapon: string) => {
     const id = Date.now().toString();
-    const ts = new Date().toString();
+    const ts = new Date();
     mutation.create({
       id,
       created: ts,
@@ -50,31 +55,4 @@ export function useWeaponMutation(
   };
 
   return { ...mutation, create: createHandler };
-}
-
-export function useWeaponPlansReorderMutation() {
-  const {
-    variables,
-    mutate: reorderWeapons,
-    isPending: reorderIsPending,
-    reset,
-  } = useMutation({
-    mutationFn(items: ShortItem[]) {
-      const batch = pbClient.createBatch();
-      for (const it of items) {
-        batch
-          .collection('weaponPlans')
-          .update(it.id, { order: it.order }, { fields: 'id, weapon, order' });
-      }
-      return batch.send();
-    },
-    onSuccess: async (data) => {
-      const items = data.map((it) => it.body);
-      await queryClient.setQueryData(queryKey, items);
-      reset();
-    },
-    onError: notifyWithRetry((v) => {
-      reorderWeapons(v);
-    }),
-  });
 }

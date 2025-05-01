@@ -73,7 +73,13 @@ export function useNewCharacterPlanMutation(
         }
 
         return produce(data, (plans) => {
-          plans.push(newPlan);
+          plans.push({
+            ...newPlan,
+            artifactSetsPlans: [],
+            artifactTypePlans: [],
+            weaponPlans: [],
+            teamPlans: [],
+          });
           plans.sort((a, b) => a.order - b.order);
         });
       });

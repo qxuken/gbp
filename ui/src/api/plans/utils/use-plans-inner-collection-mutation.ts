@@ -165,6 +165,9 @@ export function usePlansInnerCollectionMutation<
   records?: T[],
   disabled?: boolean,
   mutationKey?: MutationKey,
+  updateConfig?: {
+    postUpdate?: (v: T[]) => void;
+  },
 ) {
   const [updates, dispatch] = useImmerReducer<
     MutationReducerState<T>,
@@ -225,6 +228,8 @@ export function usePlansInnerCollectionMutation<
               plan[collectionAccessor] ??= [];
               // @ts-expect-error Too much for ts (or me) to handle
               plan[collectionAccessor].push(data);
+              // @ts-expect-error Too much for ts (or me) to handle
+              updateConfig?.postUpdate?.(plan[collectionAccessor]);
             });
           });
           break;
@@ -262,6 +267,8 @@ export function usePlansInnerCollectionMutation<
                 ...plan[collectionAccessor][index],
                 ...data,
               };
+              // @ts-expect-error Too much for ts (or me) to handle
+              updateConfig?.postUpdate?.(plan[collectionAccessor]);
             });
           });
           break;
@@ -340,7 +347,7 @@ export function usePlansInnerCollectionMutation<
     const toDelete = new Set(
       pendingUpdates.filter((f) => f?.type == 'delete').map((f) => f.id),
     );
-    const res: OptimisticRecord<T>[] = [];
+    let res: OptimisticRecord<T>[] = [];
     if (records) {
       for (const plan of records) {
         if (toDelete.has(plan.id)) continue;
@@ -351,7 +358,9 @@ export function usePlansInnerCollectionMutation<
         }
       }
     }
-    return res.concat(newRecords);
+    res = res.concat(newRecords);
+    updateConfig?.postUpdate?.(res);
+    return;
   }, [updates]);
 
   useBlocker({
@@ -372,7 +381,9 @@ export function usePlansInnerCollectionMutation<
       value,
       (d) => void cb(d as WritableDraft<T>),
     );
-    dispatch({ type: 'update', id: value.id, value, patches });
+    console.log('update', value, patches);
+    if (patches.length > 0)
+      dispatch({ type: 'update', id: value.id, value, patches });
   };
 
   const deleteHandler = (id: string) => {

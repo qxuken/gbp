@@ -16,30 +16,24 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Popover } from '@radix-ui/react-popover';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { WritableDraft } from 'immer';
 import { motion } from 'motion/react';
 import { useMemo, useState } from 'react';
 
-import { db } from '@/api/dictionaries/db';
+import { useWeaponsItem } from '@/api/dictionaries/hooks';
 import { useWeaponMutation } from '@/api/plans/weapon-plans';
-import { pbClient } from '@/api/pocketbase';
-import { queryClient } from '@/api/queryClient';
 import { WeaponPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { AsyncDebounce } from '@/lib/async-debounce';
-import { handleReorder } from '@/lib/handle-reorder';
-import { mutateField } from '@/lib/mutate-field';
-import { notifyWithRetry } from '@/lib/notify-with-retry';
+import { handleReorderImmer } from '@/lib/handle-reorder';
+import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
 
 import { DoubleInputLabeled } from './double-input-labeled';
@@ -52,11 +46,17 @@ type Props = {
   disabled?: boolean;
 };
 export function Weapons(props: Props) {
-  const mutation = useWeaponMutation(props.planId, props.weaponPlans);
+  const mutation = useWeaponMutation(
+    props.planId,
+    props.weaponPlans,
+    props.disabled,
+  );
+
   const ignoreWeapons = useMemo(
     () => new Set(mutation.records.map((w) => w.weapon)),
     [mutation.records],
   );
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(TouchSensor),
@@ -65,33 +65,8 @@ export function Weapons(props: Props) {
     }),
   );
 
-  const {
-    variables,
-    mutate: reorderWeapons,
-    isPending: reorderIsPending,
-    reset,
-  } = useMutation({
-    mutationFn(items: ShortItem[]) {
-      const batch = pbClient.createBatch();
-      for (const it of items) {
-        batch
-          .collection('weaponPlans')
-          .update(it.id, { order: it.order }, { fields: 'id, weapon, order' });
-      }
-      return batch.send();
-    },
-    onSuccess: async (data) => {
-      const items = data.map((it) => it.body);
-      await queryClient.setQueryData(queryKey, items);
-      reset();
-    },
-    onError: notifyWithRetry((v) => {
-      reorderWeapons(v);
-    }),
-  });
-
   function handleDragEnd(event: DragEndEvent) {
-    handleReorder(event, weapons, reorderWeapons);
+    handleReorderImmer(event, mutation.records, mutation.update);
   }
 
   return (
@@ -100,14 +75,15 @@ export function Weapons(props: Props) {
         <span className="text-sm">Weapons</span>
         <WeaponPicker
           title="New weapon"
-          onSelect={createWeapon}
-          weaponTypeId={weaponType}
+          onSelect={mutation.create}
+          weaponTypeId={props.weaponType}
           ignoreWeapons={ignoreWeapons}
         >
           <Button
             variant="ghost"
             size="icon"
             className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+            disabled={props.disabled}
           >
             <Icons.Add />
           </Button>
@@ -119,13 +95,19 @@ export function Weapons(props: Props) {
           collisionDetection={closestCorners}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={items} strategy={verticalListSortingStrategy}>
-            {items.map((wp) => (
+          <SortableContext
+            items={mutation.records}
+            strategy={verticalListSortingStrategy}
+          >
+            {mutation.records.map((wp) => (
               <Weapon
                 key={wp.id}
-                buildId={buildId}
-                weaponPlanId={wp.id}
-                reorderIsPending={reorderIsPending}
+                planId={props.planId}
+                weaponPlan={wp}
+                update={(cb) => mutation.update(wp, cb)}
+                delete={() => mutation.delete(wp.id)}
+                isLoading={wp.isOptimistic}
+                disabled={props.disabled || wp.isOptimisticBlocked}
               />
             ))}
           </SortableContext>
@@ -136,22 +118,16 @@ export function Weapons(props: Props) {
 }
 
 type WeaponProps = {
-  weaponPlanId: string;
-  buildId: string;
-  reorderIsPending: boolean;
+  planId: string;
+  weaponPlan: WeaponPlans;
+  isLoading?: boolean;
+  disabled?: boolean;
+  update(cb: (v: WritableDraft<WeaponPlans>) => void): void;
+  delete(): void;
 };
 
-function Weapon({ weaponPlanId, buildId, reorderIsPending }: WeaponProps) {
-  const queryKey = ['characterPlans', buildId, 'weapons', weaponPlanId];
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      pbClient.collection<WeaponPlans>('weaponPlans').getOne(weaponPlanId),
-  });
-  const weapon = useLiveQuery(
-    () => query.data && db.weapons.get(query.data.weapon),
-    [query.data?.id],
-  );
+function Weapon(props: WeaponProps) {
+  const weapon = useWeaponsItem(props.weaponPlan.weapon);
 
   const {
     attributes,
@@ -161,8 +137,8 @@ function Weapon({ weaponPlanId, buildId, reorderIsPending }: WeaponProps) {
     transition,
     isDragging,
   } = useSortable({
-    id: weaponPlanId,
-    disabled: reorderIsPending,
+    id: props.weaponPlan.id,
+    disabled: props.disabled,
   });
 
   const style = {
@@ -170,55 +146,14 @@ function Weapon({ weaponPlanId, buildId, reorderIsPending }: WeaponProps) {
     transition,
   };
 
-  const mutationDebouncer = useMemo(
-    () =>
-      new AsyncDebounce(
-        (update: WeaponPlans) =>
-          pbClient
-            .collection<WeaponPlans>('weaponPlans')
-            .update(weaponPlanId, update),
-        1000,
-      ),
-    [],
-  );
-  const { variables, mutate } = useMutation({
-    mutationFn: (v: WeaponPlans) => mutationDebouncer.run(v),
-    onSettled: async (data) =>
-      data
-        ? queryClient.setQueryData(queryKey, data)
-        : queryClient.invalidateQueries({ queryKey }),
-    onError: notifyWithRetry((v) => {
-      mutate(v);
-    }),
-  });
-
-  const {
-    mutate: deleteWeaponPlan,
-    isPending: deleteIsPending,
-    isSuccess: isDeleted,
-  } = useMutation({
-    mutationFn: () => pbClient.collection('weaponPlans').delete(weaponPlanId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ['characterPlans', buildId, 'weapons'],
-      }),
-    onError: notifyWithRetry(() => {
-      deleteWeaponPlan();
-    }),
-  });
-
-  const weaponPlan = variables || query.data;
-
-  if (!weapon || !weaponPlan || isDeleted) {
-    return <Skeleton className="w-full h-8"></Skeleton>;
-  }
+  if (!weapon) return null;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn('w-full', {
-        ['animate-pulse']: deleteIsPending,
+        ['animate-pulse']: props.isLoading,
         'opacity-50': isDragging,
       })}
     >
@@ -226,7 +161,7 @@ function Weapon({ weaponPlanId, buildId, reorderIsPending }: WeaponProps) {
         <div className="pt-4">
           <Icons.Drag
             className={cn('rotate-90 size-6 py-1', {
-              'opacity-25 animate-pulse': reorderIsPending,
+              'opacity-25 animate-pulse': props.isLoading,
             })}
             {...listeners}
             {...attributes}
@@ -240,8 +175,8 @@ function Weapon({ weaponPlanId, buildId, reorderIsPending }: WeaponProps) {
             className="size-12 me-2"
           />
           <WeaponTag
-            value={weaponPlan.tag}
-            mutate={mutateField(mutate, weaponPlan, 'tag')}
+            value={props.weaponPlan.tag}
+            update={mutateFieldImmer(props.update, 'tag')}
           />
         </div>
 
@@ -254,21 +189,17 @@ function Weapon({ weaponPlanId, buildId, reorderIsPending }: WeaponProps) {
                   variant="ghost"
                   size="icon"
                   className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-                  disabled={deleteIsPending}
+                  disabled={props.disabled}
                 >
-                  {deleteIsPending ? (
-                    <Icons.Spinner className="animate-spin" />
-                  ) : (
-                    <Icons.Remove />
-                  )}
+                  <Icons.Remove />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="p-0" side="top">
                 <Button
                   variant="destructive"
                   className="w-full"
-                  disabled={deleteIsPending}
-                  onClick={() => deleteWeaponPlan()}
+                  disabled={props.disabled}
+                  onClick={props.delete}
                 >
                   Yes i really want to delete
                 </Button>
@@ -280,29 +211,27 @@ function Weapon({ weaponPlanId, buildId, reorderIsPending }: WeaponProps) {
               name="Level"
               min={0}
               max={90}
-              current={weaponPlan.levelCurrent}
-              target={weaponPlan.levelTarget}
-              onCurrentChange={mutateField(mutate, weaponPlan, 'levelCurrent')}
-              onTargetChange={mutateField(mutate, weaponPlan, 'levelTarget')}
-              disabled={deleteIsPending}
+              current={props.weaponPlan.levelCurrent}
+              target={props.weaponPlan.levelTarget}
+              onCurrentChange={mutateFieldImmer(props.update, 'levelCurrent')}
+              onTargetChange={mutateFieldImmer(props.update, 'levelTarget')}
+              disabled={props.disabled}
             />
             <DoubleInputLabeled
               name="Refinement"
               min={1}
               max={5}
-              current={weaponPlan.refinementCurrent}
-              target={weaponPlan.refinementTarget}
-              onCurrentChange={mutateField(
-                mutate,
-                weaponPlan,
+              current={props.weaponPlan.refinementCurrent}
+              target={props.weaponPlan.refinementTarget}
+              onCurrentChange={mutateFieldImmer(
+                props.update,
                 'refinementCurrent',
               )}
-              onTargetChange={mutateField(
-                mutate,
-                weaponPlan,
+              onTargetChange={mutateFieldImmer(
+                props.update,
                 'refinementTarget',
               )}
-              disabled={deleteIsPending}
+              disabled={props.disabled}
             />
           </div>
         </div>
@@ -313,19 +242,19 @@ function Weapon({ weaponPlanId, buildId, reorderIsPending }: WeaponProps) {
 
 type WeaponTagProps = {
   value?: WeaponPlans['tag'];
-  mutate(v: WeaponPlans['tag']): void;
+  update(v: WeaponPlans['tag']): void;
 };
-function WeaponTag({ value, mutate }: WeaponTagProps) {
+function WeaponTag({ value, update }: WeaponTagProps) {
   const [isActive, setIsActive] = useState(false);
   const activate = () => setIsActive(true);
   const deactivate = () => setIsActive(false);
   const select = (v: WeaponPlans['tag']) => {
-    mutate(v);
+    update(v);
     deactivate();
   };
-  let comp;
+  let component;
   if (isActive) {
-    comp = (
+    component = (
       <>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -373,11 +302,11 @@ function WeaponTag({ value, mutate }: WeaponTagProps) {
       </>
     );
   } else if (value === 'now') {
-    comp = <span className="text-[8px]">C</span>;
+    component = <span className="text-[8px]">C</span>;
   } else if (value === 'need') {
-    comp = <span className="text-[8px]">W</span>;
+    component = <span className="text-[8px]">W</span>;
   } else {
-    comp = <span className="size-3 p-0"></span>;
+    component = <span className="size-3 p-0"></span>;
   }
   const initalStyles = {
     top: 0,
@@ -411,7 +340,7 @@ function WeaponTag({ value, mutate }: WeaponTagProps) {
       )}
       tabIndex={isActive ? -1 : 0}
     >
-      {comp}
+      {component}
     </motion.div>
   );
 }

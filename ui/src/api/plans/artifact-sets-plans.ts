@@ -37,7 +37,7 @@ export function useArtifactSetsMutation(
 
   const createHandler = (value: Pick<ArtifactSetsPlans, 'artifactSets'>) => {
     const id = Date.now().toString();
-    const ts = new Date().toString();
+    const ts = new Date();
     mutation.create({
       id,
       created: ts,

@@ -109,16 +109,16 @@ export interface CharacterPlans {
   talentBurstTarget: number;
   substats: string[];
   note: string;
-  created: string;
-  updated: string;
+  created: Date;
+  updated: Date;
 }
 
 export interface TeamPlans {
   id: string;
   characterPlan: string;
   characters: string[];
-  created: string;
-  updated: string;
+  created: Date;
+  updated: Date;
 }
 
 export interface WeaponPlans {
@@ -131,8 +131,8 @@ export interface WeaponPlans {
   refinementTarget: number;
   tag?: 'now' | 'need';
   order: number;
-  created: string;
-  updated: string;
+  created: Date;
+  updated: Date;
 }
 
 export interface ArtifactTypePlans {
@@ -140,14 +140,14 @@ export interface ArtifactTypePlans {
   characterPlan: string;
   artifactType: string;
   special: string;
-  created: string;
-  updated: string;
+  created: Date;
+  updated: Date;
 }
 
 export interface ArtifactSetsPlans {
   id: string;
   characterPlan: string;
   artifactSets: string[];
-  created: string;
-  updated: string;
+  created: Date;
+  updated: Date;
 }
