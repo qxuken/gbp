@@ -34,7 +34,7 @@ var PLANS_COLLECTIONS = []string{
 
 func loadCollectionsDictionary(app core.App) []planCollectionDict {
 	plansCollections := make([]planCollectionDict, 0, len(PLANS_COLLECTIONS))
-	for i, collectionName := range PLANS_COLLECTIONS {
+	for _, collectionName := range PLANS_COLLECTIONS {
 		if loadedCollection, err := app.FindCollectionByNameOrId(collectionName); err == nil {
 			plansCollections = append(plansCollections, planCollectionDict{loadedCollection.Id, loadedCollection.Name})
 		}
