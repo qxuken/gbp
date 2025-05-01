@@ -16,7 +16,6 @@ export default defineConfig({
     react({
       babel: {
         plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
-        presets: ['jotai/babel/preset'],
       },
     }),
   ],

@@ -1,8 +1,11 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import fuzzysearch from 'fuzzysearch';
-import { PropsWithChildren, useState } from 'react';
+import { PropsWithChildren, useMemo, useState } from 'react';
 
-import { db } from '@/api/dictionaries/db';
+import {
+  useCharacters,
+  useElements,
+  useWeaponTypes,
+} from '@/api/dictionaries/hooks';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
@@ -23,26 +26,24 @@ type PickerProps = {
 function Picker({ onSelect, ignoreCharacters }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
-  const elements = useLiveQuery(() => db.elements.toArray(), []);
-  const weaponTypes = useLiveQuery(() => db.weaponTypes.toArray(), []);
-  const characters = useLiveQuery(
+  const elements = useElements();
+  const weaponTypes = useWeaponTypes();
+  const characters = useCharacters();
+
+  const filteredCharacters = useMemo(
     () =>
-      db.characters
-        .orderBy('rarity')
-        .filter(
-          (c) =>
-            (ignoreCharacters === undefined || !ignoreCharacters.has(c.id)) &&
-            (filter.elements.size === 0 ||
-              !c.element ||
-              filter.elements.has(c.element)) &&
-            (filter.weaponTypes.size === 0 ||
-              filter.weaponTypes.has(c.weaponType)) &&
-            (filter.name.length === 0 ||
-              fuzzysearch(filter.name.toLowerCase(), c.name.toLowerCase())),
-        )
-        .reverse()
-        .toArray(),
-    [filter],
+      characters.filter(
+        (c) =>
+          (ignoreCharacters === undefined || !ignoreCharacters.has(c.id)) &&
+          (filter.elements.size === 0 ||
+            !c.element ||
+            filter.elements.has(c.element)) &&
+          (filter.weaponTypes.size === 0 ||
+            filter.weaponTypes.has(c.weaponType)) &&
+          (filter.name.length === 0 ||
+            fuzzysearch(filter.name.toLowerCase(), c.name.toLowerCase())),
+      ),
+    [characters, ignoreCharacters, filter],
   );
 
   return (
@@ -56,8 +57,8 @@ function Picker({ onSelect, ignoreCharacters }: PickerProps) {
             value={filter.name}
             onChange={(e) => setFilter((f) => ({ ...f, name: e.target.value }))}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && characters && characters.length > 0) {
-                onSelect(characters[0].id);
+              if (e.key === 'Enter' && filteredCharacters.length > 0) {
+                onSelect(filteredCharacters[0].id);
               }
             }}
           />
@@ -131,7 +132,7 @@ function Picker({ onSelect, ignoreCharacters }: PickerProps) {
           ))}
         </div>
         <div className="min-h-32 max-h-[calc(75svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
-          {characters?.map((ch) => (
+          {filteredCharacters.map((ch) => (
             <Button
               variant="secondary"
               key={ch.id}

@@ -1,7 +1,6 @@
 import { PopoverTrigger } from '@radix-ui/react-popover';
-import { useLiveQuery } from 'dexie-react-hooks';
 
-import { db } from '@/api/dictionaries/db';
+import { useElementsItem, useWeaponTypesItem } from '@/api/dictionaries/hooks';
 import { Characters } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
@@ -12,16 +11,10 @@ import { cn } from '@/lib/utils';
 
 type CharacterInfoContentProps = { character: Characters };
 export function CharacterInfoContent({ character }: CharacterInfoContentProps) {
-  const element = useLiveQuery(
-    () => db.elements.get(character?.element ?? ''),
-    [character?.element],
-  );
-  const weaponType = useLiveQuery(
-    () => db.weaponTypes.get(character?.weaponType ?? ''),
-    [character?.weaponType],
-  );
+  const element = useElementsItem(character.element ?? '', false);
+  const weaponType = useWeaponTypesItem(character.weaponType);
 
-  if (!character || !element || !weaponType) {
+  if (!element || !weaponType) {
     return null;
   }
 

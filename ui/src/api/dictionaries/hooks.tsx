@@ -7,7 +7,7 @@ import {
   useMemo,
 } from 'react';
 
-import { createRecordsMap } from '@/lib/create-records-atom';
+import { createRecordsMap } from '@/lib/create-records-map';
 
 import {
   ArtifactSets,
@@ -103,9 +103,21 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
           .then(arrayToDictionaryCollectionValue),
         db.characterRoles.toArray().then(arrayToDictionaryCollectionValue),
         db.weaponTypes.toArray().then(arrayToDictionaryCollectionValue),
-        db.weapons.toArray().then(arrayToDictionaryCollectionValue),
-        db.characters.toArray().then(arrayToDictionaryCollectionValue),
-        db.artifactSets.toArray().then(arrayToDictionaryCollectionValue),
+        db.weapons
+          .orderBy('rarity')
+          .reverse()
+          .toArray()
+          .then(arrayToDictionaryCollectionValue),
+        db.characters
+          .orderBy('rarity')
+          .reverse()
+          .toArray()
+          .then(arrayToDictionaryCollectionValue),
+        db.artifactSets
+          .orderBy('rarity')
+          .reverse()
+          .toArray()
+          .then(arrayToDictionaryCollectionValue),
         db.artifactTypes
           .orderBy('order')
           .toArray()
@@ -143,7 +155,7 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
 
 type CollectionValueHooks<Value> = [
   () => Value[],
-  (id: string) => Value | undefined,
+  (id: string, reportMissing?: boolean) => Value | undefined,
   () => Map<string, Value>,
 ];
 
@@ -155,7 +167,7 @@ function createCollectionValueHooks<C extends keyof DictionaryContext>(
       const value = use(DictionaryContext);
       return value[collectionName].items;
     },
-    function useItem(id: string) {
+    function useItem(id: string, reportMissing = true) {
       const value = use(DictionaryContext);
       const item = useMemo(
         () => value[collectionName].map.get(id),
@@ -163,10 +175,10 @@ function createCollectionValueHooks<C extends keyof DictionaryContext>(
       );
 
       useEffect(() => {
-        if (!item) {
+        if (!item && reportMissing) {
           reloadDictionaries();
         }
-      }, [item]);
+      }, [item, reportMissing]);
 
       return item;
     },
@@ -216,7 +228,7 @@ export const [
   useDomainsOfBlessing,
   useDomainsOfBlessingItem,
   useDomainsOfBlessingMap,
-] = createCollectionValueHooks('artifactTypes');
+] = createCollectionValueHooks('domainsOfBlessing');
 
 export function useDomainsOfBlessingMapByArtifactSetId() {
   return use(DictionaryContext).domainsOfBlessing.byArtifactSetId;

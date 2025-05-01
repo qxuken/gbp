@@ -1,8 +1,7 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import fuzzysearch from 'fuzzysearch';
-import { PropsWithChildren, useState } from 'react';
+import { PropsWithChildren, useMemo, useState } from 'react';
 
-import { db } from '@/api/dictionaries/db';
+import { useArtifactSets } from '@/api/dictionaries/hooks';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
@@ -20,21 +19,18 @@ type PickerProps = {
 };
 function Picker({ onSelect, ignoreArifacts }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
+  const artifactSets = useArtifactSets();
 
-  const artifactSets = useLiveQuery(
+  const filteredArtifactSets = useMemo(
     () =>
-      db.artifactSets
-        .orderBy('rarity')
-        .filter(
-          (as) =>
-            as.rarity > 3 &&
-            (ignoreArifacts === undefined || !ignoreArifacts.has(as.id)) &&
-            (filter.name.length === 0 ||
-              fuzzysearch(filter.name.toLowerCase(), as.name.toLowerCase())),
-        )
-        .reverse()
-        .toArray(),
-    [filter],
+      artifactSets.filter(
+        (as) =>
+          as.rarity > 3 &&
+          (ignoreArifacts === undefined || !ignoreArifacts.has(as.id)) &&
+          (filter.name.length === 0 ||
+            fuzzysearch(filter.name.toLowerCase(), as.name.toLowerCase())),
+      ),
+    [artifactSets, filter],
   );
 
   return (
@@ -48,18 +44,14 @@ function Picker({ onSelect, ignoreArifacts }: PickerProps) {
             value={filter.name}
             onChange={(e) => setFilter((f) => ({ ...f, name: e.target.value }))}
             onKeyDown={(e) => {
-              if (
-                e.key === 'Enter' &&
-                artifactSets &&
-                artifactSets.length > 0
-              ) {
-                onSelect(artifactSets[0].id);
+              if (e.key === 'Enter' && filteredArtifactSets.length > 0) {
+                onSelect(filteredArtifactSets[0].id);
               }
             }}
           />
         </div>
         <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
-          {artifactSets?.map((w) => (
+          {filteredArtifactSets.map((w) => (
             <Button
               variant="secondary"
               key={w.id}

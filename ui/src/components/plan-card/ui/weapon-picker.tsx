@@ -1,8 +1,7 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import fuzzysearch from 'fuzzysearch';
-import { PropsWithChildren, useState } from 'react';
+import { PropsWithChildren, useMemo, useState } from 'react';
 
-import { db } from '@/api/dictionaries/db';
+import { useWeapons, useWeaponTypes } from '@/api/dictionaries/hooks';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
@@ -24,24 +23,21 @@ type PickerProps = {
 function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
-  const weaponTypes = useLiveQuery(() => db.weaponTypes.toArray(), []);
-  const weapons = useLiveQuery(
+  const weaponTypes = useWeaponTypes();
+  const weapons = useWeapons();
+  const filteredWeapons = useMemo(
     () =>
-      db.weapons
-        .orderBy('rarity')
-        .filter(
-          (w) =>
-            w.rarity >= 3 &&
-            (ignoreWeapons === undefined || !ignoreWeapons.has(w.id)) &&
-            (weaponTypeId === undefined || w.weaponType === weaponTypeId) &&
-            (filter.weaponTypes.size === 0 ||
-              filter.weaponTypes.has(w.weaponType)) &&
-            (filter.name.length === 0 ||
-              fuzzysearch(filter.name.toLowerCase(), w.name.toLowerCase())),
-        )
-        .reverse()
-        .toArray(),
-    [filter, weaponTypeId],
+      weapons.filter(
+        (w) =>
+          w.rarity >= 3 &&
+          (ignoreWeapons === undefined || !ignoreWeapons.has(w.id)) &&
+          (weaponTypeId === undefined || w.weaponType === weaponTypeId) &&
+          (filter.weaponTypes.size === 0 ||
+            filter.weaponTypes.has(w.weaponType)) &&
+          (filter.name.length === 0 ||
+            fuzzysearch(filter.name.toLowerCase(), w.name.toLowerCase())),
+      ),
+    [weapons, ignoreWeapons, filter],
   );
 
   return (
@@ -55,8 +51,8 @@ function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
             value={filter.name}
             onChange={(e) => setFilter((f) => ({ ...f, name: e.target.value }))}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && weapons && weapons.length > 0) {
-                onSelect(weapons[0].id);
+              if (e.key === 'Enter' && filteredWeapons.length > 0) {
+                onSelect(filteredWeapons[0].id);
               }
             }}
           />
@@ -100,7 +96,7 @@ function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
           </div>
         )}
         <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
-          {weapons?.map((w) => (
+          {filteredWeapons.map((w) => (
             <Button
               variant="secondary"
               key={w.id}

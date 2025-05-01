@@ -1,8 +1,8 @@
 import {
-  useArtifactSet,
+  useArtifactSetsItem,
   useCharactersItem,
-  useDomainOfBlessing,
-} from '@/api/dictionaries/atoms';
+  useDomainsOfBlessingItem,
+} from '@/api/dictionaries/hooks';
 import {
   DomainsByArtifactSets,
   useDomainsByArtifactSets,
@@ -68,7 +68,10 @@ function PlanDomainsAnalysisContent() {
 }
 
 function PlanDomainsAnalysisItem({ item }: { item: DomainsByArtifactSets }) {
-  const domain = useDomainOfBlessing(item.domain)!;
+  const domain = useDomainsOfBlessingItem(item.domain);
+  if (!domain) {
+    return null;
+  }
   return (
     <div className="pt-1 pb-2 px-2 bg-accent rounded-lg">
       <div className="flex gap-1">
@@ -96,7 +99,7 @@ function PlanDomainsAnalysisItemArtifactSets({
   item: string;
   domain: DomainsOfBlessing;
 }) {
-  const artifactSet = useArtifactSet(item);
+  const artifactSet = useArtifactSetsItem(item);
   if (!artifactSet) return null;
   return (
     <Tooltip key={artifactSet.id}>

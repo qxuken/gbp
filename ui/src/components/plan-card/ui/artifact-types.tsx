@@ -1,8 +1,7 @@
 import { Trigger as SelectTrigger } from '@radix-ui/react-select';
 import { useMemo } from 'react';
 
-import { useSpecialsItem } from '@/api/dictionaries/atoms';
-import { useArtifactTypes } from '@/api/dictionaries/hooks';
+import { useArtifactTypes, useSpecialsItem } from '@/api/dictionaries/hooks';
 import {
   OptimisticArtifactTypePlans,
   useArtifactTypesPlansMutation,

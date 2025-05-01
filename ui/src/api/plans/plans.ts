@@ -11,7 +11,7 @@ import { useMemo } from 'react';
 import { pbClient } from '@/api/pocketbase';
 import { queryClient } from '@/api/queryClient';
 import { Plans } from '@/api/types';
-import { createRecordsMap } from '@/lib/create-records-atom';
+import { createRecordsMap } from '@/lib/create-records-map';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 
 import { newUpdateCharacterPlanMutationKey } from './character-plans';
