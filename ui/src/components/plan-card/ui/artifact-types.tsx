@@ -24,13 +24,13 @@ import { cn } from '@/lib/utils';
 
 type Props = {
   planId: string;
-  artfactTypes?: ArtifactTypePlans[];
+  artfactTypesPlans?: ArtifactTypePlans[];
   disabled?: boolean;
 };
 export function ArtifactTypes(props: Props) {
   const mutation = useArtifactTypesPlansMutation(
     props.planId,
-    props.artfactTypes,
+    props.artfactTypesPlans,
     props.disabled,
   );
   const artifactTypes = useArtifactTypes();

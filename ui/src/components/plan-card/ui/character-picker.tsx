@@ -22,8 +22,9 @@ const DEF_FILTER = {
 type PickerProps = {
   ignoreCharacters?: Set<string>;
   onSelect(characterId: string): void;
+  disabled?: boolean;
 };
-function Picker({ onSelect, ignoreCharacters }: PickerProps) {
+function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
   const elements = useElements();
@@ -64,7 +65,7 @@ function Picker({ onSelect, ignoreCharacters }: PickerProps) {
           />
         </div>
         <div className="flex flex-wrap gap-y-1 gap-x-2">
-          {elements?.map((element) => (
+          {elements.map((element) => (
             <Button
               key={element.id}
               variant={
@@ -138,6 +139,7 @@ function Picker({ onSelect, ignoreCharacters }: PickerProps) {
               key={ch.id}
               className="grid row-span-2 grid-rows-subgrid justify-items-center items-center h-full p-2 relative"
               onClick={() => onSelect(ch.id)}
+              disabled={disabled}
             >
               <CollectionAvatar
                 record={ch}
@@ -171,6 +173,7 @@ export function CharacterPicker({
   onSelect,
   ignoreCharacters,
   children,
+  disabled,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -188,7 +191,11 @@ export function CharacterPicker({
       description="Pick Character"
       contentClassName="md:max-w-3xl max-h-[calc(100%-4rem)] top-8 translate-y-0 overflow-hidden p-5"
     >
-      <Picker onSelect={select} ignoreCharacters={ignoreCharacters} />
+      <Picker
+        onSelect={select}
+        ignoreCharacters={ignoreCharacters}
+        disabled={disabled}
+      />
     </ResponsiveDialog>
   );
 }

@@ -1,11 +1,15 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { WritableDraft } from 'immer';
+import { useMemo } from 'react';
 import { Fragment } from 'react/jsx-runtime';
 
 import { db } from '@/api/dictionaries/db';
+import { useCharactersItem } from '@/api/dictionaries/hooks';
+import { useTeamPlansMutation } from '@/api/plans/team-plans';
 import { pbClient } from '@/api/pocketbase';
 import { queryClient } from '@/api/queryClient';
-import { TeamPlans } from '@/api/types';
+import { Characters, TeamPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
@@ -15,95 +19,62 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
+import { removeByPredMut } from '@/lib/array-remove-mut';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 
 import { CharacterPicker } from './character-picker';
-import { TeamsSkeleton } from './teams-skeleton';
 
-type Props = { buildId: string; characterId: string; enabled?: boolean };
-export function Teams({ buildId, characterId, enabled }: Props) {
-  const queryKey = ['characterPlans', buildId, 'teamPlans'];
-  const query = useQuery({
-    queryKey,
-    queryFn: () =>
-      pbClient.collection<TeamPlans>('teamPlans').getFullList({
-        filter: `characterPlan = '${buildId}'`,
-        fields: 'id',
-      }),
-    enabled,
-  });
-
-  const teamPlans = query.data;
-
-  if (query.isPending || !teamPlans) {
-    return <TeamsSkeleton />;
-  }
-  return (
-    <TeamsLoaded
-      buildId={buildId}
-      characterId={characterId}
-      queryKey={queryKey}
-      teamPlans={teamPlans}
-    />
-  );
-}
-
-type PropsLoaded = Omit<Props, 'enabled'> & {
-  teamPlans: TeamPlans[];
-  queryKey: string[];
+type Props = {
+  planId: string;
+  teamPlans?: TeamPlans[];
+  character: Characters;
+  disabled?: boolean;
 };
-function TeamsLoaded({
-  buildId,
-  characterId,
-  teamPlans,
-  queryKey,
-}: PropsLoaded) {
-  const { mutate: createTeam, isPending: createIsPending } = useMutation({
-    mutationFn: (characterId: string) =>
-      pbClient.collection<TeamPlans>('teamPlans').create({
-        characterPlan: buildId,
-        characters: [characterId],
-      }),
-    onSuccess(data) {
-      queryClient.setQueryData([...queryKey, data.id], data);
-      return queryClient.invalidateQueries({ queryKey });
-    },
-    onError: notifyWithRetry((v) => {
-      createTeam(v);
-    }),
-  });
+export function Teams(props: Props) {
+  const mutation = useTeamPlansMutation(
+    props.planId,
+    props.teamPlans,
+    props.disabled,
+  );
+  const ignoreCharacters = useMemo(
+    () => new Set([props.character.id]),
+    [props.character.id],
+  );
 
-  const ignoreCharacters = new Set([characterId]);
-
+  // TODO: add limits for creation
   return (
     <div className="flex flex-col gap-2 group/teams">
       <div className="flex items-center gap-1">
         <span className="text-sm">Teams</span>
         <CharacterPicker
           title="Create new team"
-          onSelect={createTeam}
+          onSelect={mutation.create}
           ignoreCharacters={ignoreCharacters}
         >
           <Button
             size="icon"
             variant="ghost"
             className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
-            disabled={createIsPending}
+            disabled={props.disabled}
           >
             <Icons.Add />
           </Button>
         </CharacterPicker>
       </div>
-      {teamPlans.length > 0 && (
+      {mutation.records.length > 0 && (
         <div className="grid gap-4 w-full">
-          {teamPlans.map((tp, i) => (
+          {mutation.records.map((tp, i) => (
             <Fragment key={tp.id}>
               <Team
-                buildId={buildId}
-                teamId={tp.id}
-                characterId={characterId}
+                planId={props.planId}
+                teamPlan={tp}
+                character={props.character}
+                update={(cb) => mutation.update(tp, cb)}
+                delete={() => mutation.delete(tp.id)}
+                isLoading={tp.isOptimistic}
+                disabled={props.disabled || tp.isOptimisticBlocked}
               />
-              {teamPlans.length - 1 !== i && (
+              {mutation.records.length - 1 !== i && (
                 <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
               )}
             </Fragment>
@@ -115,110 +86,63 @@ function TeamsLoaded({
 }
 
 type TeamProps = {
-  buildId: string;
-  teamId: string;
-  characterId: string;
+  planId: string;
+  teamPlan: TeamPlans;
+  character: Characters;
+  update(cb: (v: WritableDraft<TeamPlans>) => void): void;
+  delete(): void;
+  isLoading?: boolean;
+  disabled?: boolean;
 };
-function Team({ buildId, teamId, characterId }: TeamProps) {
-  const queryKey = ['characterPlans', buildId, 'teamPlans', teamId];
-
-  const {
-    mutate: deleteTeam,
-    isPending: deleteIsPending,
-    isSuccess: isDeleted,
-  } = useMutation({
-    mutationFn: () =>
-      pbClient.collection<TeamPlans>('teamPlans').delete(teamId),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ['characterPlans', buildId, 'teamPlans'],
-        exact: true,
-      });
-      queryClient.removeQueries({ queryKey });
-    },
-    onError: notifyWithRetry(() => {
-      deleteTeam();
-    }),
-  });
-
-  const query = useQuery({
-    queryKey,
-    queryFn: () => pbClient.collection<TeamPlans>('teamPlans').getOne(teamId),
-    enabled: !isDeleted,
-  });
-
-  const {
-    variables,
-    mutate: updateTeam,
-    isPending: updateIsPending,
-  } = useMutation({
-    mutationFn: (plan: TeamPlans) =>
-      pbClient.collection<TeamPlans>('teamPlans').update(teamId, plan),
-    onSuccess: (data) => queryClient.setQueryData(queryKey, data),
-    onError: notifyWithRetry((v) => {
-      updateTeam(v);
-    }),
-  });
-
-  const team = variables || query.data;
-
-  const ignoreCharacters = new Set([characterId, ...(team?.characters ?? [])]);
-
-  const isPending = deleteIsPending || updateIsPending;
+function Team(props: TeamProps) {
+  const ignoreCharacters = useMemo(
+    () => new Set([props.character.id, ...props.teamPlan.characters]),
+    [props.character.id, props.teamPlan.characters],
+  );
 
   const addMember = (characterId: string) => {
-    if (!team || deleteIsPending || updateIsPending) {
+    if (ignoreCharacters.has(characterId)) {
       return;
     }
-    if (team.characters.includes(characterId)) {
-      return;
-    }
-    updateTeam({
-      ...team,
-      characters: [...team.characters, characterId],
+    props.update((draft) => {
+      draft.characters.push(characterId);
     });
   };
 
   const deleteMember = (characterId: string) => {
-    if (!team || deleteIsPending || updateIsPending) {
-      return;
-    }
-    if (team.characters.length === 1) {
-      deleteTeam();
+    if (props.teamPlan.characters.length === 1) {
+      props.delete();
     } else {
-      updateTeam({
-        ...team,
-        characters: team.characters.filter((c) => c !== characterId),
+      props.update((draft) => {
+        removeByPredMut(draft.characters, (c) => c == characterId);
       });
     }
   };
 
-  if (isDeleted) {
-    return null;
-  }
-
   return (
     <div className="grid gap-2 grid-cols-4">
-      <Character characterId={characterId} updateIsPending={isPending} />
-      {team?.characters.map((tm) => (
+      <Character characterId={props.character.id} disabled={props.disabled} />
+      {props.teamPlan.characters.map((tm) => (
         <Character
           key={tm}
           characterId={tm}
-          deleteMember={() => deleteMember(tm)}
-          updateIsPending={isPending}
+          delete={() => deleteMember(tm)}
+          isLoading={props.isLoading}
+          disabled={props.disabled}
         />
       ))}
-      {team && team.characters.length < 3 && (
+      {props.teamPlan.characters.length < 3 && (
         <CharacterPicker
           title="Add new team member"
           onSelect={addMember}
           ignoreCharacters={ignoreCharacters}
+          disabled={props.disabled}
         >
           <Button
             size="icon"
             variant="ghost"
             className="size-full opacity-50 hover:opacity-100 focus:opacity-100 hover:outline focus:outline"
-            disabled={isPending}
+            disabled={props.disabled}
           >
             <Icons.Add />
           </Button>
@@ -230,18 +154,12 @@ function Team({ buildId, teamId, characterId }: TeamProps) {
 
 type CharacterProps = {
   characterId: string;
-  deleteMember?: () => void;
-  updateIsPending?: boolean;
+  delete?: () => void;
+  isLoading?: boolean;
+  disabled?: boolean;
 };
-function Character({
-  characterId,
-  deleteMember,
-  updateIsPending,
-}: CharacterProps) {
-  const character = useLiveQuery(
-    () => db.characters.get(characterId),
-    [characterId],
-  );
+function Character(props: CharacterProps) {
+  const character = useCharactersItem(props.characterId);
   if (!character) {
     return null;
   }
@@ -255,14 +173,14 @@ function Character({
         className="size-10 my-1"
       />
       <span className="text-center text-xs opacity-85">{character.name}</span>
-      {deleteMember && (
+      {props.delete && (
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               className="absolute top-0 right-0 size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-              disabled={updateIsPending}
+              disabled={props.disabled}
             >
               <Icons.Remove />
             </Button>
@@ -271,8 +189,8 @@ function Character({
             <Button
               variant="destructive"
               className="w-full"
-              onClick={deleteMember}
-              disabled={updateIsPending}
+              onClick={props.delete}
+              disabled={props.disabled}
             >
               Yes i really want to delete
             </Button>

@@ -177,17 +177,17 @@ export function PlanInfo({ plan, character }: Props) {
           <Weapons
             planId={plan.id}
             weaponType={character.weaponType}
-            weaponPlans={plan.weaponPlans}
+            weaponPlansPlans={plan.weaponPlans}
             disabled={isPendingDeletion}
           />
           <ArtifactSets
             planId={plan.id}
-            artifactSets={plan.artifactSetsPlans}
+            artifactSetsPlans={plan.artifactSetsPlans}
             disabled={isPendingDeletion}
           />
           <ArtifactTypes
             planId={plan.id}
-            artfactTypes={plan.artifactTypePlans}
+            artfactTypesPlans={plan.artifactTypePlans}
             disabled={isPendingDeletion}
           />
           <ArtifactSubstats
@@ -195,7 +195,12 @@ export function PlanInfo({ plan, character }: Props) {
             mutate={updateRecord}
             disabled={isPendingDeletion}
           />
-          <Teams buildId={plan.id} characterId={plan.id} enabled={isInView} />
+          <Teams
+            planId={plan.id}
+            character={character}
+            teamPlans={plan.teamPlans}
+            disabled={isPendingDeletion}
+          />
           <Note
             note={record.note}
             mutate={mutateFieldImmer(updateRecord, 'note')}

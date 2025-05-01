@@ -42,13 +42,13 @@ import { WeaponPicker } from './weapon-picker';
 type Props = {
   planId: string;
   weaponType: string;
-  weaponPlans?: WeaponPlans[];
+  weaponPlansPlans?: WeaponPlans[];
   disabled?: boolean;
 };
 export function Weapons(props: Props) {
   const mutation = useWeaponPlansMutation(
     props.planId,
-    props.weaponPlans,
+    props.weaponPlansPlans,
     props.disabled,
   );
 

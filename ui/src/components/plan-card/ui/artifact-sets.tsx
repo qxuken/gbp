@@ -19,13 +19,13 @@ import { ArtifactSetPicker } from './artifact-set-picker';
 
 type Props = {
   planId: string;
-  artifactSets?: ArtifactSetsPlans[];
+  artifactSetsPlans?: ArtifactSetsPlans[];
   disabled?: boolean;
 };
 export function ArtifactSets(props: Props) {
   const mutate = useArtifactSetsPlansMutation(
     props.planId,
-    props.artifactSets,
+    props.artifactSetsPlans,
     props.disabled,
   );
 
