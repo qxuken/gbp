@@ -81,7 +81,7 @@ export function ArtifactTypes(props: Props) {
                 fileName={at.icon}
                 name={at.name}
                 className={cn('size-8', {
-                  ['opacity-50']: selected.length === 0,
+                  ['opacity-50']: selected.length === 0 || props.disabled,
                 })}
               />
               <div className="flex flex-wrap gap-1 items-center">
