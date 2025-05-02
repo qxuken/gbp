@@ -5,7 +5,7 @@ export function notifyWithRetry<T = void>(
   retryAction: (v: T) => void | Promise<void>,
   onAutoClose?: () => void | Promise<void>,
 ) {
-  return function(error: Error, v: T): void {
+  return function onError(error: Error, v: T): void {
     if (error instanceof ClientResponseError && error.isAbort) return;
     const errorText = error.message;
     const description = (

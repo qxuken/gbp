@@ -14,7 +14,6 @@ import { useImmerReducer } from 'use-immer';
 
 import { pbClient } from '@/api/pocketbase';
 import { removeByPredMut } from '@/lib/array-remove-mut';
-import { delay } from '@/lib/delay';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { logger } from '@/store/logger';

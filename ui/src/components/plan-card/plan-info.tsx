@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { WritableDraft } from 'immer';
 // import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'motion/react';
-import { memo, useEffect, useRef } from 'react';
+import { memo, useRef } from 'react';
 
 import { OptimisticPlans } from '@/api/plans/character-plans';
 import { useSharedPendingPlansStatusEntry } from '@/api/plans/plans';

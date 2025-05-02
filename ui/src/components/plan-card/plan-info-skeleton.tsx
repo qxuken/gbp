@@ -2,8 +2,8 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 
 import { Skeleton } from '../ui/skeleton';
 import { ArtifactSetsSkeleton } from './ui/artifact-sets-skeleton';
-import { ArtifactTypesSkeleton } from './ui/artifact-types-skeleton';
 import { ArtifactSubstatsSkeleton } from './ui/artifact-substats-skeleton';
+import { ArtifactTypesSkeleton } from './ui/artifact-types-skeleton';
 import { MainStatSkeleton } from './ui/main-stats-skeleton';
 import { NoteSkeleton } from './ui/note-skeleton';
 import { TeamsSkeleton } from './ui/teams-skeleton';
