@@ -1,14 +1,9 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { WritableDraft } from 'immer';
 import { useMemo } from 'react';
 import { Fragment } from 'react/jsx-runtime';
 
-import { db } from '@/api/dictionaries/db';
 import { useCharactersItem } from '@/api/dictionaries/hooks';
 import { useTeamPlansMutation } from '@/api/plans/team-plans';
-import { pbClient } from '@/api/pocketbase';
-import { queryClient } from '@/api/queryClient';
 import { Characters, TeamPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -20,6 +15,7 @@ import {
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { removeByPredMut } from '@/lib/array-remove-mut';
+import { cn } from '@/lib/utils';
 
 import { CharacterPicker } from './character-picker';
 
@@ -45,7 +41,13 @@ export function Teams(props: Props) {
   return (
     <div className="flex flex-col gap-2 group/teams">
       <div className="flex items-center gap-1">
-        <span className="text-sm">Teams</span>
+        <span
+          className={cn('text-sm', {
+            'text-rose-700': mutation.isError,
+          })}
+        >
+          Teams
+        </span>
         {mutation.records.length < MAX_TEAMS && (
           <CharacterPicker
             title="Create new team"
@@ -61,6 +63,18 @@ export function Teams(props: Props) {
               <Icons.Add />
             </Button>
           </CharacterPicker>
+        )}
+        <div className="flex-1" />
+        {mutation.isError && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+            onClick={mutation.retry}
+            disabled={props.disabled}
+          >
+            <Icons.Retry className="text-rose-700" />
+          </Button>
         )}
       </div>
       {mutation.records.length > 0 && (

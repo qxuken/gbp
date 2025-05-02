@@ -14,19 +14,19 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 
-import { usePlans, useReorderPlans } from '@/api/plans/plans';
+import { useCharacterPlansMutation } from '@/api/plans/character-plans';
+import { usePlans } from '@/api/plans/plans';
 import { PlanInfo } from '@/components/plan-card/plan-info';
-import { handleReorder } from '@/lib/handle-reorder';
+import { handleReorderImmer } from '@/lib/handle-reorder';
 import { useRenderingPlanItems } from '@/store/plans/rendering-items';
 
 import { CreatePlan } from './plan-card/create-plan';
-import { PendingPlanPlaceholder } from './plan-card/pending-plan-info';
 import { Card } from './ui/card';
 
 export default function Plans() {
-  const reorderItems = useReorderPlans();
   const plans = usePlans();
-  const renderingItems = useRenderingPlanItems();
+  const mutations = useCharacterPlansMutation(plans);
+  const renderingItems = useRenderingPlanItems(mutations.records);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -36,7 +36,7 @@ export default function Plans() {
     }),
   );
   function handleDragEnd(event: DragEndEvent) {
-    handleReorder(event, plans, reorderItems);
+    handleReorderImmer(event, plans, mutations.update);
   }
 
   return (
@@ -48,22 +48,18 @@ export default function Plans() {
       <SortableContext items={plans} strategy={rectSortingStrategy}>
         {renderingItems.map((item) => {
           switch (item.type) {
-            case 'committed': {
+            case 'plan': {
               return (
                 <PlanInfo
                   key={item.plan.id}
                   plan={item.plan}
                   character={item.character}
-                />
-              );
-            }
-            case 'pending': {
-              return (
-                <PendingPlanPlaceholder
-                  key={item.plan.id}
-                  plan={item.plan}
-                  character={item.character}
-                  visible={item.visible}
+                  update={(cb) => mutations.update(item.plan, cb)}
+                  retry={mutations.retry}
+                  delete={() => mutations.delete(item.plan.id)}
+                  isLoading={item.plan.isOptimistic}
+                  isError={item.plan.isOptimisticError}
+                  disabled={item.plan.isOptimisticBlocked}
                 />
               );
             }
@@ -74,7 +70,7 @@ export default function Plans() {
                   className="w-full border-2 border-dashed border-muted bg-muted/5"
                 >
                   <div className="w-full h-full flex items-center justify-center p-12">
-                    <CreatePlan />
+                    <CreatePlan create={mutations.create} />
                   </div>
                 </Card>
               );

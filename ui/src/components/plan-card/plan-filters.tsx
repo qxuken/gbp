@@ -1,5 +1,4 @@
 import { SelectTrigger } from '@radix-ui/react-select';
-import { useState } from 'react';
 
 import {
   useArtifactTypes,
@@ -28,10 +27,8 @@ import {
 } from '@/store/plans/filters';
 
 export default function PlanFilters() {
-  const [isOpen, setIsOpen] = useState(true);
-
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} asChild>
+    <Collapsible defaultOpen asChild>
       <section
         aria-label="Filters"
         className="p-3 grid gap-2 min-w-xs border border-border border-dashed rounded-xl"

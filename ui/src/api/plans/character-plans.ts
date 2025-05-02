@@ -1,31 +1,27 @@
-import { useMutation } from '@tanstack/react-query';
-import { useBlocker } from '@tanstack/react-router';
-import {
-  applyPatches,
-  Patch,
-  produce,
-  produceWithPatches,
-  WritableDraft,
-} from 'immer';
-import { useMemo, useRef, useState } from 'react';
+import { Patch } from 'immer';
 
 import { pbClient } from '@/api/pocketbase';
 import { CharacterPlans, Plans } from '@/api/types';
-import { AsyncDebounce } from '@/lib/async-debounce';
-import { notifyWithRetry } from '@/lib/notify-with-retry';
-import { useRemovePendingPlans } from '@/store/plans/pending-plans';
+import { identity } from '@/lib/indentity';
 
-import { queryClient } from '../queryClient';
-import { PLANS_QUERY } from './plans';
+import {
+  OptimisticRecord,
+  useCollectionMutation,
+} from './utils/use-collection-mutation';
 
 export function newCharacterPlan(
   character: string,
   order: number,
-): Omit<CharacterPlans, 'id' | 'updated' | 'created'> {
+): CharacterPlans {
   if (!pbClient.authStore.record) {
     throw new Error('User should be authorized at this point');
   }
+  const id = Date.now().toString();
+  const ts = new Date();
   return {
+    id,
+    created: ts,
+    updated: ts,
     user: pbClient.authStore.record.id,
     character,
     order,
@@ -44,187 +40,46 @@ export function newCharacterPlan(
   };
 }
 
-export function newCharacterPlansMutationKey(id: string) {
-  return ['plans', 'new', id];
-}
+export type OptimisticPlans = OptimisticRecord<Plans>;
 
-type NewCharacterPlanMutationParams = {
-  id: string;
-  characterId: string;
-  order: number;
-};
-export function useNewCharacterPlanMutation(
-  params: NewCharacterPlanMutationParams,
-) {
-  const removePendingPlan = useRemovePendingPlans();
-  const mutation = useMutation({
-    mutationKey: newCharacterPlansMutationKey(params.id),
-    mutationFn: () =>
-      pbClient
-        .collection<CharacterPlans>('characterPlans')
-        .create(newCharacterPlan(params.characterId, params.order)),
-    onSuccess(newPlan) {
-      queryClient.setQueryData(PLANS_QUERY.queryKey, (data) => {
-        if (!data) {
-          console.error(
-            'useNewCharacterPlanMutation got empty plans array on success',
-          );
-          return;
-        }
+export const UPDATE_CHARACTER_PLAN_MUTATION_KEY = ['plans'];
 
-        return produce(data, (plans) => {
-          plans.push({
-            ...newPlan,
-            artifactSetsPlans: [],
-            artifactTypePlans: [],
-            weaponPlans: [],
-            teamPlans: [],
-          });
-          plans.sort((a, b) => a.order - b.order);
-        });
-      });
-      removePendingPlan(params);
-    },
-    onError: notifyWithRetry((v) => void mutation.mutate(v)),
-  });
-  return mutation;
-}
-
-export function newUpdateCharacterPlanMutationKey(id: string) {
-  return ['plans', id];
-}
-
-type MutationAction = { type: 'update' } | { type: 'delete' };
-
-const PLAN_TO_CHARACTER_PLAN_PATCHES: readonly Patch[] = [
+const PLAN_TO_CHARACTER_PLAN_PATCHES: Patch[] = [
   { op: 'remove', path: ['artifactSetsPlans'] },
   { op: 'remove', path: ['artifactTypePlans'] },
   { op: 'remove', path: ['weaponPlans'] },
   { op: 'remove', path: ['teamPlans'] },
-  { op: 'remove', path: ['order'] },
 ];
 
 const MUTATION_DEBOUNCE_MS = 750;
 
-export function useCharacterPlanMutation(plan: Plans) {
-  const patches = useRef<Patch[]>([]);
-  const [shadowRecord, setShadowRecord] = useState<Plans | null>(null);
-  const mutationKey = newUpdateCharacterPlanMutationKey(plan.id);
-  const mutationDebouncer = useMemo(
-    () =>
-      new AsyncDebounce(async (plan: CharacterPlans) => {
-        const size = patches.current.length;
-        if (size == 0) console.error('update was called with empty patch list');
-
-        const patchSlice = patches.current.concat(
-          PLAN_TO_CHARACTER_PLAN_PATCHES,
-        );
-        const res = await pbClient
-          .collection<CharacterPlans>('characterPlans')
-          .update(plan.id, applyPatches(plan, patchSlice));
-        patches.current.splice(0, size);
-        return res;
-      }, MUTATION_DEBOUNCE_MS),
-    [plan.id],
+export function useCharacterPlansMutation(plans: Plans[], disabled?: boolean) {
+  const mutation = useCollectionMutation(
+    'characterPlans',
+    identity,
+    plans,
+    disabled,
+    UPDATE_CHARACTER_PLAN_MUTATION_KEY,
+    {
+      debounceMS: MUTATION_DEBOUNCE_MS,
+      serverPatches: PLAN_TO_CHARACTER_PLAN_PATCHES,
+      postUpdate(v) {
+        v.sort((a, b) => a.order - b.order);
+      },
+    },
   );
 
-  const mutation = useMutation({
-    mutationKey,
-    async mutationFn(action: MutationAction) {
-      switch (action.type) {
-        case 'update':
-          return mutationDebouncer.run(plan);
-
-        case 'delete':
-          mutationDebouncer.cancel();
-          await pbClient
-            .collection<CharacterPlans>('characterPlans')
-            .delete(plan.id);
-          break;
-      }
-    },
-    onSuccess(data, action) {
-      switch (action.type) {
-        case 'update':
-          queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
-            if (!plans) {
-              console.error(
-                'useCharacterPlanMutation got empty plans array on success',
-              );
-              return;
-            }
-            return produce(plans, (plans) => {
-              const planIndex = plans.findIndex((p) => p.id == plan.id);
-              if (planIndex < 0) {
-                console.error(
-                  "useCharacterPlanMutation could not find plan it's intended to update",
-                );
-                return;
-              }
-              plans[planIndex] = { ...plans[planIndex], ...data };
-            });
-          });
-          if (patches.current.length > 0) {
-            mutation.mutate({ type: 'update' });
-          } else {
-            setShadowRecord(null);
-          }
-          break;
-
-        case 'delete':
-          queryClient.setQueryData(PLANS_QUERY.queryKey, (plans) => {
-            if (!plans) {
-              console.error(
-                'useCharacterPlanMutation got empty plans array on success',
-              );
-              return;
-            }
-            return plans.filter((p) => p.id != plan.id);
-          });
-          break;
-      }
-    },
-    onError: notifyWithRetry(
-      (v) => void mutation.mutate(v),
-      () => queryClient.invalidateQueries({ queryKey: PLANS_QUERY.queryKey }),
-    ),
-  });
-
-  useBlocker({
-    shouldBlockFn: () => {
-      if (!mutation.isPending) return false;
-      const shouldLeave = confirm('Are you sure you want to leave?');
-      return !shouldLeave;
-    },
-    disabled: !mutation.isPending,
-  });
-
-  const updateHandler = (cb: (v: WritableDraft<CharacterPlans>) => void) => {
-    if (mutation.variables?.type == 'delete') return;
-    const current =
-      patches.current.length > 0 ? applyPatches(plan, patches.current) : plan;
-    const [newPlan, newPatches] = produceWithPatches(
-      current,
-      (d) => void cb(d),
+  const createHandler = (characterId: string) => {
+    mutation.create(
+      newCharacterPlan(
+        characterId,
+        mutation.records.at(-1)?.order ?? 1,
+      ) as Plans,
     );
-    patches.current.push(...newPatches);
-    setShadowRecord(newPlan);
-    mutation.mutateAsync({ type: 'update' });
-  };
-
-  const deleteHandler = () => {
-    if (mutation.variables?.type == 'delete') return;
-    mutation.mutateAsync({ type: 'delete' });
-    setShadowRecord(null);
   };
 
   return {
-    record: shadowRecord ?? plan,
-    updateRecord: updateHandler,
-    deleteRecord: deleteHandler,
-    isPending: mutation.isPending,
-    isDeleted: mutation.isSuccess && mutation.variables?.type == 'delete',
-    isPendingDeletion:
-      mutation.isPending && mutation.variables?.type == 'delete',
+    ...mutation,
+    create: createHandler,
   };
 }

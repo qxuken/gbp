@@ -8,6 +8,7 @@ import {
 } from 'react';
 
 import { createRecordsMap } from '@/lib/create-records-map';
+import { logger } from '@/store/logger';
 
 import {
   ArtifactSets,
@@ -187,7 +188,7 @@ function createCollectionValueHooks<
 
       useEffect(() => {
         if (value.meta.loaded && !item && reportMissing) {
-          console.error('missing', collectionName, id);
+          logger.error('missing', collectionName, id);
 
           reloadDictionaries();
         }

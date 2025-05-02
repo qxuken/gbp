@@ -3,6 +3,8 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { WritableDraft } from 'immer';
 import { startTransition } from 'react';
 
+import { logger } from '@/store/logger';
+
 type ReorderableItem = {
   id: string;
   order: number;
@@ -20,7 +22,7 @@ export function handleReorder<T extends ReorderableItem>(
   const newIndex = items.findIndex((it) => it.id === over.id);
 
   if (oldIndex < 0 || newIndex < 0) {
-    console.error('Invalid drag indices:', {
+    logger.error('Invalid drag indices:', {
       oldIndex,
       newIndex,
       active,
@@ -51,7 +53,7 @@ export function handleReorderImmer<T extends ReorderableItem>(
   const newIndex = items.findIndex((it) => it.id === over.id);
 
   if (oldIndex < 0 || newIndex < 0) {
-    console.error('Invalid drag indices:', {
+    logger.error('Invalid drag indices:', {
       oldIndex,
       newIndex,
       active,

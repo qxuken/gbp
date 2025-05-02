@@ -84,12 +84,14 @@ export interface ArtifactTypes extends RecordModel {
 
 // Plans
 
-export interface Plans extends CharacterPlans {
+export interface PlansExtra {
   artifactSetsPlans?: ArtifactSetsPlans[];
   artifactTypePlans?: ArtifactTypePlans[];
   weaponPlans?: WeaponPlans[];
   teamPlans?: TeamPlans[];
 }
+
+export interface Plans extends CharacterPlans, PlansExtra {}
 
 export interface CharacterPlans {
   id: string;

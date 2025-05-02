@@ -1,5 +1,7 @@
 import { toast } from 'sonner';
 
+import { logger } from '@/store/logger';
+
 import DictionaryLoaderWorker from './loader.worker?worker';
 
 export const worker = new DictionaryLoaderWorker();
@@ -25,6 +27,6 @@ worker.addEventListener('message', (e) => {
         },
       },
     });
-    console.error(e.data.error);
+    logger.error(e.data.error);
   }
 });

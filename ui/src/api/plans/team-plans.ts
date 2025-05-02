@@ -1,8 +1,10 @@
 import { TeamPlans } from '../types';
+import { useSharedPendingPlansCollectionReporter } from './plans';
 import {
   OptimisticRecord,
-  usePlansInnerCollectionMutation,
-} from './utils/use-plans-inner-collection-mutation';
+  usePlanCollectionAccessor,
+  useCollectionMutation,
+} from './utils/use-collection-mutation';
 
 export function newTeamPlansMutation(planId: string) {
   return ['plans', planId, 'teamPlans'];
@@ -15,13 +17,16 @@ export function useTeamPlansMutation(
   teamPlans?: TeamPlans[],
   disabled?: boolean,
 ) {
-  const mutation = usePlansInnerCollectionMutation(
+  const collectionGetter = usePlanCollectionAccessor('teamPlans', planId);
+  const [onPendingChange, onErrorChange] =
+    useSharedPendingPlansCollectionReporter('teamPlans', planId);
+  const mutation = useCollectionMutation(
     'teamPlans',
-    'teamPlans',
-    planId,
+    collectionGetter,
     teamPlans,
     disabled,
     newTeamPlansMutation(planId),
+    { debounceMS: 0, onPendingChange, onErrorChange },
   );
 
   const createHandler = (characterId: string) => {

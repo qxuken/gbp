@@ -2,11 +2,12 @@ import { useMemo } from 'react';
 
 import { ArtifactTypePlans } from '@/api/types';
 
-import { usePlans } from './plans';
+import { usePlans, useSharedPendingPlansCollectionReporter } from './plans';
 import {
   OptimisticRecord,
-  usePlansInnerCollectionMutation,
-} from './utils/use-plans-inner-collection-mutation';
+  usePlanCollectionAccessor,
+  useCollectionMutation,
+} from './utils/use-collection-mutation';
 
 export function useArtifactTypePlans() {
   const plans = usePlans();
@@ -27,13 +28,19 @@ export function useArtifactTypesPlansMutation(
   artfactTypes?: ArtifactTypePlans[],
   disabled?: boolean,
 ) {
-  const mutation = usePlansInnerCollectionMutation(
-    'artifactTypePlans',
+  const collectionGetter = usePlanCollectionAccessor(
     'artifactTypePlans',
     planId,
+  );
+  const [onPendingChange, onErrorChange] =
+    useSharedPendingPlansCollectionReporter('artifactTypePlans', planId);
+  const mutation = useCollectionMutation(
+    'artifactTypePlans',
+    collectionGetter,
     artfactTypes,
     disabled,
     newArtifactTypesPlansMutation(planId),
+    { onPendingChange, onErrorChange },
   );
 
   const createHandler = (

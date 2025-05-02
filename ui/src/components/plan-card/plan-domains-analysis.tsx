@@ -28,7 +28,7 @@ import { CharacterInfoContent } from './ui/character-info';
 
 export default function PlanDomainsAnalysis() {
   return (
-    <Collapsible asChild>
+    <Collapsible defaultOpen asChild>
       <section
         aria-label="Filters"
         className="p-3 grid gap-2 min-w-xs border border-border border-dashed rounded-xl"

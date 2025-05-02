@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 
 import { WeaponPlans } from '../types';
-import { usePlans } from './plans';
+import { usePlans, useSharedPendingPlansCollectionReporter } from './plans';
 import {
   OptimisticRecord,
-  usePlansInnerCollectionMutation,
-} from './utils/use-plans-inner-collection-mutation';
+  usePlanCollectionAccessor,
+  useCollectionMutation,
+} from './utils/use-collection-mutation';
 
 export function useWeaponPlans() {
   const plans = usePlans();
@@ -23,10 +24,12 @@ export function useWeaponPlansMutation(
   weaponPlans?: WeaponPlans[],
   disabled?: boolean,
 ) {
-  const mutation = usePlansInnerCollectionMutation(
+  const collectionGetter = usePlanCollectionAccessor('weaponPlans', planId);
+  const [onPendingChange, onErrorChange] =
+    useSharedPendingPlansCollectionReporter('weaponPlans', planId);
+  const mutation = useCollectionMutation(
     'weaponPlans',
-    'weaponPlans',
-    planId,
+    collectionGetter,
     weaponPlans,
     disabled,
     newWeaponPlansMutation(planId),
@@ -34,6 +37,8 @@ export function useWeaponPlansMutation(
       postUpdate(v) {
         v.sort((a, b) => a.order - b.order);
       },
+      onPendingChange,
+      onErrorChange,
     },
   );
 

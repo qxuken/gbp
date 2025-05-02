@@ -25,7 +25,7 @@ type Props = {
   disabled?: boolean;
 };
 export function ArtifactSets(props: Props) {
-  const mutate = useArtifactSetsPlansMutation(
+  const mutation = useArtifactSetsPlansMutation(
     props.planId,
     props.artifactSetsPlans,
     props.disabled,
@@ -34,11 +34,17 @@ export function ArtifactSets(props: Props) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
-        <span className="text-sm">Artifacts</span>
-        {mutate.records.length < MAX_SETS && (
+        <span
+          className={cn('text-sm', {
+            'text-rose-700': mutation.isError,
+          })}
+        >
+          Artifacts
+        </span>
+        {mutation.records.length < MAX_SETS && (
           <ArtifactSetPicker
             title="New artifact set"
-            onSelect={(as) => mutate.create({ artifactSets: [as] })}
+            onSelect={(as) => mutation.create({ artifactSets: [as] })}
           >
             <Button
               variant="ghost"
@@ -50,18 +56,30 @@ export function ArtifactSets(props: Props) {
             </Button>
           </ArtifactSetPicker>
         )}
+        <div className="flex-1" />
+        {mutation.isError && (
+          <Button
+            variant="ghost"
+            className="h-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+            onClick={mutation.retry}
+            disabled={props.disabled}
+          >
+            <Icons.Retry className="text-rose-700" />
+            Retry
+          </Button>
+        )}
       </div>
       <div className="grid gap-1 w-full">
-        {mutate.records.map((as, i) => (
+        {mutation.records.map((as, i) => (
           <div key={as.id}>
             <ArtifactSetPlan
               artifactSetPlan={as}
-              update={(cb) => mutate.update(as, cb)}
-              delete={() => mutate.delete(as.id)}
+              update={(cb) => mutation.update(as, cb)}
+              delete={() => mutation.delete(as.id)}
               isLoading={as.isOptimistic}
               disabled={as.isOptimisticBlocked || props.disabled}
             />
-            {mutate.records.length - 1 !== i && (
+            {mutation.records.length - 1 !== i && (
               <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
             )}
           </div>

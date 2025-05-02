@@ -1,13 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable';
+import { WritableDraft } from 'immer';
 // import { CSS } from '@dnd-kit/utilities';
-import { motion, useInView } from 'motion/react';
-import { useRef } from 'react';
+import { motion } from 'motion/react';
+import { memo, useEffect, useRef } from 'react';
 
-import { useCharacterPlanMutation } from '@/api/plans/character-plans';
-import {
-  usePlansItemIsLoading,
-  useReorderPlansIsPending,
-} from '@/api/plans/plans';
+import { OptimisticPlans } from '@/api/plans/character-plans';
+import { useSharedPendingPlansStatusEntry } from '@/api/plans/plans';
 import type { Characters, Plans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -25,7 +23,6 @@ import {
 } from '@/components/ui/tooltip';
 import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
-import { useFiltersEnabled } from '@/store/plans/filters';
 
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactSubstats } from './ui/artifact-substats';
@@ -37,176 +34,196 @@ import { Teams } from './ui/teams';
 import { Weapons } from './ui/weapons';
 
 type Props = {
-  plan: Plans;
+  plan: OptimisticPlans;
   character: Characters;
+  update: (cb: (v: WritableDraft<Plans>) => void) => void;
+  retry: () => void;
+  delete: () => void;
+  isLoading?: boolean;
+  isError?: boolean;
+  disabled?: boolean;
 };
 
-export function PlanInfo({ plan, character }: Props) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(cardRef, { once: true });
-  const filtersEnabled = useFiltersEnabled();
+export const PlanInfo = memo(
+  function PlanInfo(props: Props) {
+    const cardRef = useRef<HTMLDivElement>(null);
 
-  const reorderIsPending = useReorderPlansIsPending();
+    const [plansInnerMutationsIsPending, plansInnerMutationsHasError] =
+      useSharedPendingPlansStatusEntry(props.plan.id);
 
-  const { record, updateRecord, deleteRecord, isDeleted, isPendingDeletion } =
-    useCharacterPlanMutation(plan);
+    const isUpdating = props.isLoading || plansInnerMutationsIsPending;
+    const isError = props.isError || plansInnerMutationsHasError;
 
-  const isUpdating = usePlansItemIsLoading(plan.id);
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: props.plan.id });
 
-  const dndEnabled = !filtersEnabled && !isPendingDeletion;
+    const style = {
+      transform: transform
+        ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+        : undefined,
+      // transform: CSS.Transform.toString(transform),
+      transition,
+    };
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: plan.id });
-
-  const style = {
-    transform: transform
-      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-      : undefined,
-    // transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  if (isDeleted) {
-    return null;
-  }
-
-  return (
-    <article id={plan.id} ref={cardRef}>
-      <Card
-        ref={setNodeRef}
-        className={cn('w-full overflow-hidden relative', {
-          'opacity-50': isDragging,
-        })}
-        style={style}
-      >
-        <motion.div
-          className="size-4 absolute top-2 left-4"
-          initial={{
-            scale: isUpdating ? 1 : 0,
-          }}
-          animate={{
-            scale: isUpdating ? 1 : 0,
-          }}
-          transition={{ duration: 0.2 }}
-          aria-hidden={!isUpdating}
+    return (
+      <article id={props.plan.id} ref={cardRef}>
+        <Card
+          ref={setNodeRef}
+          className={cn('w-full overflow-hidden relative', {
+            'opacity-50': isDragging,
+            'border-rose-700': isError,
+          })}
+          style={style}
         >
-          <Tooltip>
-            <TooltipTrigger>
-              <Icons.Spinner className="size-4 animate-spin text-accent-foreground opacity-75" />
-            </TooltipTrigger>
-            <TooltipContent>
-              Dont exit this page until updates is pending
-            </TooltipContent>
-          </Tooltip>
-        </motion.div>
-        <motion.div
-          className="w-full flex justify-center pt-1"
-          initial={{
-            opacity: dndEnabled ? 1 : 0,
-          }}
-          animate={{
-            opacity: dndEnabled ? 1 : 0,
-          }}
-          transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
-          aria-hidden={!dndEnabled}
-        >
-          {reorderIsPending || !dndEnabled ? (
-            <Icons.Drag
-              className={cn('opacity-25 py-1', {
-                'animate-pulse': reorderIsPending,
-                'cursor-default': !dndEnabled,
-              })}
-              {...attributes}
-            />
-          ) : (
-            <Icons.Drag
-              className="py-1 cursor-grab"
-              {...listeners}
-              {...attributes}
-            />
-          )}
-        </motion.div>
-        <CardTitle className="px-4 w-full flex items-center gap-3">
-          <span className="font-semibold text-lg">{character.name}</span>
-          <CharacterInfo character={character} />
-          <div className="flex-1" />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-                disabled={isUpdating}
-              >
-                <Icons.Remove />
+          <motion.div
+            className="size-4 absolute top-2 left-4"
+            initial={{
+              scale: isUpdating ? 1 : 0,
+            }}
+            animate={{
+              scale: isUpdating ? 1 : 0,
+            }}
+            transition={{ duration: 0.15 }}
+            aria-hidden={!isUpdating}
+          >
+            <Tooltip>
+              <TooltipTrigger>
+                <Icons.Spinner className="size-4 animate-spin text-accent-foreground opacity-75" />
+              </TooltipTrigger>
+              <TooltipContent>
+                Dont exit this page until updates is pending
+              </TooltipContent>
+            </Tooltip>
+          </motion.div>
+          <motion.div
+            className="w-full flex justify-center pt-1"
+            initial={{
+              opacity: props.disabled ? 0 : 1,
+            }}
+            animate={{
+              opacity: props.disabled ? 0 : 1,
+            }}
+            transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
+            aria-hidden={!props.disabled}
+          >
+            {!props.disabled ? (
+              <Icons.Drag
+                className="py-1 cursor-grab"
+                {...listeners}
+                {...attributes}
+              />
+            ) : (
+              <Icons.Drag
+                className="opacity-25 py-1 cursor-default"
+                {...attributes}
+              />
+            )}
+          </motion.div>
+          <CardTitle className="px-4 w-full flex items-center gap-3">
+            <span className="font-semibold text-lg">
+              {props.character.name}
+            </span>
+            <CharacterInfo character={props.character} />
+            <div className="flex-1" />
+            <motion.div
+              initial={{
+                scale: props.isError ? 1 : 0,
+              }}
+              animate={{
+                scale: props.isError ? 1 : 0,
+              }}
+              transition={{ duration: 0.15 }}
+              aria-hidden={!props.isError}
+            >
+              <Button size="sm" variant="destructive" onClick={props.retry}>
+                <Icons.Retry className="size-4" />
+                Retry
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" side="top">
-              <Button
-                variant="destructive"
-                className="w-full"
-                disabled={isUpdating}
-                onClick={deleteRecord}
-              >
-                Yes i really want to delete
-              </Button>
-            </PopoverContent>
-          </Popover>
-        </CardTitle>
-        <CardContent className="w-full pt-4 flex flex-col gap-3">
-          <div className="flex items-start justify-around">
-            <MainStat
-              plan={record}
-              mutate={updateRecord}
-              disabled={isPendingDeletion}
+            </motion.div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                  disabled={isUpdating}
+                >
+                  <Icons.Remove />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0" side="top">
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  disabled={props.disabled}
+                  onClick={props.delete}
+                >
+                  Yes i really want to delete
+                </Button>
+              </PopoverContent>
+            </Popover>
+          </CardTitle>
+          <CardContent className="w-full pt-4 flex flex-col gap-3">
+            <div className="flex items-start justify-around">
+              <MainStat
+                plan={props.plan}
+                mutate={props.update}
+                disabled={props.disabled}
+              />
+              <CollectionAvatar
+                className="size-35 rounded-2xl ml-6"
+                record={props.character}
+                fileName={props.character.icon}
+                name={props.character.name}
+              />
+              <div />
+            </div>
+            <Weapons
+              planId={props.plan.id}
+              weaponType={props.character.weaponType}
+              weaponPlansPlans={props.plan.weaponPlans}
+              disabled={props.disabled}
             />
-            <CollectionAvatar
-              className="size-35 rounded-2xl ml-6"
-              record={character}
-              fileName={character.icon}
-              name={character.name}
+            <ArtifactSets
+              planId={props.plan.id}
+              artifactSetsPlans={props.plan.artifactSetsPlans}
+              disabled={props.disabled}
             />
-            <div />
-          </div>
-          <Weapons
-            planId={plan.id}
-            weaponType={character.weaponType}
-            weaponPlansPlans={plan.weaponPlans}
-            disabled={isPendingDeletion}
-          />
-          <ArtifactSets
-            planId={plan.id}
-            artifactSetsPlans={plan.artifactSetsPlans}
-            disabled={isPendingDeletion}
-          />
-          <ArtifactTypes
-            planId={plan.id}
-            artfactTypesPlans={plan.artifactTypePlans}
-            disabled={isPendingDeletion}
-          />
-          <ArtifactSubstats
-            substats={record.substats}
-            mutate={updateRecord}
-            disabled={isPendingDeletion}
-          />
-          <Teams
-            planId={plan.id}
-            character={character}
-            teamPlans={plan.teamPlans}
-            disabled={isPendingDeletion}
-          />
-          <Note
-            note={record.note}
-            mutate={mutateFieldImmer(updateRecord, 'note')}
-          />
-        </CardContent>
-      </Card>
-    </article>
-  );
-}
+            <ArtifactTypes
+              planId={props.plan.id}
+              artfactTypesPlans={props.plan.artifactTypePlans}
+              disabled={props.disabled}
+            />
+            <ArtifactSubstats
+              substats={props.plan.substats}
+              mutate={props.update}
+              disabled={props.disabled}
+            />
+            <Teams
+              planId={props.plan.id}
+              character={props.character}
+              teamPlans={props.plan.teamPlans}
+              disabled={props.disabled}
+            />
+            <Note
+              note={props.plan.note}
+              mutate={mutateFieldImmer(props.update, 'note')}
+              disabled={props.disabled}
+            />
+          </CardContent>
+        </Card>
+      </article>
+    );
+  },
+  (prev, next) => {
+    const toStr = (prps: Props) =>
+      JSON.stringify([prps.plan, prps.isLoading, prps.isError, prps.disabled]);
+    return toStr(prev) == toStr(next);
+  },
+);

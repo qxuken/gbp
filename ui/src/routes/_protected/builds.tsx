@@ -47,7 +47,7 @@ const LazyPlanDomainsAnalysis = lazy(
 const PAGE_SIZE_OPTIONS = [30, 50, 80, MAX_ITEMS] as const;
 
 const SEARCH_SCHEMA = z.object({
-  page: z.number().optional(),
+  page: z.number().min(1).optional(),
   perPage: z.number().optional(),
   // Characters
   cs: z.array(z.string()).optional(),
@@ -72,12 +72,39 @@ export const Route = createFileRoute('/_protected/builds')({
   pendingComponent: HomeLoader,
 });
 
+function HomeLoader() {
+  return (
+    <>
+      <section
+        aria-label="Builds with controls"
+        className="flex flex-wrap gap-2"
+      >
+        <aside
+          aria-label="Controls"
+          className="p-2 basis-80 grow flex flex-col gap-4"
+        >
+          <PlanFiltersSkeleton />
+          <PlanDomainsAnalysisSkeleton />
+        </aside>
+        <section
+          aria-label="Build cards"
+          className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
+        >
+          <PlanInfoSkeleton />
+          <PlanInfoSkeleton />
+        </section>
+      </section>
+      <Outlet />
+    </>
+  );
+}
+
 function generatePaginationLink(page: number, perPage?: number) {
   return linkOptions({
     to: Route.to,
     search: (prev) => ({
       ...prev,
-      page,
+      page: Math.max(page, 1),
       perPage: perPage ?? prev.perPage,
     }),
   });
@@ -155,7 +182,7 @@ function HomeComponent() {
             </aside>
             <section
               aria-label="Build cards"
-              className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
+              className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(22rem,_1fr))] gap-4 justify-center items-start"
             >
               <LazyPlans />
             </section>
@@ -174,40 +201,13 @@ function HomeComponent() {
   );
 }
 
-function HomeLoader() {
-  return (
-    <>
-      <section
-        aria-label="Builds with controls"
-        className="flex flex-wrap gap-2"
-      >
-        <aside
-          aria-label="Controls"
-          className="p-2 basis-80 grow flex flex-col gap-4"
-        >
-          <PlanFiltersSkeleton />
-          <PlanDomainsAnalysisSkeleton />
-        </aside>
-        <section
-          aria-label="Build cards"
-          className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
-        >
-          <PlanInfoSkeleton />
-          <PlanInfoSkeleton />
-        </section>
-      </section>
-      <Outlet />
-    </>
-  );
-}
-
 function RedirectOnBadPage({ children }: PropsWithChildren) {
   const deps = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
   const totalItems = useRenderingPlanTotal();
-  const totalPages = Math.ceil(totalItems / deps.perPage);
+  const totalPages = Math.max(Math.ceil(totalItems / deps.perPage), 1);
   useEffect(() => {
-    if (deps.page > totalPages) {
+    if (totalItems >= 0 && deps.page > totalPages) {
       navigate(generatePaginationLink(totalPages));
     }
   }, [deps.page, totalPages]);

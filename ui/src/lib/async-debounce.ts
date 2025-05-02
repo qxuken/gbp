@@ -1,3 +1,5 @@
+import { logger } from '@/store/logger';
+
 export class AsyncDebounce<T, R> {
   static readonly DEFAULT_DELAY = 750;
 
@@ -35,7 +37,7 @@ export class AsyncDebounce<T, R> {
     }
     this.timeout = setTimeout(() => {
       if (!this.current) {
-        console.warn(
+        logger.warn(
           'AsyncDebounce execution was called, but current value is null',
         );
         return;

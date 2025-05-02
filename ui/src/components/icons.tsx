@@ -24,6 +24,7 @@ import {
   KeyRound,
   Github,
   Copyright,
+  RotateCcw,
 } from 'lucide-react';
 
 export type Icon = typeof LucideIcon;
@@ -51,6 +52,7 @@ export const Icons = {
   Profile: User,
   Email: Mail,
   Password: KeyRound,
+  Retry: RotateCcw,
   Github,
   Copyright,
 };

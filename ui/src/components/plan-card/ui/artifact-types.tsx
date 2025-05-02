@@ -64,7 +64,27 @@ export function ArtifactTypes(props: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs text-muted-foreground">Stats</span>
+      <div className="flex gap-2">
+        <span
+          className={cn('text-xs text-muted-foreground', {
+            'text-rose-700': mutation.isError,
+          })}
+        >
+          Stats
+        </span>
+        <div className="flex-1" />
+        {mutation.isError && (
+          <Button
+            variant="ghost"
+            className="h-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+            onClick={mutation.retry}
+            disabled={props.disabled}
+          >
+            <Icons.Retry className="text-rose-700" />
+            Retry
+          </Button>
+        )}
+      </div>
       <div className="grid gap-2 w-full">
         {artifactTypes.map((at) => {
           return (

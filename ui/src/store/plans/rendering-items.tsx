@@ -1,122 +1,40 @@
-import { useMemo, createContext, PropsWithChildren, use } from 'react';
+import {
+  useMemo,
+  createContext,
+  PropsWithChildren,
+  use,
+  useState,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+} from 'react';
 
 import { useCharactersMap } from '@/api/dictionaries/hooks';
-import { usePlans } from '@/api/plans/plans';
-import { CharacterPlans, Characters } from '@/api/types';
+import { Characters, Plans } from '@/api/types';
 
 import { useCharacterFilterFn } from './filters';
-import { PendingPlan, usePendingPlans } from './pending-plans';
 
-export const MAX_ITEMS = 130;
-const MAX_PENDING_ITEMS = 2;
-
-export type PlansRenderItem =
-  | {
-    type: 'committed';
-    plan: CharacterPlans;
-    character: Characters;
-    order: number;
-  }
-  | {
-    type: 'pending';
-    plan: PendingPlan;
-    character: Characters;
-    order: number;
-    visible: boolean;
-  }
-  | { type: 'create'; order: number; plansCount: number };
+export const MAX_ITEMS = 80;
 
 interface RenderingItemsContext {
-  items: PlansRenderItem[];
+  page: number;
+  perPage: number;
   total: number;
-  lastOrder: number;
+  setTotal: Dispatch<SetStateAction<number>>;
 }
 const RenderingItemsContext = createContext<RenderingItemsContext | null>(null);
 
 type Props = PropsWithChildren<{ page: number; perPage: number }>;
 export function RenderingItemsProvider({ children, page, perPage }: Props) {
-  const characters = useCharactersMap();
-  const plans = usePlans();
-  const pendingPlans = usePendingPlans();
-  const filter = useCharacterFilterFn();
-
-  const plansRenderItems: PlansRenderItem[] = useMemo(
-    () =>
-      plans
-        .filter((plan) => {
-          const character = characters.get(plan.character);
-          if (!character) {
-            return false;
-          }
-          return filter(character, plan);
-        })
-        .map((plan) => ({
-          type: 'committed',
-          plan,
-          character: characters.get(plan.character)!,
-          order: plan.order,
-        })),
-    [plans, filter, characters],
-  );
-
-  const pendingPlansRenderItems: PlansRenderItem[] = useMemo(
-    () =>
-      pendingPlans
-        .filter((pending) => {
-          const character = characters.get(pending.characterId);
-          if (!character) {
-            return false;
-          }
-          return filter(character);
-        })
-        .map((plan) => ({
-          type: 'pending',
-          plan,
-          character: characters.get(plan.characterId)!,
-          order: plan.order,
-          visible: false,
-        })),
-    [pendingPlans, characters, filter],
-  );
-
-  const [renderItems, lastOrder] = useMemo(() => {
-    const renderItems = plansRenderItems.concat(pendingPlansRenderItems);
-    renderItems.sort((a, b) => a.order - b.order);
-    const lastOrder = renderItems.at(-1)?.order ?? 0;
-
-    if (
-      plansRenderItems.length <= MAX_ITEMS - pendingPlansRenderItems.length &&
-      pendingPlansRenderItems.length <= MAX_PENDING_ITEMS
-    ) {
-      renderItems.push({
-        type: 'create',
-        order: Infinity,
-        plansCount: plansRenderItems.length,
-      });
-    }
-
-    return [renderItems, lastOrder] as const;
-  }, [plansRenderItems, pendingPlansRenderItems]);
-
-  const paginatedRenderItems = useMemo(() => {
-    const startIndex = perPage * (page - 1);
-    const endIndex = perPage * page;
-    const isWithinBounds = (i: number) => startIndex <= i && i < endIndex;
-
-    return renderItems
-      .filter((it, i) => it.type === 'pending' || isWithinBounds(i))
-      .map((it, i) =>
-        it.type == 'pending' ? { ...it, visible: isWithinBounds(i) } : it,
-      );
-  }, [renderItems, perPage, page]);
-
+  const [total, setTotal] = useState(-1);
   const value: RenderingItemsContext = useMemo(
     () => ({
-      items: paginatedRenderItems,
-      total: renderItems.length,
-      lastOrder,
+      page,
+      perPage,
+      total,
+      setTotal,
     }),
-    [paginatedRenderItems, renderItems],
+    [total, page, perPage],
   );
 
   return (
@@ -126,14 +44,69 @@ export function RenderingItemsProvider({ children, page, perPage }: Props) {
   );
 }
 
-export function useRenderingPlanItems() {
+type PlansItem<T> = {
+  type: 'plan';
+  order: number;
+  plan: T;
+  character: Characters;
+};
+
+type CreateItem = {
+  type: 'create';
+  order: number;
+};
+
+export type PlansRenderItem<T> = PlansItem<T> | CreateItem;
+
+export function useRenderingPlanItems<T extends Plans>(
+  plans: T[],
+): PlansRenderItem<T>[] {
   const context = use(RenderingItemsContext);
   if (!context) {
     throw new Error(
       'useRenderingPlanItems should be inside RenderingItemsContext',
     );
   }
-  return context.items;
+  const characters = useCharactersMap();
+  const filter = useCharacterFilterFn();
+
+  const renderingItems = useMemo(() => {
+    const items: PlansRenderItem<T>[] = plans
+      .filter((plan) => {
+        const character = characters.get(plan.character);
+        return character && filter(character, plan);
+      })
+      .map((plan) => ({
+        type: 'plan',
+        order: plan.order,
+        plan,
+        character: characters.get(plan.character)!,
+      }));
+
+    if (items.length < MAX_ITEMS) {
+      items.push({
+        type: 'create',
+        order: Infinity,
+      });
+    }
+
+    return items;
+  }, [plans, filter, characters]);
+
+  const paginatedRenderItems = useMemo(() => {
+    const startIndex = context.perPage * (context.page - 1);
+    const endIndex = startIndex + context.perPage;
+
+    return renderingItems.slice(startIndex, endIndex);
+  }, [renderingItems, context.perPage, context.page]);
+
+  useEffect(() => {
+    if (context.total != renderingItems.length) {
+      context.setTotal(renderingItems.length);
+    }
+  }, [renderingItems.length]);
+
+  return paginatedRenderItems;
 }
 
 export function useRenderingPlanTotal() {
@@ -144,14 +117,4 @@ export function useRenderingPlanTotal() {
     );
   }
   return context.total;
-}
-
-export function useRenderingPlanLastOrder() {
-  const context = use(RenderingItemsContext);
-  if (!context) {
-    throw new Error(
-      'useRenderingPlanLastOrder should be inside RenderingItemsContext',
-    );
-  }
-  return context.lastOrder;
 }

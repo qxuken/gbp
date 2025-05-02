@@ -5,7 +5,7 @@ import { AutoTextarea } from '@/components/ui/auto-textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
-type Props = { note: string; mutate: (v: string) => void };
+type Props = { note: string; mutate: (v: string) => void; disabled?: boolean };
 export function Note(props: Props) {
   const [collapsed, setCollapsed] = useState(() => props.note.length == 0);
   if (collapsed) {
@@ -15,6 +15,7 @@ export function Note(props: Props) {
         size="sm"
         className="opacity-50 transition-opacity focus:opacity-100 hover:opacity-100"
         onClick={() => setCollapsed(false)}
+        disabled={props.disabled}
       >
         <Icons.Note /> Add note
       </Button>
@@ -23,7 +24,7 @@ export function Note(props: Props) {
   return <NoteField {...props} />;
 }
 
-function NoteField({ note, mutate }: Props) {
+function NoteField(props: Props) {
   const id = useId();
   return (
     <div className="mt-1 w-full grid gap-2">
@@ -33,9 +34,10 @@ function NoteField({ note, mutate }: Props) {
       <AutoTextarea
         id={id + '_note'}
         placeholder="Additional build notes"
-        value={note}
-        autoFocus={note.length === 0}
-        onChange={(e) => mutate(e.target.value)}
+        value={props.note}
+        autoFocus={props.note.length === 0}
+        onChange={(e) => props.mutate(e.target.value)}
+        disabled={props.disabled}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { logger } from '@/store/logger';
 import { pane } from '@/tweakpane';
 
 import { db, DICTIONARY_VERSION_CONFIG_KEY } from './db';
@@ -26,7 +27,7 @@ const params = {
 };
 
 worker.addEventListener('message', (e) => {
-  console.log('Worker log', e.data);
+  logger.debug('Worker log', e.data);
   params.messages.push(e.data);
   params.messageStr = JSON.stringify(params.messages, null, 2);
 });

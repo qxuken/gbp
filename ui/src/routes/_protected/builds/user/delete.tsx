@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { useUser } from '@/store/auth';
+import { logger } from '@/store/logger';
 
 export const Route = createFileRoute('/_protected/builds/user/delete')({
   component: DeleteAccountRoute,
@@ -36,8 +37,8 @@ function DeleteAccountRoute() {
 
       toast.success('Your account has been deleted successfully');
     } catch (err) {
-      console.error('Failed to delete account:', err);
       toast.error('Failed to delete account. Please try again.');
+      logger.error('Failed to delete account:', err);
     }
   };
 
