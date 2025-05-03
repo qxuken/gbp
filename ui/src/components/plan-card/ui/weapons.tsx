@@ -264,6 +264,8 @@ function Weapon(props: WeaponProps) {
   );
 }
 
+// TODO: mobile version?
+// FIX: Batch stripping undefined values, fix tag
 type WeaponTagProps = {
   value?: WeaponPlans['tag'];
   update(v: WeaponPlans['tag']): void;

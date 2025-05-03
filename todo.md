@@ -14,10 +14,10 @@
 [x] User management
 [x] Add text confirmation to account deletion
 [x] Filters
-[ ] Add filters by stats
+[x] Add filters by stats
 [ ] Ui controls, hide blocks
 [ ] Add new character, weapon to seed
-[ ] Reduce number of request via sharing domains and fitlers reqs
+[x] Reduce number of request via sharing domains and fitlers reqs
 [ ] Add theme metatags
 
 Nice to have:

@@ -23,6 +23,7 @@ import { useRenderingPlanItems } from '@/store/plans/rendering-items';
 import { CreatePlan } from './plan-card/create-plan';
 import { Card } from './ui/card';
 
+// TODO: simplify rendering flow to avoid re-renders on simple field updates
 export default function Plans() {
   const plans = usePlans();
   const mutations = useCharacterPlansMutation(plans);
