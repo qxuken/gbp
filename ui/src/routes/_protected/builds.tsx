@@ -39,6 +39,10 @@ import {
   RenderingItemsProvider,
   useRenderingPlanTotal,
 } from '@/store/plans/rendering-items';
+import {
+  UiPlansMode,
+  useUiPlansConfigModeValue,
+} from '@/store/ui-plans-config';
 
 const LazyPlanMode = lazy(() => import('@/components/plan-card/plan-mode'));
 const LazyPlans = lazy(() => import('@/components/plans'));
@@ -172,6 +176,7 @@ function HomeComponent() {
   const deps = Route.useLoaderDeps();
   const [filters, setFilters] = useSearchFilters();
   const isDesktop = useIsDesktopQuery();
+  const mode = useUiPlansConfigModeValue();
   return (
     <FiltersProvider value={filters} setValue={setFilters}>
       <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
@@ -201,7 +206,12 @@ function HomeComponent() {
             </div>
             <section
               aria-label="Build cards"
-              className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(24rem,_1fr))] gap-4 justify-center items-start"
+              className={cn('grow-9999 p-2 grid justify-center items-start', {
+                'grid-cols-[repeat(auto-fill,_minmax(24rem,_1fr))] gap-4':
+                  mode == UiPlansMode.Full,
+                'grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-2':
+                  mode == UiPlansMode.Short,
+              })}
             >
               <LazyPlans />
             </section>
