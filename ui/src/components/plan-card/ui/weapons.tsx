@@ -264,8 +264,6 @@ function Weapon(props: WeaponProps) {
   );
 }
 
-// TODO: mobile version?
-// FIX: Batch stripping undefined values, fix tag
 type WeaponTagProps = {
   value?: WeaponPlans['tag'];
   update(v: WeaponPlans['tag']): void;
@@ -285,8 +283,10 @@ function WeaponTag({ value, update }: WeaponTagProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => select(undefined)}
-              className={cn('cursor-pointer', { 'opacity-50': !value })}
+              onClick={() => select('none')}
+              className={cn('cursor-pointer', {
+                'opacity-50': value == 'none',
+              })}
             >
               <Icons.Remove className="size-3" />
             </button>
@@ -298,9 +298,9 @@ function WeaponTag({ value, update }: WeaponTagProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => select('now')}
+              onClick={() => select('current')}
               className={cn('cursor-pointer text-[12px]', {
-                'opacity-50': value === 'now',
+                'opacity-50': !value || value == 'current',
               })}
             >
               C
@@ -313,9 +313,9 @@ function WeaponTag({ value, update }: WeaponTagProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => select('need')}
+              onClick={() => select('target')}
               className={cn('cursor-pointer text-[12px]', {
-                'opacity-50': value === 'need',
+                'opacity-50': value == 'target',
               })}
             >
               W
@@ -327,9 +327,9 @@ function WeaponTag({ value, update }: WeaponTagProps) {
         </Tooltip>
       </>
     );
-  } else if (value === 'now') {
+  } else if (value === 'current') {
     component = <span className="text-[8px]">C</span>;
-  } else if (value === 'need') {
+  } else if (value === 'target') {
     component = <span className="text-[8px]">W</span>;
   } else {
     component = <span className="size-3 p-0"></span>;

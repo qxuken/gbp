@@ -131,7 +131,7 @@ export interface WeaponPlans {
   levelTarget: number;
   refinementCurrent: number;
   refinementTarget: number;
-  tag?: 'now' | 'need';
+  tag: 'none' | 'current' | 'target';
   order: number;
   created: Date;
   updated: Date;

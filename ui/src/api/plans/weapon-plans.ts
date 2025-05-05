@@ -54,6 +54,7 @@ export function useWeaponPlansMutation(
       levelTarget: 90,
       refinementCurrent: 1,
       refinementTarget: 5,
+      tag: 'none',
       weapon,
       order: mutation.records.length + 1,
     });
