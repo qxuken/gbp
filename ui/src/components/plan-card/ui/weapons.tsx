@@ -16,9 +16,10 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Popover } from '@radix-ui/react-popover';
+import { ReactNode } from '@tanstack/react-router';
 import { WritableDraft } from 'immer';
 import { motion } from 'motion/react';
-import { useMemo, useState } from 'react';
+import { PropsWithChildren, useMemo, useState } from 'react';
 
 import { useWeaponsItem } from '@/api/dictionaries/hooks';
 import { useWeaponPlansMutation } from '@/api/plans/weapon-plans';
@@ -35,6 +36,10 @@ import {
 import { handleReorderImmer } from '@/lib/handle-reorder';
 import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
+import {
+  UiPlansMode,
+  useUiPlansConfigModeValue,
+} from '@/store/ui-plans-config';
 
 import { DoubleInputLabeled } from './double-input-labeled';
 import { WeaponPicker } from './weapon-picker';
@@ -54,21 +59,33 @@ export function Weapons(props: Props) {
     props.disabled,
   );
 
+  const mode = useUiPlansConfigModeValue();
+
   const ignoreWeapons = useMemo(
     () => new Set(mutation.records.map((w) => w.weapon)),
     [mutation.records],
   );
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  function handleDragEnd(event: DragEndEvent) {
-    handleReorderImmer(event, mutation.records, mutation.update);
+  let weapons: ReactNode;
+  switch (mode) {
+    case UiPlansMode.Full:
+      weapons = (
+        <WeaponsFull
+          planId={props.planId}
+          mutation={mutation}
+          disabled={props.disabled}
+        />
+      );
+      break;
+    case UiPlansMode.Short:
+      weapons = (
+        <WeaponsShort
+          planId={props.planId}
+          mutation={mutation}
+          disabled={props.disabled}
+        />
+      );
+      break;
   }
 
   return (
@@ -81,6 +98,11 @@ export function Weapons(props: Props) {
         >
           Weapons
         </span>
+        {mode == UiPlansMode.Short && mutation.records.length > 1 && (
+          <span className="text-xs text-muted-foreground self-start">
+            +{mutation.records.length - 1}
+          </span>
+        )}
         {mutation.records.length < MAX_WEAPONS && (
           <WeaponPicker
             title="New weapon"
@@ -111,46 +133,64 @@ export function Weapons(props: Props) {
           </Button>
         )}
       </div>
-      <div className="grid gap-2 w-full">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={mutation.records}
-            strategy={verticalListSortingStrategy}
-          >
-            {mutation.records.map((wp) => (
-              <Weapon
-                key={wp.id}
-                planId={props.planId}
-                weaponPlan={wp}
-                update={(cb) => mutation.update(wp, cb)}
-                delete={() => mutation.delete(wp.id)}
-                isLoading={wp.isOptimistic}
-                disabled={props.disabled || wp.isOptimisticBlocked}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
-      </div>
+      <div className="grid gap-2 w-full">{weapons}</div>
     </div>
   );
 }
 
-type WeaponProps = {
-  planId: string;
-  weaponPlan: WeaponPlans;
-  isLoading?: boolean;
-  disabled?: boolean;
-  update(cb: (v: WritableDraft<WeaponPlans>) => void): void;
-  delete(): void;
-};
+function WeaponsFull(
+  props: Pick<Props, 'disabled' | 'planId'> & {
+    mutation: ReturnType<typeof useWeaponPlansMutation>;
+  },
+) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
-function Weapon(props: WeaponProps) {
-  const weapon = useWeaponsItem(props.weaponPlan.weapon);
+  function handleDragEnd(event: DragEndEvent) {
+    handleReorderImmer(event, props.mutation.records, props.mutation.update);
+  }
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={props.mutation.records}
+        strategy={verticalListSortingStrategy}
+      >
+        {props.mutation.records.map((wp) => (
+          <WeaponDrag
+            key={wp.id}
+            weaponPlan={wp}
+            isLoading={wp.isOptimistic}
+            disabled={props.disabled || wp.isOptimisticBlocked}
+          >
+            <WeaponFull
+              planId={props.planId}
+              weaponPlan={wp}
+              update={(cb) => props.mutation.update(wp, cb)}
+              delete={() => props.mutation.delete(wp.id)}
+              isLoading={wp.isOptimistic}
+              disabled={props.disabled || wp.isOptimisticBlocked}
+            />
+          </WeaponDrag>
+        ))}
+      </SortableContext>
+    </DndContext>
+  );
+}
 
+function WeaponDrag(
+  props: PropsWithChildren<
+    Pick<WeaponProps, 'weaponPlan' | 'isLoading' | 'disabled'>
+  >,
+) {
   const {
     attributes,
     listeners,
@@ -167,8 +207,6 @@ function Weapon(props: WeaponProps) {
     transform: CSS.Transform.toString(transform),
     transition,
   };
-
-  if (!weapon) return null;
 
   return (
     <div
@@ -191,84 +229,197 @@ function Weapon(props: WeaponProps) {
             <div className="size-6 py-1" />
           )}
         </div>
-        <div className="relative">
-          <CollectionAvatar
-            record={weapon}
-            fileName={weapon.icon}
-            name={weapon.name}
-            className="size-12 me-2"
-          />
-          <WeaponTag
-            value={props.weaponPlan.tag}
-            update={mutateFieldImmer(props.update, 'tag')}
-          />
-        </div>
-
-        <div className="flex-1">
-          <div className="flex justify-between items-start mb-1">
-            <span className="flex-1">{weapon.name}</span>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-                  disabled={props.disabled}
-                >
-                  <Icons.Remove />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0" side="top">
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  disabled={props.disabled}
-                  onClick={props.delete}
-                >
-                  Yes i really want to delete
-                </Button>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="flex items-center justify-between gap-1">
-            <DoubleInputLabeled
-              name="Level"
-              min={0}
-              max={90}
-              current={props.weaponPlan.levelCurrent}
-              target={props.weaponPlan.levelTarget}
-              onCurrentChange={mutateFieldImmer(props.update, 'levelCurrent')}
-              onTargetChange={mutateFieldImmer(props.update, 'levelTarget')}
-              disabled={props.disabled}
-            />
-            <DoubleInputLabeled
-              name="Refinement"
-              min={1}
-              max={5}
-              current={props.weaponPlan.refinementCurrent}
-              target={props.weaponPlan.refinementTarget}
-              onCurrentChange={mutateFieldImmer(
-                props.update,
-                'refinementCurrent',
-              )}
-              onTargetChange={mutateFieldImmer(
-                props.update,
-                'refinementTarget',
-              )}
-              disabled={props.disabled}
-            />
-          </div>
-        </div>
+        {props.children}
       </div>
     </div>
   );
 }
 
+function WeaponsShort(
+  props: Pick<Props, 'disabled' | 'planId'> & {
+    mutation: ReturnType<typeof useWeaponPlansMutation>;
+  },
+) {
+  const wp = props.mutation.records[0];
+  if (!wp) return null;
+  return (
+    <WeaponNoDrag key={wp.id} isLoading={wp.isOptimistic}>
+      <WeaponShort
+        planId={props.planId}
+        weaponPlan={wp}
+        update={(cb) => props.mutation.update(wp, cb)}
+        delete={() => props.mutation.delete(wp.id)}
+        isLoading={wp.isOptimistic}
+        disabled={props.disabled || wp.isOptimisticBlocked}
+      />
+    </WeaponNoDrag>
+  );
+}
+
+function WeaponNoDrag(
+  props: PropsWithChildren<Pick<WeaponProps, 'isLoading'>>,
+) {
+  return (
+    <div
+      className={cn('w-full', {
+        ['animate-pulse']: props.isLoading,
+      })}
+    >
+      <div className="flex">{props.children}</div>
+    </div>
+  );
+}
+
+type WeaponProps = {
+  planId: string;
+  weaponPlan: WeaponPlans;
+  isLoading?: boolean;
+  disabled?: boolean;
+  update(cb: (v: WritableDraft<WeaponPlans>) => void): void;
+  delete(): void;
+};
+
+function WeaponFull(props: WeaponProps) {
+  const weapon = useWeaponsItem(props.weaponPlan.weapon);
+
+  if (!weapon) return null;
+
+  return (
+    <>
+      <div className="relative">
+        <CollectionAvatar
+          record={weapon}
+          fileName={weapon.icon}
+          name={weapon.name}
+          className="size-12 me-2"
+        />
+        <WeaponTag
+          value={props.weaponPlan.tag}
+          update={mutateFieldImmer(props.update, 'tag')}
+        />
+      </div>
+
+      <div className="flex-1">
+        <div className="flex justify-between items-start mb-1">
+          <span className="flex-1">{weapon.name}</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                disabled={props.disabled}
+              >
+                <Icons.Remove />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" side="top">
+              <Button
+                variant="destructive"
+                className="w-full"
+                disabled={props.disabled}
+                onClick={props.delete}
+              >
+                Yes i really want to delete
+              </Button>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="flex items-center justify-between gap-1">
+          <DoubleInputLabeled
+            name="Level"
+            min={0}
+            max={90}
+            current={props.weaponPlan.levelCurrent}
+            target={props.weaponPlan.levelTarget}
+            onCurrentChange={mutateFieldImmer(props.update, 'levelCurrent')}
+            onTargetChange={mutateFieldImmer(props.update, 'levelTarget')}
+            disabled={props.disabled}
+          />
+          <DoubleInputLabeled
+            name="Refinement"
+            min={1}
+            max={5}
+            current={props.weaponPlan.refinementCurrent}
+            target={props.weaponPlan.refinementTarget}
+            onCurrentChange={mutateFieldImmer(
+              props.update,
+              'refinementCurrent',
+            )}
+            onTargetChange={mutateFieldImmer(props.update, 'refinementTarget')}
+            disabled={props.disabled}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function WeaponShort(props: WeaponProps) {
+  const weapon = useWeaponsItem(props.weaponPlan.weapon);
+
+  if (!weapon) return null;
+
+  return (
+    <>
+      <div className="relative">
+        <CollectionAvatar
+          record={weapon}
+          fileName={weapon.icon}
+          name={weapon.name}
+          className="size-8 me-2"
+        />
+        <WeaponTag
+          offsetX={5}
+          offsetY={-8}
+          value={props.weaponPlan.tag}
+          update={mutateFieldImmer(props.update, 'tag')}
+        />
+      </div>
+
+      <div className="flex-1">
+        <div className="flex justify-between items-start mb-1">
+          <span className="flex-1">{weapon.name}</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                disabled={props.disabled}
+              >
+                <Icons.Remove />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" side="top">
+              <Button
+                variant="destructive"
+                className="w-full"
+                disabled={props.disabled}
+                onClick={props.delete}
+              >
+                Yes i really want to delete
+              </Button>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+    </>
+  );
+}
+
 type WeaponTagProps = {
+  offsetX?: number;
+  offsetY?: number;
   value?: WeaponPlans['tag'];
   update(v: WeaponPlans['tag']): void;
 };
-function WeaponTag({ value, update }: WeaponTagProps) {
+function WeaponTag({
+  offsetX = 0,
+  offsetY = 0,
+  value,
+  update,
+}: WeaponTagProps) {
   const [isActive, setIsActive] = useState(false);
   const activate = () => setIsActive(true);
   const deactivate = () => setIsActive(false);
@@ -335,15 +486,15 @@ function WeaponTag({ value, update }: WeaponTagProps) {
     component = <span className="size-3 p-0"></span>;
   }
   const initalStyles = {
-    top: 0,
-    x: 0,
+    top: offsetY,
+    x: offsetX,
     width: 14,
     height: 14,
     scale: 1,
   };
   const activeStyles = {
-    top: -3,
-    x: -19,
+    top: offsetY - 3,
+    x: offsetX - 19,
     width: 52,
     height: 20,
     scale: 1.25,

@@ -14,6 +14,10 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { removeByPredMut } from '@/lib/array-remove-mut';
 import { cn } from '@/lib/utils';
+import {
+  UiPlansMode,
+  useUiPlansConfigModeValue,
+} from '@/store/ui-plans-config';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
 
@@ -31,6 +35,12 @@ export function ArtifactSets(props: Props) {
     props.disabled,
   );
 
+  const mode = useUiPlansConfigModeValue();
+  let items = mutation.records;
+  if (mode == UiPlansMode.Short) {
+    items = items.slice(0, 1);
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
@@ -41,6 +51,11 @@ export function ArtifactSets(props: Props) {
         >
           Artifacts
         </span>
+        {mode == UiPlansMode.Short && mutation.records.length > 1 && (
+          <span className="text-xs text-muted-foreground self-start">
+            +{mutation.records.length - 1}
+          </span>
+        )}
         {mutation.records.length < MAX_SETS && (
           <ArtifactSetPicker
             title="New artifact set"
@@ -70,7 +85,7 @@ export function ArtifactSets(props: Props) {
         )}
       </div>
       <div className="grid gap-1 w-full">
-        {mutation.records.map((as, i) => (
+        {items.map((as, i) => (
           <div key={as.id}>
             <ArtifactSetPlan
               artifactSetPlan={as}
@@ -79,7 +94,7 @@ export function ArtifactSets(props: Props) {
               isLoading={as.isOptimistic}
               disabled={as.isOptimisticBlocked || props.disabled}
             />
-            {mutation.records.length - 1 !== i && (
+            {mode == UiPlansMode.Full && mutation.records.length - 1 !== i && (
               <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
             )}
           </div>
@@ -97,6 +112,7 @@ type ArtifactSetPlanProps = {
   disabled?: boolean;
 };
 function ArtifactSetPlan(props: ArtifactSetPlanProps) {
+  const mode = useUiPlansConfigModeValue();
   const artifactSets = props.artifactSetPlan.artifactSets;
   const artifactSetsSet = new Set(artifactSets);
   const deleteSet = (setId: string) => {
@@ -118,17 +134,29 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
     }
   };
 
+  let Component: React.FC<ArtifactSetProps>;
+  switch (mode) {
+    case UiPlansMode.Full:
+      Component = ArtifactSetFull;
+      break;
+    case UiPlansMode.Short:
+      Component = ArtifactSetShort;
+      break;
+  }
+
   return (
     <div className={cn({ 'animate-pulse': props.isLoading })}>
       {artifactSets.map((artifactSet, _, items) => (
-        <ArtifactSet
+        <Component
           key={artifactSet}
           artifactSet={artifactSet}
           isSplit={items.length == 2}
           delete={() => deleteSet(artifactSet)}
         />
       ))}
-      <div className="min-h-2 text-center">
+      <div
+        className={cn('min-h-2', { 'text-center': mode == UiPlansMode.Full })}
+      >
         {artifactSets.length === 1 && (
           <ArtifactSetPicker
             title="Split into two peaces"
@@ -155,7 +183,8 @@ type ArtifactSetProps = {
   delete: () => void;
   disabled?: boolean;
 };
-function ArtifactSet(props: ArtifactSetProps) {
+
+function ArtifactSetFull(props: ArtifactSetProps) {
   const artifactSet = useArtifactSetsItem(props.artifactSet);
   if (!artifactSet) {
     return null;
@@ -197,6 +226,50 @@ function ArtifactSet(props: ArtifactSetProps) {
         <span className="text-xs text-muted-foreground">
           {props.isSplit ? '2 pcs' : '4 pcs'}
         </span>
+      </div>
+    </div>
+  );
+}
+
+function ArtifactSetShort(props: ArtifactSetProps) {
+  const artifactSet = useArtifactSetsItem(props.artifactSet);
+  if (!artifactSet) {
+    return null;
+  }
+  return (
+    <div className="flex gap-2 w-full nth-2:mt-1">
+      <CollectionAvatar
+        record={artifactSet}
+        fileName={artifactSet.icon}
+        name={artifactSet.name}
+        className="size-8"
+      />
+      <div className="flex-1">
+        <div className="flex justify-between">
+          <span className="flex-1">{artifactSet.name}</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                disabled={props.disabled}
+              >
+                <Icons.Remove />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" side="top">
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={props.delete}
+                disabled={props.disabled}
+              >
+                Yes i really want to delete
+              </Button>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
     </div>
   );

@@ -21,6 +21,10 @@ import {
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
 import { cn } from '@/lib/utils';
+import {
+  UiPlansMode,
+  useUiPlansConfigModeValue,
+} from '@/store/ui-plans-config';
 
 type Props = {
   planId: string;
@@ -118,6 +122,7 @@ type ArtifactTypesItemProps = {
   disabled?: boolean;
 };
 export function ArtifactTypesItem(props: ArtifactTypesItemProps) {
+  const mode = useUiPlansConfigModeValue();
   const options = useMemo(
     () =>
       props.artifactTypesItem.specials.filter(
@@ -132,8 +137,10 @@ export function ArtifactTypesItem(props: ArtifactTypesItemProps) {
         record={props.artifactTypesItem}
         fileName={props.artifactTypesItem.icon}
         name={props.artifactTypesItem.name}
-        className={cn('size-8', {
-          ['opacity-50']: props.selected?.length === 0 || props.disabled,
+        className={cn({
+          'opacity-50': props.selected?.length === 0 || props.disabled,
+          'size-8': mode == UiPlansMode.Full,
+          'size-6': mode == UiPlansMode.Short,
         })}
       />
       <div className="flex flex-wrap gap-1 items-center">
@@ -202,6 +209,7 @@ type ArtifactTypesSpecialItemProps = {
 };
 export function ArtifactTypesSpecialItem(props: ArtifactTypesSpecialItemProps) {
   const special = useSpecialsItem(props.special);
+  const mode = useUiPlansConfigModeValue();
 
   if (!special) {
     return null;
@@ -211,11 +219,14 @@ export function ArtifactTypesSpecialItem(props: ArtifactTypesSpecialItemProps) {
       <Popover>
         <PopoverTrigger asChild>
           <Button
+            size={mode == UiPlansMode.Short ? 'sm' : 'default'}
             variant="destructive"
             className={cn(
-              'text-md leading-none py-0 px-2 not-hover:bg-transparent not-focus:bg-transparent',
+              'leading-none not-hover:bg-transparent not-focus:bg-transparent',
               {
                 'opacity-75 animate-pulse': props.isLoading,
+                'text-md py-0 px-2': mode == UiPlansMode.Full,
+                'text-xs py-0 px-2 h-6': mode == UiPlansMode.Short,
               },
             )}
             disabled={props.disabled}

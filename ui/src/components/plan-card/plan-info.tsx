@@ -23,6 +23,10 @@ import {
 } from '@/components/ui/tooltip';
 import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
+import {
+  UiPlansMode,
+  useUiPlansConfigModeValue,
+} from '@/store/ui-plans-config';
 
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactSubstats } from './ui/artifact-substats';
@@ -50,6 +54,8 @@ export const PlanInfo = memo(
 
     const [plansInnerMutationsIsPending, plansInnerMutationsHasError] =
       useSharedPendingPlansStatusEntry(props.plan.id);
+
+    const mode = useUiPlansConfigModeValue();
 
     const isUpdating = props.isLoading || plansInnerMutationsIsPending;
     const isError = props.isError || plansInnerMutationsHasError;
@@ -125,65 +131,14 @@ export const PlanInfo = memo(
               />
             )}
           </motion.div>
-          <CardTitle className="px-4 w-full flex items-center gap-3">
-            <span className="font-semibold text-lg">
-              {props.character.name}
-            </span>
-            <CharacterInfo character={props.character} />
-            <div className="flex-1" />
-            <motion.div
-              initial={{
-                scale: props.isError ? 1 : 0,
-              }}
-              animate={{
-                scale: props.isError ? 1 : 0,
-              }}
-              transition={{ duration: 0.15 }}
-              aria-hidden={!props.isError}
-            >
-              <Button size="sm" variant="destructive" onClick={props.retry}>
-                <Icons.Retry className="size-4" />
-                Retry
-              </Button>
-            </motion.div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-                  disabled={isUpdating}
-                >
-                  <Icons.Remove />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0" side="top">
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  disabled={props.disabled}
-                  onClick={props.delete}
-                >
-                  Yes i really want to delete
-                </Button>
-              </PopoverContent>
-            </Popover>
-          </CardTitle>
-          <CardContent className="w-full pt-4 flex flex-col gap-3">
-            <div className="flex items-start justify-around">
-              <MainStat
-                plan={props.plan}
-                mutate={props.update}
-                disabled={props.disabled}
-              />
-              <CollectionAvatar
-                className="size-35 rounded-2xl ml-6"
-                record={props.character}
-                fileName={props.character.icon}
-                name={props.character.name}
-              />
-              <div />
-            </div>
+          <PlanCardTitle {...props} isLoading={isUpdating} />
+          <PlanCardStats {...props} />
+          <CardContent
+            className={cn('w-full pt-4 flex flex-col', {
+              'gap-3': mode == UiPlansMode.Full,
+              'gap-1.5': mode == UiPlansMode.Short,
+            })}
+          >
             <Weapons
               planId={props.plan.id}
               weaponType={props.character.weaponType}
@@ -205,17 +160,21 @@ export const PlanInfo = memo(
               mutate={props.update}
               disabled={props.disabled}
             />
-            <Teams
-              planId={props.plan.id}
-              character={props.character}
-              teamPlans={props.plan.teamPlans}
-              disabled={props.disabled}
-            />
-            <Note
-              note={props.plan.note}
-              mutate={mutateFieldImmer(props.update, 'note')}
-              disabled={props.disabled}
-            />
+            {mode == UiPlansMode.Full && (
+              <>
+                <Teams
+                  planId={props.plan.id}
+                  character={props.character}
+                  teamPlans={props.plan.teamPlans}
+                  disabled={props.disabled}
+                />
+                <Note
+                  note={props.plan.note}
+                  mutate={mutateFieldImmer(props.update, 'note')}
+                  disabled={props.disabled}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
       </article>
@@ -227,3 +186,85 @@ export const PlanInfo = memo(
     return toStr(prev) == toStr(next);
   },
 );
+
+function PlanCardStats(props: Props) {
+  const mode = useUiPlansConfigModeValue();
+
+  if (mode != UiPlansMode.Full) {
+    return null;
+  }
+  return (
+    <div className="flex items-start justify-around">
+      <MainStat
+        plan={props.plan}
+        mutate={props.update}
+        disabled={props.disabled}
+      />
+      <CollectionAvatar
+        className="size-35 rounded-2xl ml-6"
+        record={props.character}
+        fileName={props.character.icon}
+        name={props.character.name}
+      />
+      <div />
+    </div>
+  );
+}
+
+function PlanCardTitle(props: Props) {
+  const mode = useUiPlansConfigModeValue();
+  return (
+    <CardTitle className="px-4 w-full flex items-start gap-3">
+      {mode == UiPlansMode.Short && (
+        <CollectionAvatar
+          className="size-12 rounded-md"
+          record={props.character}
+          fileName={props.character.icon}
+          name={props.character.name}
+        />
+      )}
+      <div className="w-full flex items-center gap-3">
+        <span className="font-semibold text-lg">{props.character.name}</span>
+        <CharacterInfo character={props.character} />
+        <div className="flex-1" />
+        <motion.div
+          initial={{
+            scale: props.isError ? 1 : 0,
+          }}
+          animate={{
+            scale: props.isError ? 1 : 0,
+          }}
+          transition={{ duration: 0.15 }}
+          aria-hidden={!props.isError}
+        >
+          <Button size="sm" variant="destructive" onClick={props.retry}>
+            <Icons.Retry className="size-4" />
+            Retry
+          </Button>
+        </motion.div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+              disabled={props.isLoading}
+            >
+              <Icons.Remove />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" side="top">
+            <Button
+              variant="destructive"
+              className="w-full"
+              disabled={props.disabled}
+              onClick={props.delete}
+            >
+              Yes i really want to delete
+            </Button>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </CardTitle>
+  );
+}

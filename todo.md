@@ -15,10 +15,13 @@
 [x] Add text confirmation to account deletion
 [x] Filters
 [x] Add filters by stats
-[ ] Ui controls, hide blocks
+[x] Ui controls, hide blocks
+[ ] Add filters by set
+[ ] Add filters by weapons
 [ ] Add new character, weapon to seed
 [x] Reduce number of request via sharing domains and fitlers reqs
 [ ] Add theme metatags
+[ ] Bundle size -> better splits
 
 Nice to have:
 [ ] Fix ugly reorder animations

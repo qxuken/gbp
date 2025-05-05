@@ -12,6 +12,7 @@ import { queryClient } from '@/api/queryClient';
 import PlanDomainsAnalysisSkeleton from '@/components/plan-card/plan-domains-analysis-skeleton';
 import PlanFiltersSkeleton from '@/components/plan-card/plan-filters-skeleton';
 import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
+import PlansModeSkeleton from '@/components/plan-card/plan-mode-skeleton';
 import { Label } from '@/components/ui/label';
 import {
   Pagination as UIPagination,
@@ -36,6 +37,7 @@ import {
   useRenderingPlanTotal,
 } from '@/store/plans/rendering-items';
 
+const LazyPlanMode = lazy(() => import('@/components/plan-card/plan-mode'));
 const LazyPlans = lazy(() => import('@/components/plans'));
 const LazyPlanFilters = lazy(
   () => import('@/components/plan-card/plan-filters'),
@@ -83,6 +85,7 @@ function HomeLoader() {
           aria-label="Controls"
           className="p-2 basis-80 grow flex flex-col gap-4"
         >
+          <PlansModeSkeleton />
           <PlanFiltersSkeleton />
           <PlanDomainsAnalysisSkeleton />
         </aside>
@@ -177,6 +180,7 @@ function HomeComponent() {
               aria-label="Controls"
               className="p-2 basis-80 grow flex flex-col gap-4"
             >
+              <LazyPlanMode />
               <LazyPlanFilters />
               <LazyPlanDomainsAnalysis />
             </aside>
