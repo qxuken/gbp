@@ -23,6 +23,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -30,6 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useIsDesktopQuery } from '@/hooks/use-is-desktop-query';
+import { cn } from '@/lib/utils';
 import { FiltersProvider, PlansFilters } from '@/store/plans/filters';
 import {
   MAX_ITEMS,
@@ -168,6 +171,7 @@ function useSearchFilters() {
 function HomeComponent() {
   const deps = Route.useLoaderDeps();
   const [filters, setFilters] = useSearchFilters();
+  const isDesktop = useIsDesktopQuery();
   return (
     <FiltersProvider value={filters} setValue={setFilters}>
       <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
@@ -176,17 +180,28 @@ function HomeComponent() {
             aria-label="Builds with controls"
             className="flex flex-wrap gap-2"
           >
-            <aside
-              aria-label="Controls"
-              className="p-2 basis-80 grow flex flex-col gap-4"
+            <div
+              className={cn('min-h-fit p-2 basis-80 grow', {
+                'sticky top-0 max-h-screen': isDesktop,
+              })}
             >
-              <LazyPlanMode />
-              <LazyPlanFilters />
-              <LazyPlanDomainsAnalysis />
-            </aside>
+              <ScrollArea>
+                <aside
+                  aria-label="Controls"
+                  className={cn('h-fit flex flex-col gap-4', {
+                    'max-h-screen': isDesktop,
+                  })}
+                >
+                  <LazyPlanMode />
+                  <LazyPlanFilters />
+                  <LazyPlanDomainsAnalysis />
+                </aside>
+                <ScrollBar />
+              </ScrollArea>
+            </div>
             <section
               aria-label="Build cards"
-              className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(22rem,_1fr))] gap-4 justify-center items-start"
+              className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(24rem,_1fr))] gap-4 justify-center items-start"
             >
               <LazyPlans />
             </section>

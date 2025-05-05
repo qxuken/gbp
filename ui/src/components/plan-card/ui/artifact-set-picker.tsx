@@ -106,7 +106,7 @@ export function ArtifactSetPicker({
       trigger={children}
       title={title}
       description="Pick artifact set"
-      contentClassName="md:max-w-3xl max-h-[calc(100%-4rem)] top-8 translate-y-0 overflow-hidden p-5"
+      contentClassName="lg:max-w-3xl max-h-[calc(100%-4rem)] top-8 translate-y-0 overflow-hidden p-5"
     >
       <Picker onSelect={select} ignoreArifacts={ignoreArifacts} />
     </ResponsiveDialog>

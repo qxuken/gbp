@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-const isDesktopQuery = window.matchMedia('(min-width: 768px)');
+const isDesktopQuery = window.matchMedia('(min-width: 1024px)');
 
 export function useIsDesktopQuery() {
   return useSyncExternalStore(

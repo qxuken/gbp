@@ -16,12 +16,14 @@
 [x] Filters
 [x] Add filters by stats
 [x] Ui controls, hide blocks
+[x] Sticky aside
 [ ] Add filters by set
 [ ] Add filters by weapons
 [ ] Add new character, weapon to seed
 [x] Reduce number of request via sharing domains and fitlers reqs
 [ ] Add theme metatags
 [ ] Bundle size -> better splits
+[ ] Better layout
 
 Nice to have:
 [ ] Fix ugly reorder animations
