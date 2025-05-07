@@ -3,6 +3,7 @@ package models
 const (
 	USERS_COLLECTION_NAME               = "users"
 	APP_SETTINGS_COLLECTION_NAME        = "_appSettings"
+	DB_DUMPS_COLLECTION_NAME            = "_dbDumps"
 	CHARACTER_ROLES_COLLECTION_NAME     = "characterRoles"
 	ELEMENTS_COLLECTION_NAME            = "elements"
 	WEAPON_TYPES_COLLECTION_NAME        = "weaponTypes"
