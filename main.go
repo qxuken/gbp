@@ -53,7 +53,9 @@ func main() {
 		Automigrate: isDevMode,
 	})
 
-	app.RootCmd.AddCommand(seed.NewCobraCommand(app))
+	app.RootCmd.AddCommand(seed.NewCobraSeedCommand(app))
+
+	app.RootCmd.AddCommand(seed.NewCobraDumpCommand(app))
 
 	app.RootCmd.AddCommand(completions.NewCompletionsCommand(app.RootCmd))
 

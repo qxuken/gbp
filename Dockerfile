@@ -36,7 +36,6 @@ FROM alpine:latest
 
 WORKDIR /app
 
-COPY ./backup/seed.db ./seed.db
 COPY --from=backend-builder /app/gbp /app/gbp
 
 VOLUME /app/pb_data
