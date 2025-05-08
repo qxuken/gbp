@@ -47,7 +47,7 @@ func getFileContent(fsys *filesystem.System, record *core.Record, fieldName stri
 	iconPath := path.Join(record.BaseFilesPath(), orignalFileName)
 
 	name := record.GetString("name")
-	fileName := strings.Join(strings.Split(strings.ToLower(name), " "), "_") + filepath.Ext(iconPath)
+	fileName := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(name), " ", "_"), "'", "_") + filepath.Ext(iconPath)
 
 	r, err := fsys.GetFile(iconPath)
 	if err != nil {
