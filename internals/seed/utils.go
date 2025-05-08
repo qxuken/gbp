@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -43,7 +44,7 @@ func seedCollection[T SeedItem](app core.App, db dbx.Builder, sourceTable string
 
 func getFileContent(fsys *filesystem.System, record *core.Record, fieldName string) (string, []byte, error) {
 	orignalFileName := record.GetString(fieldName)
-	iconPath := record.BaseFilesPath() + "/" + orignalFileName
+	iconPath := path.Join(record.BaseFilesPath(), orignalFileName)
 
 	name := record.GetString("name")
 	fileName := strings.Join(strings.Split(strings.ToLower(name), " "), "_") + filepath.Ext(iconPath)

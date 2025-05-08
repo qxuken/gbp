@@ -1,10 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	_ "embed"
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/pocketbase/pocketbase"
@@ -67,6 +69,12 @@ func main() {
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		g := se.Router.Group("/api")
+
+		plansCollections := loadCollectionsDictionary(app)
+		g.GET("/plansCollections", func(e *core.RequestEvent) error {
+			return e.JSON(http.StatusOK, plansCollections)
+		})
+
 		g.GET("/dictionaryVersion", func(e *core.RequestEvent) error {
 			rec, err := models.FindAppSettingsByKey(app, "dictionaryVersion")
 			if err != nil {
@@ -75,10 +83,76 @@ func main() {
 			return e.JSON(http.StatusOK, rec.Value())
 		})
 
-		plansCollections := loadCollectionsDictionary(app)
-		g.GET("/plansCollections", func(e *core.RequestEvent) error {
-			return e.JSON(http.StatusOK, plansCollections)
+		g.POST("/dump/generate", func(e *core.RequestEvent) error {
+			if !e.HasSuperuserAuth() {
+				return e.UnauthorizedError("", nil)
+			}
+			data := struct {
+				Notes string `json:"notes" form:"notes"`
+			}{}
+			if err := e.BindBody(&data); err != nil {
+				return e.BadRequestError("Failed to read request data", err)
+			}
+			tmpFile, err := os.CreateTemp("./tmp", "*-dump.db")
+			if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			tmpPath := tmpFile.Name()
+			tmpFile.Close()
+			defer os.Remove(tmpPath)
+			err = seed.Dump(app, tmpPath, data.Notes)
+			if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			return e.JSON(http.StatusOK, map[string]any{"status": "ok"})
 		})
+
+		g.POST("/dump/upload", func(e *core.RequestEvent) error {
+			if !e.HasSuperuserAuth() {
+				return e.UnauthorizedError("", nil)
+			}
+			notes := e.Request.FormValue("notes")
+			mf, mh, err := e.Request.FormFile("dump")
+			buf := make([]byte, mh.Size)
+			if _, err = mf.Read(buf); err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			tmpFile, err := os.CreateTemp("./tmp", "*-dump.db")
+			tmpPath := tmpFile.Name()
+			if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			if _, err = tmpFile.Write(buf); err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			tmpFile.Close()
+			defer os.Remove(tmpPath)
+			err = seed.SaveDump(app, tmpPath, notes)
+			if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			return e.JSON(http.StatusOK, map[string]any{"status": "ok"})
+		})
+
+		g.POST("/dump/restore/{dumpId}", func(e *core.RequestEvent) error {
+			if !e.HasSuperuserAuth() {
+				return e.UnauthorizedError("", nil)
+			}
+			dumpId := e.Request.PathValue("dumpId")
+			dump, err := app.FindRecordById(models.DB_DUMPS_COLLECTION_NAME, dumpId)
+			if err == sql.ErrNoRows {
+				return e.NotFoundError(err.Error(), nil)
+			} else if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			dumpPath := path.Join(app.DataDir(), "storage", dump.BaseFilesPath(), dump.GetString("dump"))
+			err = seed.Seed(app, dumpPath)
+			if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			return e.JSON(http.StatusOK, map[string]any{"status": "ok"})
+		})
+
 		return se.Next()
 	})
 

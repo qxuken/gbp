@@ -8,6 +8,7 @@ import (
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/filesystem"
 	"github.com/qxuken/gbp/internals/models"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +25,7 @@ func NewCobraSeedCommand(app core.App) *cobra.Command {
 	}
 }
 
-func getSeedHash(path string) (string, error) {
+func GetSeedHash(path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -40,7 +41,7 @@ func getSeedHash(path string) (string, error) {
 }
 
 func updateDictionaryVersion(app core.App, path string) error {
-	hash, err := getSeedHash(path)
+	hash, err := GetSeedHash(path)
 	if err != nil {
 		return err
 	}
@@ -116,14 +117,41 @@ func NewCobraDumpCommand(app core.App) *cobra.Command {
 		Use:     "dump seed_file",
 		Aliases: []string{"d"},
 		Short:   "Dump command",
-		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+		Args:    cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return Dump(app, args[0])
+			var notes string
+			if len(args) > 1 {
+				notes = args[1]
+			}
+			return Dump(app, args[0], notes)
 		},
 	}
 }
 
-func Dump(app core.App, path string) error {
+func SaveDump(app core.App, path string, notes string) error {
+	hash, err := GetSeedHash(path)
+	if err != nil {
+		return err
+	}
+	app.Logger().Info("Hash " + hash)
+
+	collection, err := app.FindCollectionByNameOrId(models.DB_DUMPS_COLLECTION_NAME)
+	if err != nil {
+		return err
+	}
+	record := core.NewRecord(collection)
+	record.Set("hash", hash)
+	dumpfile, err := filesystem.NewFileFromPath(path)
+	if err != nil {
+		return err
+	}
+	record.Set("dump", dumpfile)
+	record.Set("notes", notes)
+
+	return app.Save(record)
+}
+
+func Dump(app core.App, path string, notes string) error {
 	app.Logger().Info("Dumping db")
 	app.Logger().Debug(fmt.Sprintf("seed db path %#v", path))
 
@@ -137,7 +165,6 @@ func Dump(app core.App, path string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 
 	err = app.RunInTransaction(func(txApp core.App) error {
 		return db.Transactional(func(txDb *dbx.Tx) error {
@@ -207,12 +234,11 @@ func Dump(app core.App, path string) error {
 			return nil
 		})
 	})
-	if err == nil {
-		app.Logger().Info("Dump Completed")
+	if err != nil {
+		return err
 	}
-	if hash, err := getSeedHash(path); err == nil {
-		app.Logger().Info("Hash " + hash)
-	}
+	app.Logger().Info("Dump Completed")
+	db.Close()
 
-	return err
+	return SaveDump(app, path, notes)
 }

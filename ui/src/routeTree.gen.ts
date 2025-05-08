@@ -19,6 +19,7 @@ import { Route as AuthSignupImport } from './routes/_auth/signup'
 import { Route as AuthLoginImport } from './routes/_auth/login'
 import { Route as AuthForgotPasswordImport } from './routes/_auth/forgot-password'
 import { Route as AuthConfirmImport } from './routes/_auth/confirm'
+import { Route as AdminDumpImport } from './routes/_admin.dump'
 import { Route as ProtectedBuildsUserProfileImport } from './routes/_protected/builds/user/profile'
 import { Route as ProtectedBuildsUserPasswordImport } from './routes/_protected/builds/user/password'
 import { Route as ProtectedBuildsUserLogoutImport } from './routes/_protected/builds/user/logout'
@@ -73,6 +74,12 @@ const AuthConfirmRoute = AuthConfirmImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AdminDumpRoute = AdminDumpImport.update({
+  id: '/_admin/dump',
+  path: '/dump',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ProtectedBuildsUserProfileRoute = ProtectedBuildsUserProfileImport.update(
   {
     id: '/user/profile',
@@ -122,6 +129,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof ProtectedImport
+      parentRoute: typeof rootRoute
+    }
+    '/_admin/dump': {
+      id: '/_admin/dump'
+      path: '/dump'
+      fullPath: '/dump'
+      preLoaderRoute: typeof AdminDumpImport
       parentRoute: typeof rootRoute
     }
     '/_auth/confirm': {
@@ -258,6 +272,7 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   '': typeof ProtectedRouteWithChildren
+  '/dump': typeof AdminDumpRoute
   '/confirm': typeof AuthConfirmRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
@@ -273,6 +288,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '': typeof AuthRouteWithChildren
+  '/dump': typeof AdminDumpRoute
   '/confirm': typeof AuthConfirmRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
@@ -290,6 +306,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_protected': typeof ProtectedRouteWithChildren
+  '/_admin/dump': typeof AdminDumpRoute
   '/_auth/confirm': typeof AuthConfirmRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/login': typeof AuthLoginRoute
@@ -307,6 +324,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | ''
+    | '/dump'
     | '/confirm'
     | '/forgot-password'
     | '/login'
@@ -321,6 +339,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | ''
+    | '/dump'
     | '/confirm'
     | '/forgot-password'
     | '/login'
@@ -336,6 +355,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_auth'
     | '/_protected'
+    | '/_admin/dump'
     | '/_auth/confirm'
     | '/_auth/forgot-password'
     | '/_auth/login'
@@ -353,11 +373,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   ProtectedRoute: typeof ProtectedRouteWithChildren
+  AdminDumpRoute: typeof AdminDumpRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   ProtectedRoute: ProtectedRouteWithChildren,
+  AdminDumpRoute: AdminDumpRoute,
 }
 
 export const routeTree = rootRoute
@@ -371,7 +393,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/_auth",
-        "/_protected"
+        "/_protected",
+        "/_admin/dump"
       ]
     },
     "/_auth": {
@@ -389,6 +412,9 @@ export const routeTree = rootRoute
         "/_protected/builds",
         "/_protected/"
       ]
+    },
+    "/_admin/dump": {
+      "filePath": "_admin.dump.tsx"
     },
     "/_auth/confirm": {
       "filePath": "_auth/confirm.tsx",

@@ -1,7 +1,7 @@
 import Pocketbase, { LocalAuthStore, ClientResponseError } from 'pocketbase';
 import { toast } from 'sonner';
 
-const AUTH_STORE_KEY = 'pbAuth';
+const AUTH_STORE_KEY = 'dbp__auth';
 export const authStore = new LocalAuthStore(AUTH_STORE_KEY);
 
 export const pbClient = new Pocketbase(
