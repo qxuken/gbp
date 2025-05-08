@@ -93,7 +93,7 @@ func main() {
 			if err := e.BindBody(&data); err != nil {
 				return e.BadRequestError("Failed to read request data", err)
 			}
-			tmpFile, err := os.CreateTemp("./tmp", "*-dump.db")
+			tmpFile, err := os.CreateTemp(app.DataDir(), "*-dump.db")
 			if err != nil {
 				return e.InternalServerError(err.Error(), nil)
 			}
@@ -117,7 +117,7 @@ func main() {
 			if _, err = mf.Read(buf); err != nil {
 				return e.InternalServerError(err.Error(), nil)
 			}
-			tmpFile, err := os.CreateTemp("./tmp", "*-dump.db")
+			tmpFile, err := os.CreateTemp(app.DataDir(), "*-dump.db")
 			tmpPath := tmpFile.Name()
 			if err != nil {
 				return e.InternalServerError(err.Error(), nil)
