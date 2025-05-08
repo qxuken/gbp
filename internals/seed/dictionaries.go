@@ -40,7 +40,7 @@ func GetSeedHash(path string) (string, error) {
 	return hashStr, err
 }
 
-func updateDictionaryVersion(app core.App, path string) error {
+func UpdateDictionaryVersion(app core.App, path string) error {
 	hash, err := GetSeedHash(path)
 	if err != nil {
 		return err
@@ -99,7 +99,7 @@ func Seed(app core.App, path string) error {
 			return err
 		}
 
-		if err := updateDictionaryVersion(txApp, path); err != nil {
+		if err := UpdateDictionaryVersion(txApp, path); err != nil {
 			return err
 		}
 		return nil

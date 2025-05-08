@@ -1,16 +1,18 @@
 import {
   queryOptions,
   useMutation,
+  useQuery,
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { CloudDownload, EllipsisVertical } from 'lucide-react';
+import { CloudDownload, CircleSmall, EllipsisVertical } from 'lucide-react';
 import Pocketbase, { LocalAuthStore, RecordModel } from 'pocketbase';
 import { ChangeEvent, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { reloadDictionaries } from '@/api/dictionaries/loader';
 import { queryClient } from '@/api/queryClient';
+import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -30,6 +32,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { notifyWithRetry } from '@/lib/notify-with-retry';
+import { cn } from '@/lib/utils';
 
 const authStore = new LocalAuthStore('__pb_superuser_auth__');
 const pbClient = new Pocketbase(import.meta.env.VITE_POCKETBASE_URL, authStore);
@@ -40,27 +43,34 @@ interface Dump extends RecordModel {
   notes: string;
 }
 
+const ROOT_QUERY_KEY = 'dumps';
+
 const dumpsQuery = queryOptions({
-  queryKey: ['dumps'],
-  async queryFn() {
-    return pbClient.collection<Dump>('_dbDumps').getFullList();
-  },
+  queryKey: [ROOT_QUERY_KEY],
+  queryFn: () => pbClient.collection<Dump>('_dbDumps').getFullList(),
+});
+
+const dictionaryVersionQuery = queryOptions({
+  queryKey: [ROOT_QUERY_KEY, 'dictionaryVersion'],
+  queryFn: () => pbClient.send<string>('/api/dictionaryVersion', {}),
 });
 
 function useDumpGenerateMutations() {
   const mutation = useMutation({
-    mutationKey: ['dumps', 'dump'],
-    mutationFn(notes: string = '') {
+    mutationKey: [ROOT_QUERY_KEY, 'dump'],
+    mutationFn(notes: string | undefined = '') {
       return pbClient.send<{ status: string }>('/api/dump/generate', {
         method: 'POST',
         body: JSON.stringify({ notes }),
       });
     },
     onSuccess() {
-      queryClient.invalidateQueries({ queryKey: dumpsQuery.queryKey });
+      queryClient.invalidateQueries({ queryKey: [ROOT_QUERY_KEY] });
       toast.success('Dump created');
     },
-    onError: notifyWithRetry((v) => mutation.mutateAsync(v)),
+    onError(err, v) {
+      notifyWithRetry((v?: string) => mutation.mutate(v))(err, v);
+    },
   });
   return mutation;
 }
@@ -74,11 +84,13 @@ function useDumpRestoreMutations() {
       });
     },
     onSuccess() {
-      queryClient.invalidateQueries({ queryKey: dumpsQuery.queryKey });
+      queryClient.invalidateQueries({ queryKey: [ROOT_QUERY_KEY] });
       reloadDictionaries();
       toast.success('Restored');
     },
-    onError: notifyWithRetry((v) => mutation.mutateAsync(v)),
+    onError(err, v) {
+      notifyWithRetry((v: string) => mutation.mutate(v))(err, v);
+    },
   });
   return mutation;
 }
@@ -93,11 +105,13 @@ function useDumpUploadDbMutations() {
       });
     },
     onSuccess() {
-      queryClient.invalidateQueries({ queryKey: dumpsQuery.queryKey });
+      queryClient.invalidateQueries({ queryKey: [ROOT_QUERY_KEY] });
       reloadDictionaries();
       toast.success('Restored');
     },
-    onError: notifyWithRetry((v) => mutation.mutateAsync(v)),
+    onError(err, v) {
+      notifyWithRetry((v: FormData) => mutation.mutate(v))(err, v);
+    },
   });
   return mutation;
 }
@@ -118,6 +132,7 @@ function RouteComponent() {
   const dumpGenerate = useDumpGenerateMutations();
   const dumpRestore = useDumpRestoreMutations();
   const dumpUpload = useDumpUploadDbMutations();
+  const dictionaryVersion = useQuery(dictionaryVersionQuery);
 
   const onDumpUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const data = new FormData();
@@ -132,14 +147,20 @@ function RouteComponent() {
   return (
     <div className="grid gap-4 p-4">
       <header className="flex gap-2 items-center">
-        <Button variant="secondary" onClick={() => dumpGenerate.mutateAsync()}>
+        <Button
+          variant="secondary"
+          onClick={() => dumpGenerate.mutateAsync('')}
+          disabled={dumpGenerate.isPending}
+        >
+          {dumpGenerate.isPending && <Icons.Spinner className="animate-spin" />}
           Dump current
         </Button>
         <div className="border rounded-md p-2 flex gap-2">
           <Label
-            className="data-[error=true]:text-destructive"
+            className="data-[error=true]:text-destructive flex gap-1 items-center"
             htmlFor="upload-dump"
           >
+            {dumpUpload.isPending && <Icons.Spinner className="animate-spin" />}
             Upload dump
           </Label>
           <Input
@@ -147,7 +168,9 @@ function RouteComponent() {
             id="upload-dump"
             type="file"
             placeholder="Upload dump"
+            className="hidden"
             value={undefined}
+            disabled={dumpUpload.isPending}
             onChange={(e) => onDumpUpload(e)}
           />
         </div>
@@ -157,16 +180,27 @@ function RouteComponent() {
           <TableCaption>A list of dumps.</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-140">Hash</TableHead>
+              <TableHead className="w-144">Hash</TableHead>
               <TableHead className="w-70">File</TableHead>
               <TableHead>Hotes</TableHead>
+              <TableHead className="w-60">Created At</TableHead>
               <TableHead className="w-10 text-right" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.data.map((it) => (
               <TableRow key={it.id}>
-                <TableCell className="font-medium">{it.hash}</TableCell>
+                <TableCell
+                  className={cn('font-medium flex gap-1 text-center', {
+                    'text-accent-foreground': it.hash == dictionaryVersion.data,
+                    'text-muted-foreground': it.hash != dictionaryVersion.data,
+                  })}
+                >
+                  {it.hash == dictionaryVersion.data && (
+                    <CircleSmall className="size-5" />
+                  )}
+                  {it.hash}
+                </TableCell>
                 <TableCell>
                   <a
                     href={pbClient.files.getURL(it, it.dump)}
@@ -177,6 +211,7 @@ function RouteComponent() {
                   </a>
                 </TableCell>
                 <TableCell dangerouslySetInnerHTML={{ __html: it.notes }} />
+                <TableCell>{it.created}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger>

@@ -104,6 +104,10 @@ func main() {
 			if err != nil {
 				return e.InternalServerError(err.Error(), nil)
 			}
+			err = seed.UpdateDictionaryVersion(app, tmpPath)
+			if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
 			return e.JSON(http.StatusOK, map[string]any{"status": "ok"})
 		})
 
@@ -128,6 +132,10 @@ func main() {
 			tmpFile.Close()
 			defer os.Remove(tmpPath)
 			err = seed.SaveDump(app, tmpPath, notes)
+			if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			err = seed.Seed(app, tmpPath)
 			if err != nil {
 				return e.InternalServerError(err.Error(), nil)
 			}
