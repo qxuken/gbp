@@ -1,6 +1,8 @@
 import { SelectTrigger } from '@radix-ui/react-select';
+import { useMemo } from 'react';
 
 import {
+  useArtifactSetsMap,
   useArtifactTypes,
   useElements,
   useSpecialsMap,
@@ -26,6 +28,9 @@ import {
   useSetFilters,
 } from '@/store/plans/filters';
 
+import { ArtifactSetPicker } from './ui/artifact-set-picker';
+import { ArtifactSetShort } from './ui/artifact-sets';
+
 export default function PlanFilters() {
   return (
     <Collapsible defaultOpen asChild>
@@ -38,6 +43,7 @@ export default function PlanFilters() {
           <FilterName />
           <FilterElements />
           <FilterWeaponTypes />
+          <FilterArtifactSets />
           <FilterArtifactTypes />
         </CollapsibleContent>
       </section>
@@ -63,6 +69,7 @@ function FilterHeader() {
                 filters.elements.clear();
                 filters.weaponTypes.clear();
                 filters.characters.clear();
+                filters.artifactSets.clear();
                 filters.specialsByArtifactTypePlans.clear();
               });
             }}
@@ -169,6 +176,63 @@ function FilterWeaponTypes() {
           {weaponType.name}
         </Button>
       ))}
+    </div>
+  );
+}
+
+function FilterArtifactSets() {
+  const value = useFiltersSelector('artifactSets');
+  const available = useAvailableFiltersSelector('artifactSets');
+  const setFilters = useSetFilters();
+  const artifactSets = useArtifactSetsMap();
+  const ignored = useMemo(() => {
+    const res = new Set(artifactSets.keys());
+    for (const as of available) {
+      if (value.has(as)) continue;
+      res.delete(as);
+    }
+    return res;
+  }, [available, value]);
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-1">
+        <span
+          className={cn('text-sm', {
+            'text-muted-foreground': value.size == 0,
+          })}
+        >
+          Artifacts
+        </span>
+        <ArtifactSetPicker
+          title="New artifact set"
+          onSelect={(as) =>
+            setFilters((state) => void state.artifactSets.add(as))
+          }
+          ignoreArifacts={ignored}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+            disabled={artifactSets.size - ignored.size == 0}
+          >
+            <Icons.Add />
+          </Button>
+        </ArtifactSetPicker>
+        <div className="flex-1" />
+      </div>
+      <div className="grid gap-1 w-full">
+        {Array.from(value, (as) => (
+          <ArtifactSetShort
+            key={as}
+            artifactSet={as}
+            skipConfirmation
+            delete={() =>
+              setFilters((state) => void state.artifactSets.delete(as))
+            }
+          />
+        ))}
+      </div>
     </div>
   );
 }

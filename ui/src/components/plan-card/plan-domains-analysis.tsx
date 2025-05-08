@@ -22,6 +22,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useSetFilters } from '@/store/plans/filters';
 
 import { BuildDomainsAnalysisContentSkeleton } from './plan-domains-analysis-skeleton';
 import { CharacterInfoContent } from './ui/character-info';
@@ -100,16 +101,28 @@ function PlanDomainsAnalysisItemArtifactSets({
   domain: DomainsOfBlessing;
 }) {
   const artifactSet = useArtifactSetsItem(item);
+  const setFilters = useSetFilters();
   if (!artifactSet) return null;
   return (
     <Tooltip key={artifactSet.id}>
       <TooltipTrigger asChild>
-        <CollectionAvatar
-          className="size-10 rounded-2xl"
-          record={artifactSet}
-          fileName={artifactSet.icon}
-          name={artifactSet.name}
-        />
+        <div
+          className="cursor-pointer"
+          onClick={() =>
+            setFilters((state) =>
+              state.artifactSets.has(artifactSet.id)
+                ? state.artifactSets.delete(artifactSet.id)
+                : state.artifactSets.add(artifactSet.id),
+            )
+          }
+        >
+          <CollectionAvatar
+            className="size-10 rounded-2xl"
+            record={artifactSet}
+            fileName={artifactSet.icon}
+            name={artifactSet.name}
+          />
+        </div>
       </TooltipTrigger>
       <TooltipContent>
         <div className="flex flex-col gap-1">

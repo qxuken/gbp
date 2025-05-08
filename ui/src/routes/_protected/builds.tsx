@@ -58,16 +58,18 @@ const PAGE_SIZE_OPTIONS = [30, 50, 80, MAX_ITEMS] as const;
 const SEARCH_SCHEMA = z.object({
   page: z.number().min(1).optional(),
   perPage: z.number().optional(),
-  // Characters
-  cs: z.array(z.string()).optional(),
   // Character Name
   cN: z.string().optional(),
   // Character Elements
   cE: z.array(z.string()).optional(),
   // Character Weapon Types
   cWT: z.array(z.string()).optional(),
-  // Character artifact types
+  // Character Artifact Sets
+  cAS: z.array(z.string()).optional(),
+  // Character Artifact Types
   cAT: z.array(z.tuple([z.string(), z.array(z.string())])).optional(),
+  // Characters
+  cs: z.array(z.string()).optional(),
 });
 
 export const Route = createFileRoute('/_protected/builds')({
@@ -141,21 +143,23 @@ function useSearchFilters() {
     name: search.cN ?? '',
     elements: new Set(search.cE),
     weaponTypes: new Set(search.cWT),
-    characters: new Set(search.cs),
+    artifactSets: new Set(search.cAS),
     specialsByArtifactTypePlans: new Map(
       search.cAT?.map(([at, specials]) => [at, new Set(specials)]),
     ),
+    characters: new Set(search.cs),
   }));
 
   useEffect(() => {
     const cN = filters.name;
     const cE = Array.from(filters.elements);
     const cWT = Array.from(filters.weaponTypes);
-    const cS = Array.from(filters.characters);
+    const cAS = Array.from(filters.artifactSets);
     const cAt: [string, string[]][] = Array.from(
       filters.specialsByArtifactTypePlans.entries(),
       ([key, value]) => [key, Array.from(value)],
     );
+    const cS = Array.from(filters.characters);
     navigate({
       to: Route.to,
       resetScroll: false,
@@ -164,8 +168,9 @@ function useSearchFilters() {
         cN: cN.length > 0 ? cN : undefined,
         cE: cE.length > 0 ? cE : undefined,
         cWT: cWT.length > 0 ? cWT : undefined,
-        cs: cS.length > 0 ? cS : undefined,
+        cAS: cAS.length > 0 ? cAS : undefined,
         cAT: cAt.length > 0 ? cAt : undefined,
+        cs: cS.length > 0 ? cS : undefined,
       }),
     });
   }, [filters]);

@@ -179,9 +179,10 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
 
 type ArtifactSetProps = {
   artifactSet: string;
-  isSplit: boolean;
+  isSplit?: boolean;
   delete: () => void;
   disabled?: boolean;
+  skipConfirmation?: boolean;
 };
 
 function ArtifactSetFull(props: ArtifactSetProps) {
@@ -231,7 +232,7 @@ function ArtifactSetFull(props: ArtifactSetProps) {
   );
 }
 
-function ArtifactSetShort(props: ArtifactSetProps) {
+export function ArtifactSetShort(props: ArtifactSetProps) {
   const artifactSet = useArtifactSetsItem(props.artifactSet);
   if (!artifactSet) {
     return null;
@@ -247,28 +248,40 @@ function ArtifactSetShort(props: ArtifactSetProps) {
       <div className="flex-1">
         <div className="flex justify-between">
           <span className="flex-1">{artifactSet.name}</span>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-                disabled={props.disabled}
-              >
-                <Icons.Remove />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" side="top">
-              <Button
-                variant="destructive"
-                className="w-full"
-                onClick={props.delete}
-                disabled={props.disabled}
-              >
-                Yes i really want to delete
-              </Button>
-            </PopoverContent>
-          </Popover>
+          {props.skipConfirmation ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+              onClick={props.delete}
+              disabled={props.disabled}
+            >
+              <Icons.Remove />
+            </Button>
+          ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                  disabled={props.disabled}
+                >
+                  <Icons.Remove />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0" side="top">
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={props.delete}
+                  disabled={props.disabled}
+                >
+                  Yes i really want to delete
+                </Button>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       </div>
     </div>

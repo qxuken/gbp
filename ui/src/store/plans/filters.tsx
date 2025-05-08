@@ -21,6 +21,7 @@ export type PlansFilters = {
   elements: Set<string>;
   weaponTypes: Set<string>;
   characters: Set<string>;
+  artifactSets: Set<string>;
   specialsByArtifactTypePlans: FilterSpecialsByArtifactTypePlans;
 };
 
@@ -28,6 +29,7 @@ export type PlansAvailableFilters = {
   elements: Set<string>;
   weaponTypes: Set<string>;
   characters: Set<string>;
+  artifactSets: Set<string>;
   specialsByArtifactTypePlans: FilterSpecialsByArtifactTypePlans;
 };
 
@@ -53,6 +55,7 @@ export function FiltersProvider({ children, value, setValue }: Props) {
       elements: new Set(),
       weaponTypes: new Set(),
       characters: new Set(),
+      artifactSets: new Set(),
       specialsByArtifactTypePlans: new Map(),
     };
     for (const item of plans) {
@@ -65,6 +68,11 @@ export function FiltersProvider({ children, value, setValue }: Props) {
       }
       res.weaponTypes.add(character.weaponType);
       res.characters.add(character.id);
+      for (const asp of item.artifactSetsPlans ?? []) {
+        for (const as of asp.artifactSets) {
+          res.artifactSets.add(as);
+        }
+      }
       for (const atp of item.artifactTypePlans ?? []) {
         mapGetOrSetDefault(
           res.specialsByArtifactTypePlans,
@@ -84,6 +92,7 @@ export function FiltersProvider({ children, value, setValue }: Props) {
         value.name.length > 0 ||
         value.elements.size > 0 ||
         value.weaponTypes.size > 0 ||
+        value.artifactSets.size > 0 ||
         value.specialsByArtifactTypePlans.size > 0 ||
         value.characters.size > 0,
       setValue(cb: (v: WritableDraft<PlansFilters>) => void) {
@@ -173,11 +182,28 @@ export function useCharacterFilterFn() {
         );
       };
 
+      const artifactSetsSpecialsFilter = () => {
+        if (filters.artifactSets.size == 0) {
+          return true;
+        }
+        if (!plan?.artifactSetsPlans) {
+          return false;
+        }
+        return plan.artifactSetsPlans.some((atp) =>
+          atp.artifactSets.some((as) => filters.artifactSets.has(as)),
+        );
+      };
+
       const nameFilter = () =>
         !filters.name ||
         fuzzysearch(filters.name.toLowerCase(), character.name.toLowerCase());
 
-      return simpleFilters && artifactTypeSpecialsFilter() && nameFilter();
+      return (
+        simpleFilters &&
+        artifactTypeSpecialsFilter() &&
+        artifactSetsSpecialsFilter() &&
+        nameFilter()
+      );
     },
     [filters],
   );

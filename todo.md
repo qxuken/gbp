@@ -17,11 +17,11 @@
 [x] Add filters by stats
 [x] Ui controls, hide blocks
 [x] Sticky aside
-[ ] Add filters by set
-[ ] Add filters by weapons
-[ ] Add new character, weapon to seed
+[x] Add filters by set
+[x] Add new character, weapon to seed
 [x] Reduce number of request via sharing domains and fitlers reqs
 [ ] Add theme metatags
+[ ] Add dnd for sets
 [ ] Bundle size -> better splits
 [ ] Better layout
 
@@ -39,6 +39,8 @@ Nice to have:
 [ ] Filter for team member
 [ ] Small cards, at least version
 [ ] More visible active state filters
+[ ] Add filters by weapons
+[ ] Add filters by characters
 
 Next big thing:
 [x] Farm planned
