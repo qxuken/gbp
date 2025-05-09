@@ -276,7 +276,7 @@ function FilterArtifactTypes() {
                   <div key={special.id} className="flex gap-1 items-center">
                     <Button
                       variant="destructive"
-                      className="text-md leading-none py-0 px-2 not-hover:bg-transparent not-focus:bg-transparent"
+                      className="text-md leading-none py-0 px-2 not-hover:text-primary not-hover:bg-transparent"
                       onClick={() => {
                         setFilters((filters) => {
                           const artifactTypeSpecials =

@@ -5,8 +5,8 @@ import { ArtifactTypePlans } from '@/api/types';
 import { usePlans, useSharedPendingPlansCollectionReporter } from './plans';
 import {
   OptimisticRecord,
-  usePlanCollectionAccessor,
   useCollectionMutation,
+  usePlanCollectionAccessor,
 } from './utils/use-collection-mutation';
 
 export function useArtifactTypePlans() {

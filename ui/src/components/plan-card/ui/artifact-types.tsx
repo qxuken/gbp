@@ -222,7 +222,7 @@ export function ArtifactTypesSpecialItem(props: ArtifactTypesSpecialItemProps) {
             size={mode == UiPlansMode.Short ? 'sm' : 'default'}
             variant="destructive"
             className={cn(
-              'leading-none not-hover:bg-transparent not-focus:bg-transparent',
+              'leading-none not-hover:text-primary not-hover:bg-transparent',
               {
                 'opacity-75 animate-pulse': props.isLoading,
                 'text-md py-0 px-2': mode == UiPlansMode.Full,
