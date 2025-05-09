@@ -5,13 +5,12 @@ import { PropsWithChildren } from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { DictionaryProvider } from '@/api/dictionaries/hooks';
+import '@/api/dictionaries/loader';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { router } from '@/router';
 
 import { queryClient } from './api/queryClient';
-
-import('@/api/dictionaries/loader');
 
 if (!import.meta.env.PROD) {
   import('@/devtoolsLoader');

@@ -22,12 +22,12 @@
 - [x] Add filters by set
 - [x] Add new character, weapon to seed
 - [x] Reduce number of request via sharing domains and fitlers reqs
-- [ ] Add theme metatags
-- [ ] Add DnD for sets
-- [ ] Bundle size -> better splits
+- [x] Add theme metatags
+- [x] Bundle size -> better splits
 - [ ] Better layout
 - [ ] Layout for auth
 - [ ] Landing page
+- [ ] Add DnD for sets
 - [ ] Readme
 
 ## Nice to have:
@@ -41,11 +41,11 @@
 - [ ] Mobile version for weapon tagging
 - [ ] Mobile version for filters
 - [ ] Translations
-- [ ] Filter for team member
 - [x] Small cards, at least version
 - [x] More visible active state filters
 - [ ] Add filters by weapons
 - [ ] Add filters by characters
+- [ ] Filter for team member
 - [ ] Expose dumps
 
 ## Next big thing:

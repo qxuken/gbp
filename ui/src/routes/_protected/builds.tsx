@@ -4,15 +4,19 @@ import {
   linkOptions,
 } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
-import { lazy, PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { z } from 'zod';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
+import PlanDomainsAnalysis from '@/components/plan-card/plan-domains-analysis';
 import PlanDomainsAnalysisSkeleton from '@/components/plan-card/plan-domains-analysis-skeleton';
+import PlanFilters from '@/components/plan-card/plan-filters';
 import PlanFiltersSkeleton from '@/components/plan-card/plan-filters-skeleton';
 import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
+import PlanMode from '@/components/plan-card/plan-mode';
 import PlansModeSkeleton from '@/components/plan-card/plan-mode-skeleton';
+import Plans from '@/components/plans';
 import { Label } from '@/components/ui/label';
 import {
   Pagination as UIPagination,
@@ -43,15 +47,6 @@ import {
   UiPlansMode,
   useUiPlansConfigModeValue,
 } from '@/store/ui-plans-config';
-
-const LazyPlanMode = lazy(() => import('@/components/plan-card/plan-mode'));
-const LazyPlans = lazy(() => import('@/components/plans'));
-const LazyPlanFilters = lazy(
-  () => import('@/components/plan-card/plan-filters'),
-);
-const LazyPlanDomainsAnalysis = lazy(
-  () => import('@/components/plan-card/plan-domains-analysis'),
-);
 
 const PAGE_SIZE_OPTIONS = [30, 50, 80, MAX_ITEMS] as const;
 
@@ -202,9 +197,9 @@ function HomeComponent() {
                     'max-h-screen': isDesktop,
                   })}
                 >
-                  <LazyPlanMode />
-                  <LazyPlanFilters />
-                  <LazyPlanDomainsAnalysis />
+                  <PlanMode />
+                  <PlanFilters />
+                  <PlanDomainsAnalysis />
                 </aside>
                 <ScrollBar />
               </ScrollArea>
@@ -218,7 +213,7 @@ function HomeComponent() {
                   mode == UiPlansMode.Short,
               })}
             >
-              <LazyPlans />
+              <Plans />
             </section>
           </section>
           <nav

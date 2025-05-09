@@ -24,4 +24,43 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          tanstack: ['@tanstack/react-router', '@tanstack/react-query'],
+          dexie: ['dexie', 'dexie-react-hooks'],
+          pocketbase: ['pocketbase'],
+          zod: ['zod'],
+          motion: ['motion'],
+          'dnd-kit': [
+            '@dnd-kit/core',
+            '@dnd-kit/sortable',
+            '@dnd-kit/utilities',
+          ],
+          icons: ['lucide-react'],
+          sonner: ['sonner'],
+          zustand: ['zustand'],
+          fuzzysearch: ['fuzzysearch'],
+          immer: ['immer'],
+          tailwind: ['tailwind-merge', 'clsx'],
+          radix: [
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-avatar',
+            '@radix-ui/react-collapsible',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-label',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-scroll-area',
+            '@radix-ui/react-select',
+            '@radix-ui/react-separator',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-tooltip',
+          ],
+        },
+      },
+    },
+  },
 });
