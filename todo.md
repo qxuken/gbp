@@ -23,9 +23,12 @@
 - [x] Add new character, weapon to seed
 - [x] Reduce number of request via sharing domains and fitlers reqs
 - [ ] Add theme metatags
-- [ ] Add dnd for sets
+- [ ] Add DnD for sets
 - [ ] Bundle size -> better splits
 - [ ] Better layout
+- [ ] Layout for auth
+- [ ] Landing page
+- [ ] Readme
 
 ## Nice to have:
 
@@ -35,15 +38,15 @@
 - [x] Modal window scroll padding
 - [x] Page loaders
 - [ ] Label arias: buttons, inputs, etc. sr-only elements
-- [ ] Readme
 - [ ] Mobile version for weapon tagging
 - [ ] Mobile version for filters
 - [ ] Translations
 - [ ] Filter for team member
-- [ ] Small cards, at least version
-- [ ] More visible active state filters
+- [x] Small cards, at least version
+- [x] More visible active state filters
 - [ ] Add filters by weapons
 - [ ] Add filters by characters
+- [ ] Expose dumps
 
 ## Next big thing:
 

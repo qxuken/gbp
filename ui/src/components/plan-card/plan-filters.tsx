@@ -116,7 +116,7 @@ function FilterElements() {
       {elements.map((element) => (
         <Button
           key={element.id}
-          variant={filter.has(element.id) ? 'secondary' : 'outline'}
+          variant={filter.has(element.id) ? 'default' : 'outline'}
           size="sm"
           disabled={!available.has(element.id)}
           onClick={() => {
@@ -153,7 +153,7 @@ function FilterWeaponTypes() {
       {weaponTypes.map((weaponType) => (
         <Button
           key={weaponType.id}
-          variant={value.has(weaponType.id) ? 'secondary' : 'outline'}
+          variant={value.has(weaponType.id) ? 'default' : 'outline'}
           size="sm"
           disabled={!available.has(weaponType.id)}
           onClick={() => {
