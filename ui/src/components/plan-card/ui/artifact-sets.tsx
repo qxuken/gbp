@@ -14,6 +14,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { removeByPredMut } from '@/lib/array-remove-mut';
 import { cn } from '@/lib/utils';
+import { useSetFilters } from '@/store/plans/filters';
 import {
   UiPlansMode,
   useUiPlansConfigModeValue,
@@ -187,17 +188,29 @@ type ArtifactSetProps = {
 
 function ArtifactSetFull(props: ArtifactSetProps) {
   const artifactSet = useArtifactSetsItem(props.artifactSet);
+  const setFilters = useSetFilters();
   if (!artifactSet) {
     return null;
   }
   return (
     <div className="flex gap-2 w-full nth-2:mt-1">
-      <CollectionAvatar
-        record={artifactSet}
-        fileName={artifactSet.icon}
-        name={artifactSet.name}
-        className="size-12"
-      />
+      <div
+        className="cursor-pointer"
+        onClick={() =>
+          setFilters((state) =>
+            state.artifactSets.has(artifactSet.id)
+              ? state.artifactSets.delete(artifactSet.id)
+              : state.artifactSets.add(artifactSet.id),
+          )
+        }
+      >
+        <CollectionAvatar
+          record={artifactSet}
+          fileName={artifactSet.icon}
+          name={artifactSet.name}
+          className="size-12"
+        />
+      </div>
       <div className="flex-1">
         <div className="flex justify-between">
           <span className="flex-1">{artifactSet.name}</span>
