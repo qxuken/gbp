@@ -36,7 +36,7 @@ export default function PlanFilters() {
     <Collapsible defaultOpen asChild>
       <section
         aria-label="Filters"
-        className="p-3 grid gap-2 min-w-xs border border-border border-dashed rounded-xl"
+        className="p-3 grid gap-2 min-w-xs bg-background border border-border border-dashed rounded-xl"
       >
         <FilterHeader />
         <CollapsibleContent className="grid gap-2">
@@ -171,7 +171,10 @@ function FilterWeaponTypes() {
             record={weaponType}
             fileName={weaponType.icon}
             name={weaponType.name}
-            className="size-4 not-dark:bg-black"
+            className={cn('size-4', {
+              'not-dark:bg-black': !value.has(weaponType.id),
+              'dark:bg-black': value.has(weaponType.id),
+            })}
           />
           {weaponType.name}
         </Button>

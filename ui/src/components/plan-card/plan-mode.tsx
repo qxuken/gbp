@@ -11,7 +11,7 @@ export function PlanMode() {
   return (
     <section
       aria-label="Plans Ui Mode"
-      className="p-3 grid gap-2 min-w-xs border border-border border-dashed rounded-xl"
+      className="p-3 grid gap-2 min-w-xs bg-background border border-border border-dashed rounded-xl"
     >
       <div className="flex gap-2 w-full items-center">
         <span>Cards view</span>

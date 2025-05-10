@@ -32,7 +32,7 @@ export default function PlanDomainsAnalysis() {
     <Collapsible defaultOpen asChild>
       <section
         aria-label="Filters"
-        className="p-3 grid gap-2 min-w-xs border border-border border-dashed rounded-xl"
+        className="p-3 grid gap-2 min-w-xs bg-background border border-border border-dashed rounded-xl"
       >
         <div className="flex justify-between gap-2">
           <h3 className="text-md font-semibold">Farm tips</h3>
