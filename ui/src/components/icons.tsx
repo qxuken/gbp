@@ -54,5 +54,4 @@ export const Icons = {
   Password: KeyRound,
   Retry: RotateCcw,
   Github,
-  Copyright,
 };

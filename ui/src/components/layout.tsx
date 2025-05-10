@@ -58,8 +58,7 @@ export function Layout({
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-4">
               <p className="flex items-center gap-1">
-                <Icons.Copyright className="size-4" />
-                2024 GBP. All rights reserved.
+                Built with ❤️ for my wife. Open source under the MIT license.
               </p>
               <Separator
                 orientation="vertical"
