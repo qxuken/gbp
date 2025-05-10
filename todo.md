@@ -26,7 +26,7 @@
 - [x] Bundle size -> better splits
 - [ ] Better layout
 - [ ] Layout for auth
-- [ ] Landing page
+- [ ] Landing page and seo meta tags
 - [ ] Add DnD for sets
 - [ ] Readme
 

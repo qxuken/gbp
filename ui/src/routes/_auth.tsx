@@ -2,11 +2,12 @@ import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
 import { z } from 'zod';
 
 import { authStore } from '@/api/pocketbase';
+import { Layout } from '@/components/layout';
 
 export const Route = createFileRoute('/_auth')({
   beforeLoad: ({ search }) => {
     if (authStore.isValid) {
-      throw redirect({ to: search.redirect || '/' });
+      throw redirect({ to: search.redirect || '/builds' });
     }
   },
   component: AuthLayout,
@@ -17,8 +18,8 @@ export const Route = createFileRoute('/_auth')({
 
 function AuthLayout() {
   return (
-    <div className="p-2 h-full">
+    <Layout showLoginButton>
       <Outlet />
-    </div>
+    </Layout>
   );
 }

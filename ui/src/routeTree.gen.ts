@@ -13,7 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as ProtectedImport } from './routes/_protected'
 import { Route as AuthImport } from './routes/_auth'
-import { Route as ProtectedIndexImport } from './routes/_protected/index'
+import { Route as AuthIndexImport } from './routes/_auth/index'
 import { Route as ProtectedBuildsImport } from './routes/_protected/builds'
 import { Route as AuthSignupImport } from './routes/_auth/signup'
 import { Route as AuthLoginImport } from './routes/_auth/login'
@@ -38,10 +38,10 @@ const AuthRoute = AuthImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const ProtectedIndexRoute = ProtectedIndexImport.update({
+const AuthIndexRoute = AuthIndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProtectedRoute,
+  getParentRoute: () => AuthRoute,
 } as any)
 
 const ProtectedBuildsRoute = ProtectedBuildsImport.update({
@@ -173,12 +173,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedBuildsImport
       parentRoute: typeof ProtectedImport
     }
-    '/_protected/': {
-      id: '/_protected/'
+    '/_auth/': {
+      id: '/_auth/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof ProtectedIndexImport
-      parentRoute: typeof ProtectedImport
+      preLoaderRoute: typeof AuthIndexImport
+      parentRoute: typeof AuthImport
     }
     '/_protected/builds/user/delete': {
       id: '/_protected/builds/user/delete'
@@ -225,6 +225,7 @@ interface AuthRouteChildren {
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthSignupRoute: typeof AuthSignupRoute
+  AuthIndexRoute: typeof AuthIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -232,6 +233,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthSignupRoute: AuthSignupRoute,
+  AuthIndexRoute: AuthIndexRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
@@ -258,12 +260,10 @@ const ProtectedBuildsRouteWithChildren = ProtectedBuildsRoute._addFileChildren(
 
 interface ProtectedRouteChildren {
   ProtectedBuildsRoute: typeof ProtectedBuildsRouteWithChildren
-  ProtectedIndexRoute: typeof ProtectedIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedBuildsRoute: ProtectedBuildsRouteWithChildren,
-  ProtectedIndexRoute: ProtectedIndexRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
@@ -278,7 +278,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/builds': typeof ProtectedBuildsRouteWithChildren
-  '/': typeof ProtectedIndexRoute
+  '/': typeof AuthIndexRoute
   '/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
   '/builds/user/email': typeof ProtectedBuildsUserEmailRoute
   '/builds/user/logout': typeof ProtectedBuildsUserLogoutRoute
@@ -287,14 +287,14 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
-  '': typeof AuthRouteWithChildren
+  '': typeof ProtectedRouteWithChildren
   '/dump': typeof AdminDumpRoute
   '/confirm': typeof AuthConfirmRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/builds': typeof ProtectedBuildsRouteWithChildren
-  '/': typeof ProtectedIndexRoute
+  '/': typeof AuthIndexRoute
   '/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
   '/builds/user/email': typeof ProtectedBuildsUserEmailRoute
   '/builds/user/logout': typeof ProtectedBuildsUserLogoutRoute
@@ -312,7 +312,7 @@ export interface FileRoutesById {
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/_protected/builds': typeof ProtectedBuildsRouteWithChildren
-  '/_protected/': typeof ProtectedIndexRoute
+  '/_auth/': typeof AuthIndexRoute
   '/_protected/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
   '/_protected/builds/user/email': typeof ProtectedBuildsUserEmailRoute
   '/_protected/builds/user/logout': typeof ProtectedBuildsUserLogoutRoute
@@ -361,7 +361,7 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/_auth/signup'
     | '/_protected/builds'
-    | '/_protected/'
+    | '/_auth/'
     | '/_protected/builds/user/delete'
     | '/_protected/builds/user/email'
     | '/_protected/builds/user/logout'
@@ -403,14 +403,14 @@ export const routeTree = rootRoute
         "/_auth/confirm",
         "/_auth/forgot-password",
         "/_auth/login",
-        "/_auth/signup"
+        "/_auth/signup",
+        "/_auth/"
       ]
     },
     "/_protected": {
       "filePath": "_protected.tsx",
       "children": [
-        "/_protected/builds",
-        "/_protected/"
+        "/_protected/builds"
       ]
     },
     "/_admin/dump": {
@@ -443,9 +443,9 @@ export const routeTree = rootRoute
         "/_protected/builds/user/profile"
       ]
     },
-    "/_protected/": {
-      "filePath": "_protected/index.tsx",
-      "parent": "/_protected"
+    "/_auth/": {
+      "filePath": "_auth/index.tsx",
+      "parent": "/_auth"
     },
     "/_protected/builds/user/delete": {
       "filePath": "_protected/builds/user/delete.tsx",
