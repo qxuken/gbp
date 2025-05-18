@@ -175,10 +175,11 @@ export function useCharacterFilterFn() {
         if (!plan?.artifactTypePlans) {
           return false;
         }
-        return plan.artifactTypePlans.some((atp) =>
-          filters.specialsByArtifactTypePlans
-            .get(atp.artifactType)
-            ?.has(atp.special),
+        return Array.from(filters.specialsByArtifactTypePlans.entries()).every(
+          ([at, specials]) =>
+            plan.artifactTypePlans?.some(
+              (atp) => atp.artifactType == at && specials.has(atp.special),
+            ),
         );
       };
 
