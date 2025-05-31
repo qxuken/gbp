@@ -24,7 +24,7 @@
 - [x] Reduce number of request via sharing domains and filters requests
 - [x] Add theme meta tags
 - [x] Bundle size -> better splits
-- [ ] Filter on small artifact click
+- [x] Filter on small artifact click
 - [ ] Better layout
 - [ ] Layout for auth
 - [ ] Landing page and SEO meta tags

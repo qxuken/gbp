@@ -247,17 +247,29 @@ function ArtifactSetFull(props: ArtifactSetProps) {
 
 export function ArtifactSetShort(props: ArtifactSetProps) {
   const artifactSet = useArtifactSetsItem(props.artifactSet);
+  const setFilters = useSetFilters();
   if (!artifactSet) {
     return null;
   }
   return (
     <div className="flex gap-2 w-full nth-2:mt-1">
-      <CollectionAvatar
-        record={artifactSet}
-        fileName={artifactSet.icon}
-        name={artifactSet.name}
-        className="size-8"
-      />
+      <div
+        className="cursor-pointer"
+        onClick={() =>
+          setFilters((state) =>
+            state.artifactSets.has(artifactSet.id)
+              ? state.artifactSets.delete(artifactSet.id)
+              : state.artifactSets.add(artifactSet.id),
+          )
+        }
+      >
+        <CollectionAvatar
+          record={artifactSet}
+          fileName={artifactSet.icon}
+          name={artifactSet.name}
+          className="size-8"
+        />
+      </div>
       <div className="flex-1">
         <div className="flex justify-between">
           <span className="flex-1">{artifactSet.name}</span>
