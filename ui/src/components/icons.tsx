@@ -23,7 +23,6 @@ import {
   Mail,
   KeyRound,
   Github,
-  Copyright,
   RotateCcw,
 } from 'lucide-react';
 

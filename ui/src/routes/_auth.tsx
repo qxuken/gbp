@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { authStore } from '@/api/pocketbase';
 import { Layout } from '@/components/layout';
@@ -12,7 +12,7 @@ export const Route = createFileRoute('/_auth')({
   },
   component: AuthLayout,
   validateSearch: z.object({
-    redirect: z.string().optional().catch(''),
+    redirect: z.catch(z.optional(z.string()), ''),
   }),
 });
 

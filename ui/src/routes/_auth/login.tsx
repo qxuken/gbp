@@ -1,8 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { login } from '@/api/pocketbase';
 import { queryClient } from '@/api/queryClient';
@@ -30,12 +30,16 @@ export const Route = createFileRoute('/_auth/login')({
 });
 
 const formSchema = z.object({
-  email: z.string().email({
-    message: 'Please enter a valid email address.',
-  }),
-  password: z.string().min(8, {
-    message: 'Password must be at least 8 characters.',
-  }),
+  email: z.string().check(
+    z.email({
+      message: 'Please enter a valid email address.',
+    }),
+  ),
+  password: z.string().check(
+    z.minLength(8, {
+      message: 'Password must be at least 8 characters.',
+    }),
+  ),
 });
 
 function LoginComponent() {
@@ -44,7 +48,7 @@ function LoginComponent() {
       email: '',
       password: '',
     },
-    resolver: zodResolver(formSchema),
+    resolver: standardSchemaResolver(formSchema),
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {

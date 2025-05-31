@@ -1,8 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { pbClient, updateProfile } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
@@ -21,8 +21,8 @@ import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { useUser } from '@/store/auth';
 
 const profileFormSchema = z.object({
-  name: z.string().min(2).max(50),
-  avatar: z.instanceof(FileList).optional(),
+  name: z.string().check(z.minLength(2), z.maxLength(50)),
+  avatar: z.optional(z.instanceof(FileList)),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -36,7 +36,7 @@ function ProfileEditRoute() {
   const navigate = Route.useNavigate();
   const user = useUser();
   const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
+    resolver: standardSchemaResolver(profileFormSchema),
     defaultValues: {
       name: user?.name || '',
     },

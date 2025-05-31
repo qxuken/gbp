@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { login, requestVerification } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
@@ -12,8 +12,8 @@ import { useTimeoutButton } from '@/hooks/use-timeout-button';
 export const Route = createFileRoute('/_auth/confirm')({
   component: ConfirmComponent,
   validateSearch: z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
+    email: z.string().check(z.email()),
+    password: z.string().check(z.minLength(8)),
   }),
 });
 

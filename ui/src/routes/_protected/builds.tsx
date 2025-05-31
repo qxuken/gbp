@@ -5,7 +5,7 @@ import {
 } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
@@ -51,20 +51,20 @@ import {
 const PAGE_SIZE_OPTIONS = [30, 50, 80, MAX_ITEMS] as const;
 
 const SEARCH_SCHEMA = z.object({
-  page: z.number().min(1).optional(),
-  perPage: z.number().optional(),
+  page: z.optional(z.number().check(z.minimum(1))),
+  perPage: z.optional(z.number()),
   // Character Name
-  cN: z.string().optional(),
+  cN: z.optional(z.string()),
   // Character Elements
-  cE: z.array(z.string()).optional(),
+  cE: z.optional(z.array(z.string())),
   // Character Weapon Types
-  cWT: z.array(z.string()).optional(),
+  cWT: z.optional(z.array(z.string())),
   // Character Artifact Sets
-  cAS: z.array(z.string()).optional(),
+  cAS: z.optional(z.array(z.string())),
   // Character Artifact Types
-  cAT: z.array(z.tuple([z.string(), z.array(z.string())])).optional(),
+  cAT: z.optional(z.array(z.tuple([z.string(), z.array(z.string())]))),
   // Characters
-  cs: z.array(z.string()).optional(),
+  cs: z.optional(z.array(z.string())),
 });
 
 export const Route = createFileRoute('/_protected/builds')({

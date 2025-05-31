@@ -31,7 +31,7 @@ export default defineConfig({
           tanstack: ['@tanstack/react-router', '@tanstack/react-query'],
           dexie: ['dexie', 'dexie-react-hooks'],
           pocketbase: ['pocketbase'],
-          zod: ['zod'],
+          zod: ['zod/v4-mini'],
           motion: ['motion'],
           'dnd-kit': [
             '@dnd-kit/core',

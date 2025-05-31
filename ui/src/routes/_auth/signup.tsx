@@ -1,9 +1,9 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { ClientResponseError } from 'pocketbase';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { register, requestVerification } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
@@ -36,29 +36,36 @@ const serverValueErrorSchema = z.object({
 
 const formSchema = z
   .object({
-    avatar: z.instanceof(FileList).optional(),
-    email: z.string().email({
-      message: 'Please enter a valid email address.',
-    }),
-    name: z.string().min(2, {
-      message: 'Name must be at least 2 characters.',
-    }),
-    password: z.string().min(8, {
-      message: 'Password must be at least 8 characters.',
-    }),
+    avatar: z.optional(z.instanceof(FileList)),
+    email: z.string().check(
+      z.email({
+        message: 'Please enter a valid email address.',
+      }),
+    ),
+    name: z.string().check(
+      z.minLength(2, {
+        message: 'Name must be at least 2 characters.',
+      }),
+    ),
+    password: z.string().check(
+      z.minLength(8, {
+        message: 'Password must be at least 8 characters.',
+      }),
+    ),
     passwordConfirm: z.string(),
   })
-  .refine((data) => data.password === data.passwordConfirm, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
-
+  .check(
+    z.refine((data) => data.password === data.passwordConfirm, {
+      message: 'Passwords do not match',
+      path: ['confirmPassword'],
+    }),
+  );
 function SignupComponent() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: standardSchemaResolver(formSchema),
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {

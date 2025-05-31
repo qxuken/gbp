@@ -21,12 +21,13 @@
 - [x] Sticky aside
 - [x] Add filters by set
 - [x] Add new character, weapon to seed
-- [x] Reduce number of request via sharing domains and fitlers reqs
-- [x] Add theme metatags
+- [x] Reduce number of request via sharing domains and filters requests
+- [x] Add theme meta tags
 - [x] Bundle size -> better splits
+- [ ] Filter on small artifact click
 - [ ] Better layout
 - [ ] Layout for auth
-- [ ] Landing page and seo meta tags
+- [ ] Landing page and SEO meta tags
 - [ ] Add DnD for sets
 - [ ] Readme
 
@@ -47,6 +48,7 @@
 - [ ] Add filters by characters
 - [ ] Filter for team member
 - [ ] Expose dumps
+- [ ] Update vite to rolldown-vite (need update from router)
 
 ## Next big thing:
 

@@ -1,4 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import {
   createFileRoute,
   useNavigate,
@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { updateEmail } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
@@ -24,7 +24,7 @@ import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { useUser } from '@/store/auth';
 
 const emailFormSchema = z.object({
-  email: z.string().email(),
+  email: z.string().check(z.email()),
 });
 
 type EmailFormValues = z.infer<typeof emailFormSchema>;
@@ -38,7 +38,7 @@ function EmailEditRoute() {
   const navigate = useNavigate();
   const user = useUser();
   const form = useForm<EmailFormValues>({
-    resolver: zodResolver(emailFormSchema),
+    resolver: standardSchemaResolver(emailFormSchema),
     defaultValues: {
       email: user?.email || '',
     },

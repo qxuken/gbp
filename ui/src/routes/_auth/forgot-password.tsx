@@ -1,8 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { passwordReset } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
@@ -29,9 +29,11 @@ export const Route = createFileRoute('/_auth/forgot-password')({
 });
 
 const formSchema = z.object({
-  email: z.string().email({
-    message: 'Please enter a valid email address.',
-  }),
+  email: z.string().check(
+    z.email({
+      message: 'Please enter a valid email address.',
+    }),
+  ),
 });
 
 function ForgotPassword() {
@@ -42,7 +44,7 @@ function ForgotPassword() {
     defaultValues: {
       email: '',
     },
-    resolver: zodResolver(formSchema),
+    resolver: standardSchemaResolver(formSchema),
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {

@@ -1,8 +1,8 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import { z } from 'zod/v4-mini';
 
 import { updatePassword } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
@@ -20,15 +20,16 @@ import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 
 const passwordFormSchema = z
   .object({
-    oldPassword: z.string().min(8),
-    password: z.string().min(8),
-    passwordConfirm: z.string().min(8),
+    oldPassword: z.string().check(z.minLength(8)),
+    password: z.string().check(z.minLength(8)),
+    passwordConfirm: z.string().check(z.minLength(8)),
   })
-  .refine((data) => data.password === data.passwordConfirm, {
-    message: "Passwords don't match",
-    path: ['passwordConfirm'],
-  });
-
+  .check(
+    z.refine((data) => data.password === data.passwordConfirm, {
+      message: "Passwords don't match",
+      path: ['passwordConfirm'],
+    }),
+  );
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 export const Route = createFileRoute('/_protected/builds/user/password')({
@@ -39,7 +40,7 @@ function PasswordEditRoute() {
   const router = useRouter();
   const navigate = Route.useNavigate();
   const form = useForm<PasswordFormValues>({
-    resolver: zodResolver(passwordFormSchema),
+    resolver: standardSchemaResolver(passwordFormSchema),
   });
 
   const onClose = () => {
