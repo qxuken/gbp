@@ -1,6 +1,6 @@
-# TO-Do list
+# TODO list
 
-## Current Tasks
+## Essentials Tasks
 
 - [x] Fix new plan not updated
 - [x] Implement Substat for specials in seed
@@ -28,29 +28,29 @@
 - [x] Better layout
 - [x] Layout for auth
 - [x] Landing page and SEO meta tags
-- [ ] Add DnD for sets
-- [ ] Readme
+- [x] Readme
 
-## Nice to have:
+## Nice to have
 
-- [ ] Fix ugly reorder animations
 - [x] Limit Per page to item count
 - [x] Check spinner animations
 - [x] Modal window scroll padding
 - [x] Page loaders
-- [ ] Label arias: buttons, inputs, etc. sr-only elements
-- [ ] Mobile version for weapon tagging
-- [ ] Mobile version for filters
-- [ ] Translations
 - [x] Small cards, at least version
 - [x] More visible active state filters
+- [x] Expose dumps
+- [ ] Fix ugly reorder animations
+- [ ] Label arias: buttons, inputs, etc. sr-only elements
+- [ ] Hoverless version for weapon tagging
+- [ ] Mobile version for filters
+- [ ] Translations
 - [ ] Add filters by weapons
 - [ ] Add filters by characters
-- [ ] Filter for team member
-- [ ] Expose dumps
+    - [ ] Filter for team member
+- [ ] Add DnD for sets (if requested)
 - [ ] Update vite to rolldown-vite (need update from router)
 
-## Next big thing:
+## Next big thing
 
 - [x] Farm planned
 - [ ] Dashboards

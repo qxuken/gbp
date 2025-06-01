@@ -33,6 +33,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useIsCanHoverQuery } from '@/hooks/use-is-can-hover-query';
 import { handleReorderImmer } from '@/lib/handle-reorder';
 import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
@@ -212,7 +213,7 @@ function WeaponDrag(
     <div
       ref={setNodeRef}
       style={style}
-      className={cn('w-full', {
+      className={cn('w-full relative', {
         ['animate-pulse']: props.isLoading,
         'opacity-50': isDragging,
       })}
@@ -261,7 +262,7 @@ function WeaponNoDrag(
 ) {
   return (
     <div
-      className={cn('w-full', {
+      className={cn('w-full relative', {
         ['animate-pulse']: props.isLoading,
       })}
     >
@@ -286,20 +287,12 @@ function WeaponFull(props: WeaponProps) {
 
   return (
     <>
-      <div className="relative">
-        <CollectionAvatar
-          record={weapon}
-          fileName={weapon.icon}
-          name={weapon.name}
-          className="size-12 me-2"
-        />
-        <WeaponTag
-          value={props.weaponPlan.tag}
-          update={mutateFieldImmer(props.update, 'tag')}
-          disabled={props.disabled}
-        />
-      </div>
-
+      <CollectionAvatar
+        record={weapon}
+        fileName={weapon.icon}
+        name={weapon.name}
+        className="size-12 me-2"
+      />
       <div className="flex-1">
         <div className="flex justify-between items-start mb-1">
           <span className="flex-1">{weapon.name}</span>
@@ -326,7 +319,7 @@ function WeaponFull(props: WeaponProps) {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="flex items-center justify-between gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-1">
           <DoubleInputLabeled
             name="Level"
             min={0}
@@ -351,6 +344,12 @@ function WeaponFull(props: WeaponProps) {
             disabled={props.disabled}
           />
         </div>
+        <WeaponTag
+          value={props.weaponPlan.tag}
+          update={mutateFieldImmer(props.update, 'tag')}
+          disabled={props.disabled}
+          offsetX={-56}
+        />
       </div>
     </>
   );
@@ -363,21 +362,12 @@ function WeaponShort(props: WeaponProps) {
 
   return (
     <>
-      <div className="relative">
-        <CollectionAvatar
-          record={weapon}
-          fileName={weapon.icon}
-          name={weapon.name}
-          className="size-8 me-2"
-        />
-        <WeaponTag
-          offsetX={5}
-          offsetY={-8}
-          value={props.weaponPlan.tag}
-          update={mutateFieldImmer(props.update, 'tag')}
-          disabled={props.disabled}
-        />
-      </div>
+      <CollectionAvatar
+        record={weapon}
+        fileName={weapon.icon}
+        name={weapon.name}
+        className="size-8 me-2"
+      />
 
       <div className="flex-1">
         <div className="flex justify-between items-start mb-1">
@@ -417,7 +407,15 @@ type WeaponTagProps = {
   update(v: WeaponPlans['tag']): void;
   disabled?: boolean;
 };
-function WeaponTag({
+function WeaponTag(props: WeaponTagProps) {
+  const isCanHover = useIsCanHoverQuery();
+  if (!isCanHover) {
+    return null;
+  }
+  return <WeaponTagAnimated {...props} />;
+}
+
+function WeaponTagAnimated({
   offsetX = 0,
   offsetY = 0,
   value,
