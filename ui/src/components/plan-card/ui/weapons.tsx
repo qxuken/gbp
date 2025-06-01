@@ -67,27 +67,26 @@ export function Weapons(props: Props) {
     [mutation.records],
   );
 
-  let weapons: ReactNode;
-  switch (mode) {
-    case UiPlansMode.Full:
-      weapons = (
-        <WeaponsFull
-          planId={props.planId}
-          mutation={mutation}
-          disabled={props.disabled}
-        />
-      );
-      break;
-    case UiPlansMode.Short:
-      weapons = (
-        <WeaponsShort
-          planId={props.planId}
-          mutation={mutation}
-          disabled={props.disabled}
-        />
-      );
-      break;
-  }
+  const weapons = useMemo(() => {
+    switch (mode) {
+      case UiPlansMode.Full:
+        return (
+          <WeaponsFull
+            planId={props.planId}
+            mutation={mutation}
+            disabled={props.disabled}
+          />
+        );
+      case UiPlansMode.Short:
+        return (
+          <WeaponsShort
+            planId={props.planId}
+            mutation={mutation}
+            disabled={props.disabled}
+          />
+        );
+    }
+  }, [props.planId, mutation, props.disabled]);
 
   return (
     <div className="flex flex-col gap-2">
