@@ -27,7 +27,7 @@
 - [x] Filter on small artifact click
 - [x] Better layout
 - [x] Layout for auth
-- [ ] Landing page and SEO meta tags
+- [x] Landing page and SEO meta tags
 - [ ] Add DnD for sets
 - [ ] Readme
 

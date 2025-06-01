@@ -35,6 +35,26 @@ interface MockData {
   artifactSet1: ArtifactSets;
 }
 
+function getRandomItems<T>(
+  array: T[],
+  count: number,
+  filter?: (item: T) => void,
+): T[] {
+  const result: T[] = [];
+  const picked = new Set<number>();
+
+  while (result.length < count && picked.size < array.length) {
+    const randomIndex = Math.floor(Math.random() * array.length);
+    const item = array[randomIndex];
+    if (!picked.has(randomIndex) && (!filter || filter(item))) {
+      picked.add(randomIndex);
+      result.push(item);
+    }
+  }
+
+  return result;
+}
+
 function useMockData(): MockData | null {
   const characters = useCharacters();
   const weapons = useWeapons();
@@ -47,11 +67,29 @@ function useMockData(): MockData | null {
       return null;
     }
 
-    const [character1, character2, character3, character4] = characters;
-    const [weapon1, weapon2] = weapons;
-    const [artifactSet1, artifactSet2] = artifactSets;
-    const [artifactType1] = artifactTypes;
-    const [special1] = specials;
+    const [character1, character2, character3, character4] = getRandomItems(
+      characters,
+      4,
+    );
+    const [weapon1, weapon2] = getRandomItems(
+      weapons,
+      2,
+      (w) =>
+        character1.weaponType == w.weaponType &&
+        (w.rarity == 5 || w.rarity == 4),
+    );
+    const [artifactSet1, artifactSet2] = getRandomItems(
+      artifactSets,
+      2,
+      (as) => as.rarity == 5 || as.rarity == 4,
+    );
+    const [artifactType1] = getRandomItems(artifactTypes, 1);
+    const [special1] = getRandomItems(artifactType1.specials, 1);
+    const [substat1, substat2] = getRandomItems(
+      specials,
+      2,
+      (s) => s.substat == 1,
+    );
 
     const teamPlans: TeamPlans[] = [
       {
@@ -107,7 +145,7 @@ function useMockData(): MockData | null {
         id: 'artifact-type-plan-1',
         characterPlan: 'plan-1',
         artifactType: artifactType1.id,
-        special: special1.id,
+        special: special1,
         created: new Date(),
         updated: new Date(),
       },
@@ -130,7 +168,7 @@ function useMockData(): MockData | null {
         talentSkillTarget: 10,
         talentBurstCurrent: 6,
         talentBurstTarget: 10,
-        substats: [special1.id],
+        substats: [substat1.id, substat2.id],
         note: 'Demo build plan',
         created: new Date(),
         updated: new Date(),
@@ -282,11 +320,11 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="w-fit flex flex-col items-center">
+        <div className="flex flex-col items-center">
           <h4 className="text-xl text-muted-foreground font-semibold mb-2">
-            Example build card
+            Example build card (random)
           </h4>
-          <div className="w-fit">
+          <div className="w-96">
             {mockData ? (
               <PlanInfo
                 plan={mockData.plans[0]}
