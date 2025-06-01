@@ -181,8 +181,13 @@ export const PlanInfo = memo(
     );
   },
   (prev, next) => {
-    const toStr = (prps: Props) =>
-      JSON.stringify([prps.plan, prps.isLoading, prps.isError, prps.disabled]);
+    const toStr = (props: Props) =>
+      JSON.stringify(
+        Object.entries(props).map(([k, v]) => [
+          k,
+          typeof v === 'function' ? true : v,
+        ]),
+      );
     return toStr(prev) == toStr(next);
   },
 );
