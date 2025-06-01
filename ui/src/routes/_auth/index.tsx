@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Package, Download, Star } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -220,12 +220,12 @@ function RouteComponent() {
             Plan builds, manage teams, and track farming progress in one place.
           </p>
           <div className="flex gap-4 justify-center">
-            <button
-              onClick={() => navigate({ to: '/builds' })}
+            <Link
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 rounded-lg transition-colors duration-200"
+              to="/signup"
             >
               Sign up
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -310,8 +310,10 @@ function RouteComponent() {
                 Use to build your own application using data
               </p>
               <a
-                href="/api/dump/latest_seed.db"
                 className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                href="/api/dump/latest_seed.db"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <Download className="size-4" />
                 Download
