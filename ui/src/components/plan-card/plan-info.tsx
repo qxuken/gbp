@@ -1,6 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { WritableDraft } from 'immer';
-// import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'motion/react';
 import { memo, useRef } from 'react';
 
@@ -73,7 +72,6 @@ export const PlanInfo = memo(
       transform: transform
         ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
         : undefined,
-      // transform: CSS.Transform.toString(transform),
       transition,
     };
 

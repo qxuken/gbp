@@ -16,7 +16,6 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Popover } from '@radix-ui/react-popover';
-import { ReactNode } from '@tanstack/react-router';
 import { WritableDraft } from 'immer';
 import { motion } from 'motion/react';
 import { PropsWithChildren, useMemo, useState } from 'react';
@@ -169,7 +168,11 @@ function WeaponsFull(
             key={wp.id}
             weaponPlan={wp}
             isLoading={wp.isOptimistic}
-            disabled={props.disabled || wp.isOptimisticBlocked}
+            disabled={
+              props.disabled ||
+              wp.isOptimisticBlocked ||
+              props.mutation.records.length === 1
+            }
           >
             <WeaponFull
               planId={props.planId}
