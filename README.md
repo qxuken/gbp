@@ -80,7 +80,7 @@ nu publish.nu
 
 ## TODO
 
-Refer to `todo.md` for a list of pending tasks and future improvements.
+Refer to [TODO.md](TODO.md) for a list of pending tasks and future improvements.
 
 ## License
 

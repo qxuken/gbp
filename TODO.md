@@ -25,8 +25,8 @@
 - [x] Add theme meta tags
 - [x] Bundle size -> better splits
 - [x] Filter on small artifact click
-- [ ] Better layout
-- [ ] Layout for auth
+- [x] Better layout
+- [x] Layout for auth
 - [ ] Landing page and SEO meta tags
 - [ ] Add DnD for sets
 - [ ] Readme
