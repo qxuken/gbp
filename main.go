@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -117,6 +118,9 @@ func main() {
 			}
 			notes := e.Request.FormValue("notes")
 			mf, mh, err := e.Request.FormFile("dump")
+			if err != nil {
+				return e.BadRequestError(err.Error(), nil)
+			}
 			buf := make([]byte, mh.Size)
 			if _, err = mf.Read(buf); err != nil {
 				return e.InternalServerError(err.Error(), nil)
@@ -159,6 +163,19 @@ func main() {
 				return e.InternalServerError(err.Error(), nil)
 			}
 			return e.JSON(http.StatusOK, map[string]any{"status": "ok"})
+		})
+
+		g.GET("/dump/latest_seed.db", func(e *core.RequestEvent) error {
+			latestDumps, err := app.FindRecordsByFilter(models.DB_DUMPS_COLLECTION_NAME, "", "-created", 1, 0, dbx.Params{})
+			if latestDumps != nil && len(latestDumps) < 1 {
+				return e.NotFoundError("No dumps found", nil)
+			} else if err != nil {
+				return e.InternalServerError(err.Error(), nil)
+			}
+			latestDump := latestDumps[0]
+
+			dir_fs := path.Join(app.DataDir(), "storage", latestDump.BaseFilesPath())
+			return e.FileFS(os.DirFS(dir_fs), latestDump.GetString("dump"))
 		})
 
 		return se.Next()

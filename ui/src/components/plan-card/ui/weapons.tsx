@@ -296,6 +296,7 @@ function WeaponFull(props: WeaponProps) {
         <WeaponTag
           value={props.weaponPlan.tag}
           update={mutateFieldImmer(props.update, 'tag')}
+          disabled={props.disabled}
         />
       </div>
 
@@ -374,6 +375,7 @@ function WeaponShort(props: WeaponProps) {
           offsetY={-8}
           value={props.weaponPlan.tag}
           update={mutateFieldImmer(props.update, 'tag')}
+          disabled={props.disabled}
         />
       </div>
 
@@ -413,17 +415,20 @@ type WeaponTagProps = {
   offsetY?: number;
   value?: WeaponPlans['tag'];
   update(v: WeaponPlans['tag']): void;
+  disabled?: boolean;
 };
 function WeaponTag({
   offsetX = 0,
   offsetY = 0,
   value,
   update,
+  disabled,
 }: WeaponTagProps) {
   const [isActive, setIsActive] = useState(false);
   const activate = () => setIsActive(true);
   const deactivate = () => setIsActive(false);
   const select = (v: WeaponPlans['tag']) => {
+    if (disabled) return;
     update(v);
     deactivate();
   };
@@ -436,6 +441,7 @@ function WeaponTag({
             <button
               onClick={() => select('none')}
               className={cn('cursor-pointer', {
+                'opacity-25': disabled,
                 'opacity-50': value == 'none',
               })}
             >
@@ -451,6 +457,7 @@ function WeaponTag({
             <button
               onClick={() => select('current')}
               className={cn('cursor-pointer text-[12px]', {
+                'opacity-25': disabled,
                 'opacity-50': !value || value == 'current',
               })}
             >
@@ -466,6 +473,7 @@ function WeaponTag({
             <button
               onClick={() => select('target')}
               className={cn('cursor-pointer text-[12px]', {
+                'opacity-25': disabled,
                 'opacity-50': value == 'target',
               })}
             >

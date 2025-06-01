@@ -46,6 +46,7 @@ The project is organized into two main parts:
 * Go 1.x
 * Node.js & npm
 * [Air](https://github.com/air-verse/air) for live-reloading the Go backend
+
   ```bash
   go install github.com/air-verse/air@latest
   ```
@@ -53,21 +54,30 @@ The project is organized into two main parts:
 ### Development
 
 1. **Backend**
+
    ```bash
    nu build.nu ui  # First time only
    air
    ```
 
 2. **Frontend**
+
    ```bash
    cd ui
    npm install
    npm run dev
    ```
 
+### Initialization
+
+After first launch, the application requires seed data to be provided. Visit `/dump` endpoint to upload the initial data dump. This step is required only once and provides the necessary game data (characters, weapons, artifacts, etc.).
+
+The latest seed data can be found at [gbp.qxuken.dev](https://gbp.qxuken.dev).
+
 ### Production
 
 Build and publish Docker images:
+
 ```bash
 nu publish.nu
 ```

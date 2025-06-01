@@ -47,7 +47,8 @@ const ROOT_QUERY_KEY = 'dumps';
 
 const dumpsQuery = queryOptions({
   queryKey: [ROOT_QUERY_KEY],
-  queryFn: () => pbClient.collection<Dump>('_dbDumps').getFullList(),
+  queryFn: () =>
+    pbClient.collection<Dump>('_dbDumps').getFullList({ sort: '-created' }),
 });
 
 const dictionaryVersionQuery = queryOptions({
