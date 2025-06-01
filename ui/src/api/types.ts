@@ -150,6 +150,7 @@ export interface ArtifactSetsPlans {
   id: string;
   characterPlan: string;
   artifactSets: string[];
+  order: number;
   created: Date;
   updated: Date;
 }

@@ -4,8 +4,8 @@ import { ArtifactSetsPlans } from '../types';
 import { usePlans, useSharedPendingPlansCollectionReporter } from './plans';
 import {
   OptimisticRecord,
-  usePlanCollectionAccessor,
   useCollectionMutation,
+  usePlanCollectionAccessor,
 } from './utils/use-collection-mutation';
 
 export function useArtifactSetsPlans() {
@@ -39,10 +39,16 @@ export function useArtifactSetsPlansMutation(
     artifactSets,
     disabled,
     newArtifactSetsPlansMutation(planId),
-    { debounceMS: 0, onPendingChange, onErrorChange },
+    {
+      postUpdate(v) {
+        v.sort((a, b) => a.order - b.order);
+      },
+      onPendingChange,
+      onErrorChange,
+    },
   );
 
-  const createHandler = (value: Pick<ArtifactSetsPlans, 'artifactSets'>) => {
+  const createHandler = (artifactSets: ArtifactSetsPlans['artifactSets']) => {
     const id = Date.now().toString();
     const ts = new Date();
     mutation.create({
@@ -50,7 +56,8 @@ export function useArtifactSetsPlansMutation(
       created: ts,
       updated: ts,
       characterPlan: planId,
-      ...value,
+      order: mutation.records.length + 1,
+      artifactSets,
     });
   };
 
