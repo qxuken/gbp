@@ -34,12 +34,6 @@ export const Route = createRootRouteWithContext()({
         content: 'website',
       },
     ],
-    links: [
-      {
-        rel: 'icon',
-        href: '/favicon.ico',
-      },
-    ],
   }),
 });
 
