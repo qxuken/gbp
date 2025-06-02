@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Package, Download, Star } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -135,6 +135,7 @@ function useMockData(): MockData | null {
         id: 'artifact-set-plan-1',
         characterPlan: 'plan-1',
         artifactSets: [artifactSet1.id, artifactSet2.id],
+        order: 0,
         created: new Date(),
         updated: new Date(),
       },
@@ -197,7 +198,6 @@ export const Route = createFileRoute('/_auth/')({
 });
 
 function RouteComponent() {
-  const navigate = useNavigate();
   const mockData = useMockData();
   return (
     <FiltersProvider
@@ -303,11 +303,9 @@ function RouteComponent() {
 
           <div className="w-full flex flex-col items-center">
             <div className="w-full border rounded-xl p-4 text-center">
-              <h3 className="text-2xl font-semibold mb-2">
-                Latest Database Seed
-              </h3>
+              <h3 className="text-2xl font-semibold mb-2">Database</h3>
               <p className="text-muted-foreground max-w-2xl mx-auto mb-4">
-                Use to build your own application using data
+                Use to build your own application using data.
               </p>
               <a
                 className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-lg transition-colors duration-200"
@@ -316,7 +314,7 @@ function RouteComponent() {
                 rel="noopener noreferrer"
               >
                 <Download className="size-4" />
-                Download
+                Download SQlite Seed
               </a>
             </div>
           </div>
