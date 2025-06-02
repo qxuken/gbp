@@ -230,7 +230,7 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 pt-8 pb-16 space-y-16 flex gap-8 justify-center flex-wrap">
+      <div className="container mx-auto px-4 pt-8 pb-16 space-y-16 flex gap-8 justify-around flex-wrap">
         <div className="pt-9 flex flex-col gap-8 items-center">
           <div className="w-full border rounded-xl p-4 text-center">
             <h3 className="text-2xl font-semibold mb-2">Character Builds</h3>
@@ -320,7 +320,7 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center">
+        <div className="hidden sm:flex flex-col items-center">
           <h4 className="text-xl text-muted-foreground font-semibold mb-2">
             Example build card (random)
           </h4>
