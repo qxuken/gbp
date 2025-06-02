@@ -39,6 +39,7 @@
 - [x] Small cards, at least version
 - [x] More visible active state filters
 - [x] Expose dumps
+- [x] Add DnD for sets (if requested)
 - [ ] Fix ugly reorder animations
 - [ ] Label arias: buttons, inputs, etc. sr-only elements
 - [ ] Hoverless version for weapon tagging
@@ -47,7 +48,6 @@
 - [ ] Add filters by weapons
 - [ ] Add filters by characters
     - [ ] Filter for team member
-- [ ] Add DnD for sets (if requested)
 - [ ] Update vite to rolldown-vite (need update from router)
 
 ## Next big thing
