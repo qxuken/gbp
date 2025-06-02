@@ -120,7 +120,9 @@ function useDumpUploadDbMutations() {
 export const Route = createFileRoute('/_admin/dump')({
   beforeLoad: () => {
     if (!authStore.isValid) {
-      throw redirect({ to: import.meta.env.VITE_POCKETBASE_URL + '/_/' });
+      throw redirect({
+        to: (import.meta.env.VITE_POCKETBASE_URL ?? '') + '/_/',
+      });
     }
   },
   component: RouteComponent,
