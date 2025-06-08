@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PocketBase Monitor</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "pocketbase": "https://esm.sh/pocketbase"
+      }
+    }
+  </script>
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    h1 {
+      margin: 0.5rem 0;
+      padding: 0.5rem 1rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #000000;
+      }
+
+      svg {
+        color: light-dark(black, white);
+      }
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+    }
+
+    .range-picker {
+      margin: 0.25rem 0;
+      padding: 0.5rem 1rem;
+      display: flex;
+      gap: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Temporal Monitor</h1>
+    <div class="range-picker">
+      <label for="temporal-from">From <input id="temporal-from" type="datetime-local" /></label>
+      <label for="temporal-to">To <input id="temporal-to" type="datetime-local" /></label>
+      <button id="temporal-load">Load</button>
+    </div>
+  </header>
+
+  <canvas id="temporal" height="500"></canvas>
+
+  <script type="module" src="/src/monitor.js"></script>
+</body>
+
+</html>

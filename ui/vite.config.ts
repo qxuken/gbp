@@ -26,6 +26,10 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        monitor: path.resolve(__dirname, 'monitor.html'),
+      },
       output: {
         manualChunks: {
           tanstack: ['@tanstack/react-router', '@tanstack/react-query'],
