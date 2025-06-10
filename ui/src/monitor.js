@@ -344,6 +344,87 @@ class ColorGenerator {
   }
 }
 
+class CoordHinter {
+  /** @type {number} */
+  #gridWidth;
+  /** @type {number} */
+  #gridHeight;
+  /** @type {Set<string>[]} */
+  #lookupGrid;
+
+  static GRID_SIZE_PX = 2;
+
+  /**@param {number} height
+   * @param {number} width
+   */
+  constructor(height, width) {
+    this.#gridHeight = height / CoordHinter.GRID_SIZE_PX;
+    this.#gridWidth = width / CoordHinter.GRID_SIZE_PX;
+    this.#lookupGrid = new Array(this.#gridHeight * this.#gridWidth)
+      .fill(0)
+      .map(() => new Set());
+  }
+
+  /**@param {number} x - X coordinate
+   * @param {number} y - Y coordinate
+   * @returns {number} Grid cell index
+   * @private
+   */
+  #getGridIndex(x, y) {
+    const gridX = Math.floor(x / CoordHinter.GRID_SIZE_PX);
+    const gridY = Math.floor(y / CoordHinter.GRID_SIZE_PX);
+    return gridY * this.#gridWidth + gridX;
+  }
+
+  /**@param {number} x
+   * @param {number} y
+   * @param {string} entry
+   */
+  addItem(x, y, entry) {
+    const gridI = this.#getGridIndex(x, y);
+    if (0 <= gridI && gridI < this.#lookupGrid.length) {
+      this.#lookupGrid[gridI].add(entry);
+    } else {
+      console.log({ x, y, gridI });
+    }
+  }
+
+  /**@param {number} x
+   * @param {number} y
+   * @param {number} [radius]
+   */
+  getEntries(x, y, radius = 10) {
+    let res = new Set();
+
+    const minGridX = Math.max(
+      0,
+      Math.floor((x - radius) / CoordHinter.GRID_SIZE_PX),
+    );
+    const maxGridX = Math.min(
+      this.#gridWidth - 1,
+      Math.floor((x + radius) / CoordHinter.GRID_SIZE_PX),
+    );
+    const minGridY = Math.max(
+      0,
+      Math.floor((y - radius) / CoordHinter.GRID_SIZE_PX),
+    );
+    const maxGridY = Math.min(
+      this.#gridHeight - 1,
+      Math.floor((y + radius) / CoordHinter.GRID_SIZE_PX),
+    );
+
+    for (let gridY = minGridY; gridY <= maxGridY; gridY++) {
+      for (let gridX = minGridX; gridX <= maxGridX; gridX++) {
+        const gridI = this.#getGridIndex(gridX, gridY);
+        const entry = this.#lookupGrid[gridI];
+        res = res.union(entry);
+      }
+    }
+
+    return res;
+  }
+}
+
 /**@typedef {Object} LogItem
  * @property {string} id
  * @property {Date} ts
@@ -362,6 +443,8 @@ class ColorGenerator {
  * @property {XCoord} xCoord
  * @property {YCoord} yCoord
  * @property {ColorGenerator} colors
+ * @property {CoordHinter} coordHinter
+ * @property {{x: number, y: number} | null} mouseCoord
  * @property {Map<string, import('pocketbase').CollectionModel} collections
  */
 
@@ -391,6 +474,8 @@ function newState(height, width) {
     xCoord: new XCoord(range, width),
     yCoord: new YCoord(UPPER_BOUNDS_MS, height),
     colors: new ColorGenerator(),
+    coordHinter: new CoordHinter(height, width),
+    mouseCoord: null,
     collections: new Map(),
   };
 }
@@ -406,6 +491,7 @@ function updateStateRange() {
     range: range,
     xCoord: new XCoord(range, state.width),
     yCoord: new YCoord(UPPER_BOUNDS_MS, state.height),
+    coordHinter: new CoordHinter(state.height, state.width),
   };
   logState();
 }
@@ -429,6 +515,18 @@ function updateStateCanvasSize(height, width) {
     width,
     xCoord: new XCoord(state.range, width),
     yCoord: new YCoord(state.yCoord.max, height),
+    coordHinter: new CoordHinter(height, width),
+  };
+  logState();
+}
+
+/**
+ * @param {{x: number, y: number} | null} pos
+ */
+function updateStateMousePosition(pos) {
+  state = {
+    ...state,
+    mouseCoord: pos,
   };
   logState();
 }
@@ -463,6 +561,17 @@ window.addEventListener('resize', () => {
   console.debug({ event: 'resize' });
   const width = updateCanvas();
   updateStateCanvasSize(temporalCssHeight, width);
+  requestAnimationFrame(() => renderUI(state));
+});
+temporalCanvas.addEventListener('mousemove', (e) => {
+  const rect = temporalCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  updateStateMousePosition({ x, y });
+  requestAnimationFrame(() => renderUI(state));
+});
+temporalCanvas.addEventListener('mouseleave', () => {
+  updateStateMousePosition(null);
   requestAnimationFrame(() => renderUI(state));
 });
 temporalLoad.addEventListener('click', () => {
@@ -529,9 +638,7 @@ async function loadEvents(page = 1) {
 }
 
 //UI rendering
-/*
- * @param {State} state
- */
+/** @param {State} state */
 function renderUI(state) {
   console.debug({ event: 'renderUI' });
 
@@ -547,11 +654,24 @@ function renderUI(state) {
   drawYAxis(state);
   drawXAxis(state);
   plotItems(state);
+  drawHover(state);
 }
 
-/**
- * @param {State} state
- */
+/** @param {State} state */
+function drawHover(state) {
+  if (!state.mouseCoord) return;
+  tCtx.globalAlpha = 0.2;
+  const rectSize = 20;
+  const xCoord = state.mouseCoord.x - rectSize / 2;
+  const yCoord = state.mouseCoord.y - rectSize / 2;
+  tCtx.fillRect(xCoord, yCoord, rectSize, rectSize);
+  tCtx.globalAlpha = 1;
+
+  let entries = state.coordHinter.getEntries(xCoord, yCoord, rectSize);
+  console.log({ entries });
+}
+
+/** @param {State} state */
 function plotItems(state) {
   console.debug({ label: 'plotItems' });
 
@@ -559,6 +679,11 @@ function plotItems(state) {
   for (let item of state.items) {
     const xCoord = state.xCoord.getCoord(item.ts);
     const yCoord = state.yCoord.getCoord(item.execTime);
+    state.coordHinter.addItem(
+      xCoord,
+      yCoord,
+      item.path.collection ?? item.path.collection,
+    );
     tCtx.beginPath();
     tCtx.arc(xCoord, yCoord, 0.5, 0, 2 * Math.PI);
     if (item.color) {
@@ -571,9 +696,7 @@ function plotItems(state) {
   tCtx.fillStyle = style;
 }
 
-/**
- * @param {State} state
- */
+/** @param {State} state */
 function drawYAxis(state) {
   const xCoord = MARGIN - tCtx.lineWidth / 2;
   const topY = MARGIN;
@@ -618,9 +741,7 @@ function drawYAxis(state) {
   }
 }
 
-/**
- * @param {State} state
- */
+/** @param {State} state */
 function drawXAxis(state) {
   const yCoord = state.height - MARGIN - tCtx.lineWidth / 2;
   const leftX = MARGIN - tCtx.lineWidth;
