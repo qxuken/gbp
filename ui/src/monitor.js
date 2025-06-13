@@ -346,6 +346,10 @@ class ColorGenerator {
 
 class CoordHinter {
   /** @type {number} */
+  #width;
+  /** @type {number} */
+  #height;
+  /** @type {number} */
   #gridWidth;
   /** @type {number} */
   #gridHeight;
@@ -358,6 +362,8 @@ class CoordHinter {
    * @param {number} width
    */
   constructor(height, width) {
+    this.#height = height;
+    this.#width = width;
     this.#gridHeight = height / CoordHinter.GRID_SIZE_PX;
     this.#gridWidth = width / CoordHinter.GRID_SIZE_PX;
     this.#lookupGrid = new Array(this.#gridHeight * this.#gridWidth)
@@ -382,36 +388,31 @@ class CoordHinter {
    */
   addItem(x, y, entry) {
     const gridI = this.#getGridIndex(x, y);
+    // console.log({ x, y, gridI });
     if (0 <= gridI && gridI < this.#lookupGrid.length) {
       this.#lookupGrid[gridI].add(entry);
     } else {
-      console.log({ x, y, gridI });
+      console.warn({
+        label: 'CoordHinter:addItem:index out of bounds',
+        x,
+        y,
+        gridI,
+      });
     }
   }
 
   /**@param {number} x
    * @param {number} y
    * @param {number} [radius]
+   * @returns {Set<string>}
    */
   getEntries(x, y, radius = 10) {
     let res = new Set();
 
-    const minGridX = Math.max(
-      0,
-      Math.floor((x - radius) / CoordHinter.GRID_SIZE_PX),
-    );
-    const maxGridX = Math.min(
-      this.#gridWidth - 1,
-      Math.floor((x + radius) / CoordHinter.GRID_SIZE_PX),
-    );
-    const minGridY = Math.max(
-      0,
-      Math.floor((y - radius) / CoordHinter.GRID_SIZE_PX),
-    );
-    const maxGridY = Math.min(
-      this.#gridHeight - 1,
-      Math.floor((y + radius) / CoordHinter.GRID_SIZE_PX),
-    );
+    const minGridX = Math.max(0, Math.floor(x - radius));
+    const maxGridX = Math.min(this.#width - 1, Math.floor(x + radius));
+    const minGridY = Math.max(0, Math.floor(y - radius));
+    const maxGridY = Math.min(this.#height - 1, Math.floor(y + radius));
 
     for (let gridY = minGridY; gridY <= maxGridY; gridY++) {
       for (let gridX = minGridX; gridX <= maxGridX; gridX++) {
@@ -657,18 +658,69 @@ function renderUI(state) {
   drawHover(state);
 }
 
+/**@param {State} state
+ * @returns {number} cursorSize
+ */
+function drawHoverCursor(state) {
+  tCtx.globalAlpha = 0.2;
+  const cursorSize = 20;
+  const xCoord = state.mouseCoord.x - cursorSize / 2;
+  const yCoord = state.mouseCoord.y - cursorSize / 2;
+  tCtx.fillRect(xCoord, yCoord, cursorSize, cursorSize);
+  tCtx.globalAlpha = 1;
+  console.log({ label: 'drawHoverCursor', xCoord, yCoord });
+  return cursorSize;
+}
+
+/**@param {State} state
+ * @param {number} cursorSize
+ */
+function drawHoverInfo(state, cursorSize) {
+  const savedFillStyle = tCtx.fillStyle;
+  let entries = state.coordHinter.getEntries(
+    state.mouseCoord.x,
+    state.mouseCoord.y,
+    cursorSize,
+  );
+  if (!entries.size) return;
+  const texts = Array.from(entries.values());
+  const textMeasurements = texts
+    .map((v) => tCtx.measureText(v).width)
+    .reduce((acc, it) => Math.max(acc, it));
+  const xCoord = state.mouseCoord.x + cursorSize;
+  const yCoord = state.mouseCoord.y - cursorSize;
+  tCtx.beginPath();
+  tCtx.fillStyle = '#000';
+  tCtx.roundRect(
+    xCoord,
+    yCoord,
+    Math.max(textMeasurements + 45, 130),
+    (entries.size + 2) * (FONT_SIZE + 5),
+    10,
+  );
+  tCtx.fill();
+  tCtx.stroke();
+  tCtx.fillStyle = savedFillStyle;
+  texts.sort();
+  texts.forEach((text, i) => {
+    const xCoordText = xCoord + 25;
+    const yCoordText = yCoord + 10 + (FONT_SIZE + 5) * (i + 1);
+
+    const color = state.colors.getColor(text);
+    if (color) {
+      tCtx.fillStyle = state.colors.getColor(text);
+    }
+    tCtx.fillRect(xCoordText - 10, yCoordText - FONT_SIZE / 2, 5, 5);
+    tCtx.fillStyle = savedFillStyle;
+    tCtx.fillText(text, xCoordText, yCoordText, textMeasurements);
+  });
+}
+
 /** @param {State} state */
 function drawHover(state) {
   if (!state.mouseCoord) return;
-  tCtx.globalAlpha = 0.2;
-  const rectSize = 20;
-  const xCoord = state.mouseCoord.x - rectSize / 2;
-  const yCoord = state.mouseCoord.y - rectSize / 2;
-  tCtx.fillRect(xCoord, yCoord, rectSize, rectSize);
-  tCtx.globalAlpha = 1;
-
-  let entries = state.coordHinter.getEntries(xCoord, yCoord, rectSize);
-  console.log({ entries });
+  const cursorSize = drawHoverCursor(state);
+  drawHoverInfo(state, cursorSize);
 }
 
 /** @param {State} state */
@@ -682,7 +734,7 @@ function plotItems(state) {
     state.coordHinter.addItem(
       xCoord,
       yCoord,
-      item.path.collection ?? item.path.collection,
+      item.path.collection ?? item.path.url,
     );
     tCtx.beginPath();
     tCtx.arc(xCoord, yCoord, 0.5, 0, 2 * Math.PI);
