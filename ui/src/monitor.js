@@ -689,26 +689,26 @@ function updateStateMousePosition(mouseCoord, state) {
   };
 }
 
-/**@param {LogItem[]} items
+/**@param {LogItem[]} newItems
  * @param {State} state
  * @returns {State}
  */
-function updateStatePushItems(items, state) {
-  const max = items.reduce(
+function updateStatePushItems(newItems, state) {
+  const max = newItems.reduce(
     (max, it) => Math.max(max, it.execTime),
     state.yCoord.max,
   );
   if (state.yCoord.max !== max) {
     const yCoord = new YCoord(max, state.height);
-    const items = [...state.items, ...items].map((it) => {
-      const yCoord = yCoord.getCoord(it.execTime);
-      state.coordHinter.addItem(it.xCoord, yCoord, it);
+    const coordHinter = new CoordHinter(state.height, state.width);
+    const items = [...state.items, ...newItems].map((it) => {
+      const itemYCoord = yCoord.getCoord(it.execTime);
+      coordHinter.addItem(it.xCoord, itemYCoord, it);
       return {
         ...it,
-        yCoord,
+        yCoord: itemYCoord,
       };
     });
-    const coordHinter = new CoordHinter(state.height, state.width);
 
     return {
       ...state,
@@ -721,10 +721,10 @@ function updateStatePushItems(items, state) {
     };
   }
 
-  items.forEach((it) => state.coordHinter.addItem(it.xCoord, it.yCoord, it));
+  newItems.forEach((it) => state.coordHinter.addItem(it.xCoord, it.yCoord, it));
   return {
     ...state,
-    items: [...state.items, ...items],
+    items: [...state.items, ...newItems],
   };
 }
 
