@@ -13,6 +13,7 @@ const MARGIN = 40;
 const PAGE_SIZE = 100;
 const UPPER_BOUNDS_MS = 13_000;
 const DATA_RANGE_DAYS = Math.min(7, (window.innerWidth - MARGIN * 2) / 100);
+const CURSOR_SIZE = 25;
 
 // Main canvas
 /** @type {HTMLCanvasElement} */
@@ -58,13 +59,15 @@ const themeQuery = window.matchMedia('(prefers-color-scheme: dark)');
  */
 
 class YCoord {
+  static LABELED_TICKS_FIRST = 3;
+  static TICKS = 9;
+
   /** @type {number} Max value in ms */
   #max;
   /** @type {number} Size of plot */
   #height;
-
-  /** @type {number[] | null} */
-  #labelsCache = null;
+  /** @type {{ label: string; width: string; yCoord: number }[]} */
+  #labels;
   /** @type {Map<number, number>} */
   #coordsCache = new Map();
 
@@ -74,6 +77,26 @@ class YCoord {
   constructor(max, height) {
     this.#max = max;
     this.#height = height - MARGIN * 2;
+
+    const labels = [];
+    for (let i = 1; i <= YCoord.TICKS; i++) {
+      const value = i * 0.1;
+      const yCoord = this.getCoord(value);
+      labels.push({ value, label: '', width: 0, yCoord });
+    }
+    const totalSteps = Math.floor(Math.log10(this.#max));
+    main: for (let i = 0; i <= totalSteps; i++) {
+      const step = 10 ** i;
+      for (let j = 1; j <= YCoord.TICKS; j++) {
+        let value = j * step;
+        if (value > this.#max) break main;
+        const yCoord = this.getCoord(value);
+        const label = j <= YCoord.LABELED_TICKS_FIRST ? formatMs(value) : '';
+        const width = label.length > 0 ? tCtx.measureText(label).width : 0;
+        labels.push({ value, label, width, yCoord });
+      }
+    }
+    this.#labels = labels;
     console.debug({
       event: 'new YCoord',
       max: this.#max,
@@ -85,29 +108,8 @@ class YCoord {
     return this.#max;
   }
 
-  static TICKS = 9;
-
-  /** @returns {number[]} */
-  getLabels() {
-    if (this.#labelsCache) return this.#labelsCache;
-    const labels = [0];
-
-    for (let i = 1; i <= YCoord.TICKS; i++) {
-      labels.push(i * 0.1);
-    }
-
-    const totalSteps = Math.floor(Math.log10(this.#max));
-    main: for (let i = 0; i <= totalSteps; i++) {
-      const step = 10 ** i;
-      for (let j = 1; j <= YCoord.TICKS; j++) {
-        let label = j * step;
-        if (label > this.#max) break main;
-        labels.push(label);
-      }
-    }
-
-    this.#labelsCache = labels;
-    return labels;
+  get labels() {
+    return this.#labels;
   }
 
   /**@param {number} value
@@ -151,13 +153,9 @@ class XCoord {
   #totalMs;
   /** @type {number} Size of plot */
   #width;
-  /** @type {number} Pixels per step */
-  #step;
-  /** @type {number} */
-  #totalSteps;
 
-  /** @type {Date[] | null} */
-  #labelsCache = null;
+  /** @type {{ value: number; labels: string[]; widths:number[], maxWidth: string; xCoord: number }[]} */
+  #labels;
   /** @type {WeakMap<Date, number>} */
   #coordsCache = new WeakMap();
 
@@ -169,26 +167,10 @@ class XCoord {
     this.#width = width - MARGIN * 2;
     this.#totalMs = range.to.getTime() - range.from.getTime();
     if (this.#totalMs <= 0) throw Error('Wrong range supplied');
-    this.#totalSteps = Math.floor(this.#totalMs / XCoord.STEP_MS);
-    this.#step = Math.floor(this.#width / this.#totalSteps);
-    console.debug({
-      event: 'new XCoord',
-      width: this.#width,
-      totalSteps: this.#totalSteps,
-      step: this.#step,
-    });
-  }
 
-  get step() {
-    return this.#step;
-  }
-
-  /** @returns {Date[]} */
-  getLabels() {
-    if (this.#labelsCache) return this.#labelsCache;
-
+    const totalSteps = Math.floor(this.#totalMs / XCoord.STEP_MS);
+    const step = Math.floor(this.#width / totalSteps);
     const labels = [];
-    if (this.#totalSteps <= 0) return labels;
 
     const current = new Date(this.#range.from);
     current.setUTCHours(
@@ -201,11 +183,60 @@ class XCoord {
     );
 
     while (current <= this.#range.to) {
-      labels.push(new Date(current));
+      const value = new Date(current);
+      const xCoord = this.getCoord(value);
+
+      switch (value.getUTCHours()) {
+        case 0: {
+          const timeText = '12:00AM';
+          const timeWidth = tCtx.measureText(timeText).width;
+
+          const dateText = `[${value.getUTCDate().toString().padStart(2, '0')}-${value.getUTCMonth().toString().padStart(2, '0')}]`;
+          const dateWidth = tCtx.measureText(dateText).width;
+
+          labels.push({
+            labels: [timeText, dateText],
+            widths: [timeWidth, dateWidth],
+            maxWidth: Math.max(timeWidth, dateWidth),
+            xCoord,
+          });
+          break;
+        }
+        case 12: {
+          if (step < 50) {
+            labels.push({
+              labels: [],
+              widths: [],
+              maxWidth: 0,
+              xCoord,
+            });
+            break;
+          }
+          const timeText = '12:00PM';
+          const timeWidth = tCtx.measureText(timeText).width;
+          labels.push({
+            labels: [timeText],
+            widths: [timeWidth],
+            maxWidth: timeWidth,
+            xCoord,
+          });
+          break;
+        }
+      }
       current.setTime(current.getTime() + XCoord.STEP_MS);
     }
-    this.#labelsCache = labels;
-    return labels;
+    this.#labels = labels;
+
+    console.debug({
+      event: 'new XCoord',
+      width: this.#width,
+      totalSteps,
+      labels,
+    });
+  }
+
+  get labels() {
+    return this.#labels;
   }
 
   /**@param {Date} value
@@ -252,7 +283,7 @@ class ColorGenerator {
       cache = this.#generateUniqueColors(entry);
       this.#colorCache.set(entry, cache);
     }
-    return cache[variant];
+    return cache[variant] ?? cache.base;
   }
 
   /**
@@ -344,6 +375,8 @@ class ColorGenerator {
   }
 }
 
+/** @typedef {{ label: string; width: number; color: string }} CoordHinterItem */
+
 class CoordHinter {
   /** @type {number} */
   #width;
@@ -353,7 +386,7 @@ class CoordHinter {
   #gridWidth;
   /** @type {number} */
   #gridHeight;
-  /** @type {Set<string>[]} */
+  /** @type {LogItem[][]} */
   #lookupGrid;
 
   static GRID_SIZE_PX = 2;
@@ -364,11 +397,18 @@ class CoordHinter {
   constructor(height, width) {
     this.#height = height;
     this.#width = width;
-    this.#gridHeight = height / CoordHinter.GRID_SIZE_PX;
-    this.#gridWidth = width / CoordHinter.GRID_SIZE_PX;
+    this.#gridHeight = Math.ceil(height / CoordHinter.GRID_SIZE_PX);
+    this.#gridWidth = Math.ceil(width / CoordHinter.GRID_SIZE_PX);
+    console.debug({
+      label: 'new CoordHinter',
+      height,
+      width,
+      gridHeight: this.#gridHeight,
+      gridWidth: this.#gridWidth,
+    });
     this.#lookupGrid = new Array(this.#gridHeight * this.#gridWidth)
       .fill(0)
-      .map(() => new Set());
+      .map(() => []);
   }
 
   /**@param {number} x - X coordinate
@@ -384,13 +424,12 @@ class CoordHinter {
 
   /**@param {number} x
    * @param {number} y
-   * @param {string} entry
+   * @param {LogItem} entry
    */
   addItem(x, y, entry) {
     const gridI = this.#getGridIndex(x, y);
-    // console.log({ x, y, gridI });
     if (0 <= gridI && gridI < this.#lookupGrid.length) {
-      this.#lookupGrid[gridI].add(entry);
+      this.#lookupGrid[gridI].push(entry);
     } else {
       console.warn({
         label: 'CoordHinter:addItem:index out of bounds',
@@ -404,10 +443,10 @@ class CoordHinter {
   /**@param {number} x
    * @param {number} y
    * @param {number} [radius]
-   * @returns {Set<string>}
+   * @returns {CoordHinterItem[]}
    */
   getEntries(x, y, radius = 10) {
-    let res = new Set();
+    let res = [];
 
     const minGridX = Math.max(0, Math.floor(x - radius));
     const maxGridX = Math.min(this.#width - 1, Math.floor(x + radius));
@@ -418,11 +457,55 @@ class CoordHinter {
       for (let gridX = minGridX; gridX <= maxGridX; gridX++) {
         const gridI = this.#getGridIndex(gridX, gridY);
         const entry = this.#lookupGrid[gridI];
-        res = res.union(entry);
+        res.push(...entry);
       }
     }
 
-    return res;
+    const toStr = (it) => {
+      switch (it.path.type) {
+        case 'file':
+          return `@${it.path.collection} (file)`;
+        case 'collection':
+          return `@${it.path.collection} (${it.path.action})`;
+        case 'custom':
+          return it.path.url;
+      }
+    };
+
+    const uniqWithTimings = (arr, predStr) => {
+      const timings = new Map();
+
+      return [
+        arr.filter((it) => {
+          let str = predStr(it);
+          if (timings.has(str)) {
+            timings.get(str).push(it.execTime);
+            return false;
+          }
+          timings.set(str, [it.execTime]);
+          return true;
+        }),
+        timings,
+      ];
+    };
+
+    const [uniq, timings] = uniqWithTimings(res, toStr);
+    const items = uniq.map((it) => {
+      const str = toStr(it);
+      const itemTimings = timings.get(str);
+      const timing =
+        itemTimings.reduce((acc, it) => acc + it) / itemTimings.length;
+      const label = `${str} ~${timing.toFixed(2)}ms`;
+      return {
+        label,
+        width: tCtx.measureText(label).width,
+        color: it.color,
+        execTime: it.execTime,
+      };
+    });
+    items.sort((a, b) => b.execTime - a.execTime);
+
+    return items;
   }
 }
 
@@ -433,11 +516,15 @@ class CoordHinter {
  * @property {number} status
  * @property {LogPath} path
  * @property {string} color
+ * @property {string} xCoord
+ * @property {string} yCoord
  */
 
 /**@typedef {Object} State
  * @property {boolean} isDark
- * @property {number} width
+ * @property {string} background
+ * @property {string} foreground
+ * @property {number} height
  * @property {number} width
  * @property {DateRange} range
  * @property {LogItem[]} items
@@ -446,14 +533,50 @@ class CoordHinter {
  * @property {ColorGenerator} colors
  * @property {CoordHinter} coordHinter
  * @property {{x: number, y: number} | null} mouseCoord
+ * @property {{onLeft: boolean; growToTop: boolean} | null} hoverPos
+ * @property {CoordHinterItem[] | null} hoverEntries
  * @property {Map<string, import('pocketbase').CollectionModel} collections
  */
 
 let state = newState(temporalCssHeight, temporalCssWidth);
-logState();
+let queue = {
+  cur: [],
+  isRunning: false,
+  /** @param {(v: State) => State} fn*/
+  enqueu(fn) {
+    this.cur.push(fn);
+    if (!this.isRunning) {
+      this.isRunning = true;
+      this._work();
+    }
+  },
+  _work() {
+    let curr = this.cur.shift();
+    if (curr) {
+      state = curr(state);
+      this._work();
+    } else {
+      this.isRunning = false;
+      logState();
+      requestAnimationFrame(() => {
+        renderUI(state);
+      });
+    }
+  },
+};
 
 function logState() {
   console.debug({ event: 'update state', ...state });
+}
+
+function getThemeColors(isDark) {
+  switch (isDark) {
+    case true:
+      return { background: '#000000', foreground: '#ffffff' };
+    case false:
+    default:
+      return { background: '#ffffff', foreground: '#000000' };
+  }
 }
 
 /**
@@ -462,12 +585,14 @@ function logState() {
  * @returns {State}
  */
 function newState(height, width) {
+  const isDark = themeQuery.matches;
   const range = {
     from: new Date(temporalFrom.value + 'Z'),
     to: new Date(temporalTo.value + 'Z'),
   };
   return {
-    isDark: themeQuery.matches,
+    isDark,
+    ...getThemeColors(isDark),
     items: [],
     height,
     width,
@@ -477,16 +602,21 @@ function newState(height, width) {
     colors: new ColorGenerator(),
     coordHinter: new CoordHinter(height, width),
     mouseCoord: null,
+    hoverPos: null,
+    hoverEntries: [],
     collections: new Map(),
   };
 }
 
-function updateStateRange() {
+/**@param {State} state
+ * @returns {State}
+ */
+function updateStateRange(state) {
   const range = {
     from: new Date(temporalFrom.value + 'Z'),
     to: new Date(temporalTo.value + 'Z'),
   };
-  state = {
+  return {
     ...state,
     items: [],
     range: range,
@@ -494,59 +624,108 @@ function updateStateRange() {
     yCoord: new YCoord(UPPER_BOUNDS_MS, state.height),
     coordHinter: new CoordHinter(state.height, state.width),
   };
-  logState();
 }
 
-function updateStateTheme() {
-  state = {
-    ...state,
-    isDark: themeQuery.matches,
-  };
-  logState();
-}
-
-/**
- * @param {number} height
- * @param {number} width
+/**@param {State} state
+ * @returns {State}
  */
-function updateStateCanvasSize(height, width) {
-  state = {
+function updateStateTheme(state) {
+  const isDark = themeQuery.matches;
+  return {
+    ...state,
+    isDark,
+    ...getThemeColors(isDark),
+  };
+}
+
+/**@param {number} height
+ * @param {number} width
+ * @param {State} state
+ * @returns {State}
+ */
+function updateStateCanvasSize(height, width, state) {
+  const xCoord = new XCoord(state.range, width);
+  const yCoord = new YCoord(state.yCoord.max, height);
+  const coordHinter = new CoordHinter(height, width);
+  const items = state.items.map((it) => ({
+    ...it,
+    xCoord: xCoord.getCoord(it.ts),
+    yCoord: yCoord.getCoord(it.execTime),
+  }));
+  items.forEach((it) => coordHinter.addItem(it.xCoord, it.yCoord, it));
+  return {
     ...state,
     height,
     width,
-    xCoord: new XCoord(state.range, width),
-    yCoord: new YCoord(state.yCoord.max, height),
-    coordHinter: new CoordHinter(height, width),
+    xCoord,
+    yCoord,
+    coordHinter,
+    items,
+    mouseCoord: null,
+    hoverPos: null,
+    hoverEntries: [],
   };
-  logState();
 }
 
-/**
- * @param {{x: number, y: number} | null} pos
+/**@param {{x: number, y: number} | null} pos
+ * @param {State} state
+ * @returns {State}
  */
-function updateStateMousePosition(pos) {
-  state = {
+function updateStateMousePosition(mouseCoord, state) {
+  let hoverEntries = mouseCoord
+    ? state.coordHinter.getEntries(mouseCoord.x, mouseCoord.y, CURSOR_SIZE / 2)
+    : [];
+  const hoverPos = mouseCoord
+    ? {
+        onLeft: mouseCoord.x >= state.width / 2,
+        growToTop: mouseCoord.y >= state.height / 2,
+      }
+    : null;
+  return {
     ...state,
-    mouseCoord: pos,
+    mouseCoord,
+    hoverPos,
+    hoverEntries,
   };
-  logState();
 }
 
-/**
- * @param {LogItem[]} items
+/**@param {LogItem[]} items
+ * @param {State} state
+ * @returns {State}
  */
-function updateStatePushItems(items) {
+function updateStatePushItems(items, state) {
   const max = items.reduce(
     (max, it) => Math.max(max, it.execTime),
     state.yCoord.max,
   );
-  state = {
+  if (state.yCoord.max !== max) {
+    const yCoord = new YCoord(max, state.height);
+    const items = [...state.items, ...items].map((it) => {
+      const yCoord = yCoord.getCoord(it.execTime);
+      state.coordHinter.addItem(it.xCoord, yCoord, it);
+      return {
+        ...it,
+        yCoord,
+      };
+    });
+    const coordHinter = new CoordHinter(state.height, state.width);
+
+    return {
+      ...state,
+      items,
+      yCoord,
+      coordHinter,
+      mouseCoord: null,
+      hoverPos: null,
+      hoverEntries: [],
+    };
+  }
+
+  items.forEach((it) => state.coordHinter.addItem(it.xCoord, it.yCoord, it));
+  return {
     ...state,
     items: [...state.items, ...items],
-    yCoord:
-      state.yCoord.max !== max ? new YCoord(max, state.height) : state.yCoord,
   };
-  logState();
 }
 
 // Listeners
@@ -561,32 +740,25 @@ window.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('resize', () => {
   console.debug({ event: 'resize' });
   const width = updateCanvas();
-  updateStateCanvasSize(temporalCssHeight, width);
-  requestAnimationFrame(() => renderUI(state));
+  queue.enqueu(updateStateCanvasSize.bind(null, temporalCssHeight, width));
 });
 temporalCanvas.addEventListener('mousemove', (e) => {
   const rect = temporalCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  updateStateMousePosition({ x, y });
-  requestAnimationFrame(() => renderUI(state));
+  queue.enqueu(updateStateMousePosition.bind(null, { x, y }));
 });
 temporalCanvas.addEventListener('mouseleave', () => {
-  updateStateMousePosition(null);
-  requestAnimationFrame(() => renderUI(state));
+  queue.enqueu(updateStateMousePosition.bind(null, null));
 });
 temporalLoad.addEventListener('click', () => {
   console.debug({ event: 'temporalLoad click' });
-  updateStateRange();
-  requestAnimationFrame(() => {
-    renderUI(state);
-    loadEvents();
-  });
+  queue.enqueu(updateStateRange);
+  loadEvents();
 });
 themeQuery.addEventListener('change', () => {
   console.debug({ event: 'themeQuery change' });
-  updateStateTheme();
-  requestAnimationFrame(() => renderUI(state));
+  queue.enqueu(updateStateTheme);
 });
 
 // Data loading
@@ -604,37 +776,39 @@ async function loadEvents(page = 1) {
   const res = await pb.logs.getList(page, PAGE_SIZE, {
     filter: `data.auth != "_superusers" && data.type = "request" && created >= "${state.range.from.toISOString().replace('T', ' ')}" && created <= "${state.range.to.toISOString().replace('T', ' ')}"`,
   });
-  const items = res.items
-    .filter(
-      (it) => it.data?.type == 'request' && typeof it.data.execTime == 'number',
-    )
-    .map((it) => {
-      const path = urlFormatter(it.data.method, it.data.url);
-      const color = state.colors.getColor(
-        path.type == 'custom' ? path.url : path.collection,
-        path.type == 'file'
-          ? 'base'
-          : path.type == 'collection'
-            ? path.action
-            : 'base',
-      );
-      /** @type {LogItem} */
-      return {
-        id: it.id,
-        ts: new Date(it.created),
-        execTime: it.data.execTime,
-        status: it.data.status ?? 0,
-        path,
-        color,
-      };
-    });
-  updateStatePushItems(items);
-  requestAnimationFrame(() => {
-    renderUI(state);
+  queue.enqueu((state) => {
+    const items = res.items
+      .filter(
+        (it) =>
+          it.data?.type == 'request' && typeof it.data.execTime == 'number',
+      )
+      .map((it) => {
+        const path = urlFormatter(it.data.method, it.data.url);
+        const color = state.colors.getColor(
+          path.type == 'custom' ? path.url : path.collection,
+          path.action,
+        );
+
+        const ts = new Date(it.created);
+        const execTime = it.data.execTime;
+        /** @type {LogItem} */
+        return {
+          id: it.id,
+          ts,
+          execTime,
+          status: it.data.status ?? 0,
+          path,
+          color,
+          xCoord: state.xCoord.getCoord(ts),
+          yCoord: state.yCoord.getCoord(execTime),
+        };
+      });
+    let newState = updateStatePushItems(items, state);
     const nextPage = page + 1;
     if (nextPage <= res.totalPages) {
       loadEvents(nextPage);
     }
+    return newState;
   });
 }
 
@@ -645,9 +819,6 @@ function renderUI(state) {
 
   tCtx.clearRect(0, 0, state.width, state.height);
 
-  const color = state.isDark ? '#ffffff' : '#000000';
-  tCtx.fillStyle = color;
-  tCtx.strokeStyle = color;
   tCtx.lineWidth = 1.5;
   tCtx.textRendering = 'optimizeLegibility';
   tCtx.font = `${FONT_SIZE}px sans-serif`;
@@ -658,94 +829,69 @@ function renderUI(state) {
   drawHover(state);
 }
 
-/**@param {State} state
- * @returns {number} cursorSize
- */
+/**@param {State} state */
 function drawHoverCursor(state) {
+  tCtx.fillStyle = state.foreground;
   tCtx.globalAlpha = 0.2;
-  const cursorSize = 20;
-  const xCoord = state.mouseCoord.x - cursorSize / 2;
-  const yCoord = state.mouseCoord.y - cursorSize / 2;
-  tCtx.fillRect(xCoord, yCoord, cursorSize, cursorSize);
+  const xCoord = state.mouseCoord.x - CURSOR_SIZE / 2;
+  const yCoord = state.mouseCoord.y - CURSOR_SIZE / 2;
+  tCtx.fillRect(xCoord, yCoord, CURSOR_SIZE, CURSOR_SIZE);
   tCtx.globalAlpha = 1;
-  console.log({ label: 'drawHoverCursor', xCoord, yCoord });
-  return cursorSize;
+  console.debug({ label: 'drawHoverCursor', xCoord, yCoord });
 }
 
-/**@param {State} state
- * @param {number} cursorSize
- */
-function drawHoverInfo(state, cursorSize) {
-  const savedFillStyle = tCtx.fillStyle;
-  let entries = state.coordHinter.getEntries(
-    state.mouseCoord.x,
-    state.mouseCoord.y,
-    cursorSize,
+/**@param {State} state */
+function drawHoverInfo(state) {
+  if (state.hoverEntries.length == 0) return;
+  const maxTextWidth = state.hoverEntries.reduce(
+    (acc, it) => Math.max(acc, it.width),
+    0,
   );
-  if (!entries.size) return;
-  const texts = Array.from(entries.values());
-  const textMeasurements = texts
-    .map((v) => tCtx.measureText(v).width)
-    .reduce((acc, it) => Math.max(acc, it));
-  const xCoord = state.mouseCoord.x + cursorSize;
-  const yCoord = state.mouseCoord.y - cursorSize;
+  const width = Math.max(maxTextWidth + 45, 130);
+  const height = (state.hoverEntries.length + 2) * (FONT_SIZE + 5);
+  const xCoord = state.hoverPos?.onLeft
+    ? state.mouseCoord.x - CURSOR_SIZE - width
+    : state.mouseCoord.x + CURSOR_SIZE;
+  const yCoord = state.hoverPos?.growToTop
+    ? state.mouseCoord.y + CURSOR_SIZE / 2 - height
+    : state.mouseCoord.y - CURSOR_SIZE / 2;
   tCtx.beginPath();
-  tCtx.fillStyle = '#000';
-  tCtx.roundRect(
-    xCoord,
-    yCoord,
-    Math.max(textMeasurements + 45, 130),
-    (entries.size + 2) * (FONT_SIZE + 5),
-    10,
-  );
+  tCtx.fillStyle = state.background;
+  tCtx.roundRect(xCoord, yCoord, width, height, 10);
   tCtx.fill();
   tCtx.stroke();
-  tCtx.fillStyle = savedFillStyle;
-  texts.sort();
-  texts.forEach((text, i) => {
+  state.hoverEntries.forEach((it, i) => {
     const xCoordText = xCoord + 25;
     const yCoordText = yCoord + 10 + (FONT_SIZE + 5) * (i + 1);
 
-    const color = state.colors.getColor(text);
-    if (color) {
-      tCtx.fillStyle = state.colors.getColor(text);
-    }
+    tCtx.fillStyle = it.color;
     tCtx.fillRect(xCoordText - 10, yCoordText - FONT_SIZE / 2, 5, 5);
-    tCtx.fillStyle = savedFillStyle;
-    tCtx.fillText(text, xCoordText, yCoordText, textMeasurements);
+    tCtx.fillStyle = state.foreground;
+    tCtx.fillText(it.label, xCoordText, yCoordText, maxTextWidth);
   });
 }
 
 /** @param {State} state */
 function drawHover(state) {
   if (!state.mouseCoord) return;
-  const cursorSize = drawHoverCursor(state);
-  drawHoverInfo(state, cursorSize);
+  drawHoverCursor(state);
+  drawHoverInfo(state);
 }
 
 /** @param {State} state */
 function plotItems(state) {
   console.debug({ label: 'plotItems' });
 
-  const style = tCtx.fillStyle;
   for (let item of state.items) {
-    const xCoord = state.xCoord.getCoord(item.ts);
-    const yCoord = state.yCoord.getCoord(item.execTime);
-    state.coordHinter.addItem(
-      xCoord,
-      yCoord,
-      item.path.collection ?? item.path.url,
-    );
     tCtx.beginPath();
-    tCtx.arc(xCoord, yCoord, 0.5, 0, 2 * Math.PI);
+    tCtx.arc(item.xCoord, item.yCoord, 0.5, 0, 2 * Math.PI);
     if (item.color) {
       tCtx.fillStyle = item.color;
     } else {
-      tCtx.fillStyle = style;
+      tCtx.fillStyle = state.foreground;
     }
     tCtx.fill();
   }
-  tCtx.fillStyle = style;
 }
 
 /** @param {State} state */
@@ -755,6 +901,8 @@ function drawYAxis(state) {
   const bottomY = state.height - MARGIN;
   console.debug({ label: 'drawYAxis', xCoord, topY, bottomY });
 
+  tCtx.fillStyle = state.foreground;
+  tCtx.strokeStyle = state.foreground;
   tCtx.beginPath();
   tCtx.moveTo(xCoord, topY);
   tCtx.lineTo(xCoord, bottomY);
@@ -767,28 +915,24 @@ function drawYAxis(state) {
   const padTop = 2;
   const rectHeight = tCtx.lineWidth;
   let nextLabelAt = state.height;
-  for (let labelMs of state.yCoord.getLabels()) {
-    const yCoord = state.yCoord.getCoord(labelMs);
+  for (let label of state.yCoord.labels) {
     tCtx.fillRect(
       xCoord - rectWidth,
-      yCoord - rectHeight,
+      label.yCoord - rectHeight,
       rectWidth,
       rectHeight,
     );
-    if (labelMs / 10 ** Math.floor(Math.log10(labelMs)) > 3) {
+    if (label.label.length == 0) {
       continue;
     }
-    const textText = formatMs(labelMs);
-    const textMeasurements = tCtx.measureText(textText);
-    const textHalfWidth = textMeasurements.ideographicBaseline;
-    const textYCoord = Math.floor(yCoord - textHalfWidth);
+    const textYCoord = Math.floor(label.yCoord + FONT_SIZE / 2);
     if (nextLabelAt < textYCoord) continue;
     nextLabelAt = textYCoord - FONT_SIZE - padTop;
     tCtx.fillText(
-      textText,
-      xCoord - rectWidth - Math.ceil(textMeasurements.width) - padRight,
+      label.label,
+      xCoord - rectWidth - Math.ceil(label.width) - padRight,
       textYCoord,
-      textMeasurements.width,
+      label.width,
     );
   }
 }
@@ -800,6 +944,8 @@ function drawXAxis(state) {
   const rightX = state.width - MARGIN;
   console.debug({ label: 'drawYAxis', yCoord, leftX, rightX });
 
+  tCtx.fillStyle = state.foreground;
+  tCtx.strokeStyle = state.foreground;
   tCtx.beginPath();
   tCtx.moveTo(leftX, yCoord);
   tCtx.lineTo(rightX, yCoord);
@@ -810,65 +956,24 @@ function drawXAxis(state) {
   const rectHeight = 8;
   const rectWidth = tCtx.lineWidth;
   const padTop = 4;
-  const step = state.xCoord.step;
   let nextLabelAt = 0;
-  for (let labelDate of state.xCoord.getLabels()) {
-    const xCoord = state.xCoord.getCoord(labelDate);
-    tCtx.fillRect(xCoord, yCoord, rectWidth, rectHeight);
-    switch (labelDate.getUTCHours()) {
-      case 0: {
-        const textText = '12:00AM';
-        const textMeasurements = tCtx.measureText(textText);
-        const textHalfWidth = textMeasurements.width / 2;
-        const textXCoord = Math.floor(xCoord - textHalfWidth);
-        if (textXCoord <= nextLabelAt) break;
-        nextLabelAt = xCoord + textHalfWidth;
-        tCtx.fillText(
-          textText,
-          textXCoord,
-          yCoord +
-            rectHeight +
-            Math.ceil(textMeasurements.hangingBaseline) +
-            padTop,
-          textMeasurements.width,
-        );
-
-        const dateText = `[${labelDate.getUTCDate().toString().padStart(2, '0')}-${labelDate.getUTCMonth().toString().padStart(2, '0')}]`;
-        const dateMeasurements = tCtx.measureText(dateText);
-        tCtx.fillText(
-          dateText,
-          Math.floor(xCoord - dateMeasurements.width / 2),
-          yCoord +
-            rectHeight +
-            Math.ceil(textMeasurements.hangingBaseline * 1.5) +
-            Math.ceil(dateMeasurements.hangingBaseline) +
-            padTop,
-
-          dateMeasurements.width,
-        );
-
-        break;
-      }
-      case 12: {
-        if (step < 50) break;
-        const text = `12:00PM`;
-        const textMeasurements = tCtx.measureText(text);
-        const textHalfWidth = textMeasurements.width / 2;
-        const textXCoord = Math.floor(xCoord - textHalfWidth);
-        if (textXCoord <= nextLabelAt) break;
-        nextLabelAt = xCoord + textHalfWidth;
-        tCtx.fillText(
-          text,
-          textXCoord,
-          yCoord +
-            rectHeight +
-            Math.ceil(textMeasurements.hangingBaseline) +
-            padTop,
-          textMeasurements.width,
-        );
-        break;
-      }
-    }
+  for (let label of state.xCoord.labels) {
+    tCtx.fillRect(label.xCoord, yCoord, rectWidth, rectHeight);
+    if (
+      label.labels.length == 0 ||
+      label.xCoord - label.maxWidth / 2 <= nextLabelAt
+    )
+      continue;
+    nextLabelAt = label.xCoord + label.maxWidth / 2;
+    label.labels.forEach((text, i) => {
+      const textXCoord = label.xCoord - label.widths[i] / 2;
+      tCtx.fillText(
+        text,
+        textXCoord,
+        yCoord + rectHeight + FONT_SIZE / 2 + (FONT_SIZE + 5) * i + padTop,
+        label.maxWidth,
+      );
+    });
   }
 }
 
@@ -903,7 +1008,7 @@ function setDateValue(element, date) {
  * @typedef {Object} LogPathCollection
  * @property {'collection'} type
  * @property {string} collection
- * @property {'list' | 'view' | 'create' | 'update' | 'delete' | 'base'} action
+ * @property {string} action
  */
 /**
  * @typedef {Object} LogPathFile
@@ -923,25 +1028,30 @@ function urlFormatter(method, url) {
     case 'collections': {
       /** @type {LogPathCollection['action']} */
       let action = 'base';
-      switch (method) {
-        case 'POST':
-          action = 'create';
-          break;
-        case 'PUT':
-        case 'PATCH':
-          action = 'update';
-          break;
-        case 'DELETE':
-          action = 'delete';
-          break;
-        case 'GET':
-          action = parts.length > 4 ? 'view' : 'list';
-          break;
+      let collection = state.collections.get(parts[2]);
+      if (!collection) break;
+      if (collection.type == 'auth') {
+        action = parts.at(-1);
+      } else {
+        switch (method) {
+          case 'POST':
+            action = 'create';
+            break;
+          case 'PUT':
+          case 'PATCH':
+            action = 'update';
+            break;
+          case 'DELETE':
+            action = 'delete';
+            break;
+          case 'GET':
+            action = parts.length > 4 ? 'view' : 'list';
+            break;
+        }
       }
       return {
         type: 'collection',
-        collection:
-          state.collections.get(parts[2])?.name ?? parts[2] ?? 'unknown',
+        collection: collection?.name ?? parts.at(2) ?? 'unknown',
         action,
       };
     }
@@ -949,17 +1059,20 @@ function urlFormatter(method, url) {
       return {
         type: 'file',
         collection:
-          state.collections.get(parts[2])?.name ?? parts[2] ?? 'unknown',
-      };
-    default:
-      return {
-        type: 'custom',
-        url: url,
-        method,
+          state.collections.get(parts.at(2))?.name ?? parts.at(2) ?? 'unknown',
       };
   }
+
+  return {
+    type: 'custom',
+    url: url,
+    method,
+  };
 }
 
+/**@param {number} value
+ * @returns {string}
+ */
 function formatMs(value) {
   if (value == 0) {
     return '0';
