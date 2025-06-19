@@ -72,7 +72,7 @@ The project is organized into two main parts:
 
 After first launch, the application requires seed data to be provided. Visit `/dump` endpoint to upload the initial data dump. This step is required only once and provides the necessary game data (characters, weapons, artifacts, etc.).
 
-The latest seed data can be found at [gbp.qxuken.dev](https://gbp.qxuken.dev).
+The latest seed data can be found in the release section or at [gbp.qxuken.dev](https://gbp.qxuken.dev).
 
 ### Production
 
