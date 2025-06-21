@@ -53,7 +53,7 @@
 ## Next big thing
 
 - [x] Farm planned
-- [ ] Dashboards
+- [x] Dashboards
     refs: https://observablehq.observablehq.cloud/framework-example-api/
     url: /_/monitor
     share auth with admin panel via shared localstorage key
