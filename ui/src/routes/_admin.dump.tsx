@@ -4,7 +4,7 @@ import {
   useQuery,
   useSuspenseQuery,
 } from '@tanstack/react-query';
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { CloudDownload, CircleSmall, EllipsisVertical } from 'lucide-react';
 import Pocketbase, { LocalAuthStore, RecordModel } from 'pocketbase';
 import { ChangeEvent, useRef } from 'react';
@@ -119,10 +119,9 @@ function useDumpUploadDbMutations() {
 
 export const Route = createFileRoute('/_admin/dump')({
   beforeLoad: () => {
-    if (!authStore.isValid) {
-      throw redirect({
-        to: (import.meta.env.VITE_POCKETBASE_URL ?? '') + '/_/',
-      });
+    if (!authStore.isValid || !authStore.isSuperuser) {
+      window.location.href =
+        (import.meta.env.VITE_POCKETBASE_URL ?? '') + '/_/';
     }
   },
   component: RouteComponent,
