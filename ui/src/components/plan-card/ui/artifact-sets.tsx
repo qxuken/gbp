@@ -327,7 +327,7 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
           })}
         >
           <ArtifactSetPicker
-            title="Split into two peaces"
+            title="Split into two pieces"
             onSelect={(as) => addSet(as)}
             ignoreArifacts={artifactSetsSet}
           >
@@ -336,7 +336,7 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
               size="sm"
               className="opacity-50 transition-opacity focus:opacity-100 hover:opacity-100"
             >
-              <Icons.SplitY /> Split into two peaces
+              <Icons.SplitY /> Split into two pieces
             </Button>
           </ArtifactSetPicker>
         </div>
