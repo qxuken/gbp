@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { z } from 'zod/v4-mini';
 
 import { login } from '@/api/pocketbase';
-import { queryClient } from '@/api/queryClient';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,7 +53,6 @@ function LoginComponent() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await login(values.email, values.password);
-      queryClient.clear();
     } catch (e) {
       if (e instanceof Error) {
         toast.error(e.message);
