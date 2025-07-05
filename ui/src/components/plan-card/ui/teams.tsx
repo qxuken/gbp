@@ -208,7 +208,7 @@ function Character(props: CharacterProps) {
               onClick={props.delete}
               disabled={props.disabled}
             >
-              Yes i really want to delete
+              Yes, I really want to delete
             </Button>
           </PopoverContent>
         </Popover>

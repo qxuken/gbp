@@ -132,7 +132,7 @@ export function ArtifactSubstatsItem({
             onClick={deleteSpecial}
             disabled={disabled}
           >
-            Yes i really want to delete
+            Yes, I really want to delete
           </Button>
         </PopoverContent>
       </Popover>

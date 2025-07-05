@@ -263,7 +263,7 @@ function PlanCardTitle(props: Props) {
               disabled={props.disabled}
               onClick={props.delete}
             >
-              Yes i really want to delete
+              Yes, I really want to delete
             </Button>
           </PopoverContent>
         </Popover>

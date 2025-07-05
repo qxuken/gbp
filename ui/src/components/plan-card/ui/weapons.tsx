@@ -316,7 +316,7 @@ function WeaponFull(props: WeaponProps) {
                 disabled={props.disabled}
                 onClick={props.delete}
               >
-                Yes i really want to delete
+                Yes, I really want to delete
               </Button>
             </PopoverContent>
           </Popover>
@@ -392,7 +392,7 @@ function WeaponShort(props: WeaponProps) {
                 disabled={props.disabled}
                 onClick={props.delete}
               >
-                Yes i really want to delete
+                Yes, I really want to delete
               </Button>
             </PopoverContent>
           </Popover>
