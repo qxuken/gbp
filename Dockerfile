@@ -30,13 +30,24 @@ COPY --from=frontend-builder /app/dist /app/ui/dist
 
 RUN go build -o /app/gbp .
 
+# --- Backend seed
+
+FROM backend-builder AS backend-seed-builder
+
+WORKDIR /app
+
+COPY ./backup/seed.db ./backup/seed.note /app/
+
+RUN /app/gbp hash /app/seed.db /app/seed.hash
+
 # --- Final image
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=backend-builder /app/gbp /app/gbp
+COPY --from=backend-seed-builder /app/seed.db /app/seed.hash /app/seed.note /app/
+COPY --from=backend-builder      /app/gbp                                   /app/gbp
 
 VOLUME /app/pb_data
 

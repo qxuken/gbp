@@ -41,9 +41,10 @@ docker run --name gbp -p 8080:8080 -v gbp_data:/pb_data qxuken/gbp:latest
 
 On the first launch, the application will print a URL in the console logs. **Visit this URL in your browser to create your first admin account.** This link is only valid for a short time.
 
-### Step 3: Upload Seed Data
+### Step 3: (Optional) Upload Seed Data
 
-The application needs initial game data (characters, weapons, etc.) to function. This is provided via a `dump.db` file.
+> The docker images already seeded with game data (characters, weapons, etc.).
+
 1.  **Get the `dump.db` file.** (See the ["Seed Data"](#seed-data) section below for download links).
 2.  Log in to your new instance with the admin account you just created.
 3.  Navigate to the `/dump` endpoint in your browser (e.g., `http://localhost:8080/dump`).
@@ -113,6 +114,9 @@ This section is for developers who want to contribute to the project or modify t
 The project includes Nushell scripts for building and publishing.
 * **`build.nu`**: Builds the application.
 * **`publish.nu`**: Builds and publishes multi-arch Docker images (arm64 & amd64). This is primarily for project maintainers.
+
+> Important: there should be latest seed.db and seed.note for the images
+
   ```bash
   # Example: Build and publish a new version
   nu publish.nu

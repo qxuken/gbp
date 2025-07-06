@@ -25,6 +25,30 @@ func NewCobraSeedCommand(app core.App) *cobra.Command {
 	}
 }
 
+func NewCobraSeedHashCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "hash seed_file [dest_file]",
+		Short: "Generate hash command",
+		Args:  cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			hash, err := GetSeedHash(args[0])
+			if err != nil {
+				return err
+			}
+			fmt.Println(hash)
+			if len(args) <= 1 {
+				return nil
+			}
+			fd, err := os.Create(args[1])
+			if err != nil {
+				return err
+			}
+			_, err = fd.WriteString(hash)
+			return err
+		},
+	}
+}
+
 func GetSeedHash(path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {

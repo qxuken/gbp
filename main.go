@@ -27,6 +27,12 @@ type planCollectionDict struct {
 	Name string `json:"name"`
 }
 
+const (
+	PRELOAD_SEED_FILE = "./seed.db"
+	PRELOAD_SEED_HASH = "./seed.hash"
+	PRELOAD_SEED_NOTE = "./seed.note"
+)
+
 var PLANS_COLLECTIONS = []string{
 	models.CHARACTER_PLANS_COLLECTION_NAME,
 	models.WEAPON_PLANS_COLLECTION_NAME,
@@ -45,6 +51,36 @@ func loadCollectionsDictionary(app core.App) []planCollectionDict {
 	return plansCollections
 }
 
+func updateSeed(app core.App) error {
+	app.Logger().Debug("Checking seed.hash")
+	hash, err := os.ReadFile(PRELOAD_SEED_HASH)
+	if err != nil {
+		return err
+	}
+	note, _ := os.ReadFile(PRELOAD_SEED_NOTE)
+	dictionaryVersion, err := models.FindAppSettingsByKey(app, "dictionaryVersion")
+	if err == nil && dictionaryVersion != nil && dictionaryVersion.Value() == string(hash) {
+		app.Logger().Debug("No seed update required")
+		return nil
+	}
+	latestDumps, err := app.FindRecordsByFilter(models.DB_DUMPS_COLLECTION_NAME, "", "-created", 1, 0, dbx.Params{})
+	if err == nil && len(latestDumps) > 0 {
+		for _, dump := range latestDumps {
+			if dump.GetString("hash") == string(hash) {
+				app.Logger().Debug("No seed update required")
+				return nil
+			}
+		}
+	}
+	if err = seed.SaveDump(app, PRELOAD_SEED_FILE, string(note)); err != nil {
+		return err
+	}
+	if err = seed.Seed(app, PRELOAD_SEED_FILE); err != nil {
+		return err
+	}
+	return nil
+}
+
 func main() {
 	isDevMode := strings.HasPrefix(os.Args[0], os.TempDir()) || strings.HasSuffix(os.Args[0], "/tmp/main.exe")
 
@@ -53,14 +89,24 @@ func main() {
 	})
 
 	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
-		Automigrate: isDevMode,
+		Automigrate: true,
 	})
 
 	app.RootCmd.AddCommand(seed.NewCobraSeedCommand(app))
 
 	app.RootCmd.AddCommand(seed.NewCobraDumpCommand(app))
 
+	app.RootCmd.AddCommand(seed.NewCobraSeedHashCommand())
+
 	app.RootCmd.AddCommand(completions.NewCompletionsCommand(app.RootCmd))
+
+	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
+		err := updateSeed(app)
+		if err != nil {
+			app.Logger().Error(err.Error())
+		}
+		return se.Next()
+	})
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		fs := ui.GetAssetsFileSystem(app)
