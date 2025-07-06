@@ -41,7 +41,14 @@ docker run --name gbp -p 8080:8080 -v gbp_data:/pb_data qxuken/gbp:latest
 
 On the first launch, the application will print a URL in the console logs. **Visit this URL in your browser to create your first admin account.** This link is only valid for a short time.
 
-### Step 3: (Optional) Upload Seed Data
+
+### Step 3: Configuration
+
+Navigate to the "Settings" panel in the application to configure additional options, such as setting up an SMTP server for email features (like password resets).
+
+> If you don't want to configure SMTP, you will need to disable the authentication rule. First, go to Settings > Application, uncheck "Hide collection create and edit controls," and click Save. Then, go to Collections > Users > Edit collection > API Rules, clear the "Authentication rule," and click Save. You will then be able to log in without verification.
+
+### Step 4: (Optional) Upload Seed Data
 
 > The docker images already seeded with game data (characters, weapons, etc.).
 
@@ -49,10 +56,6 @@ On the first launch, the application will print a URL in the console logs. **Vis
 2.  Log in to your new instance with the admin account you just created.
 3.  Navigate to the `/dump` endpoint in your browser (e.g., `http://localhost:8080/dump`).
 4.  Upload the `dump.db` file.
-
-### Step 4: (Optional) Further Configuration
-
-Navigate to the "Settings" panel in the application to configure additional options, such as setting up an SMTP server for email features (like password resets).
 
 ### Step 5: Done!
 
