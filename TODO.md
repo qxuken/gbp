@@ -29,6 +29,7 @@
 - [x] Layout for auth
 - [x] Landing page and SEO meta tags
 - [x] Readme
+- [ ] Give an option to resend email confirmation, after user leaved confirmation page
 
 ## Nice to have
 
