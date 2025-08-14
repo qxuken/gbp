@@ -7,12 +7,17 @@ const ARCH = [
 
 def arches [] { $ARCH }
 
-export def main [--mainArch (-m): string@arches = "amd64" ] {
+export def main [
+	--main-arch (-m): string@arches = "amd64"
+	--no-push
+] {
 	let commit_hash = git rev-parse HEAD
 	for arch in $ARCH {
 		DOCKER_DEFAULT_PLATFORM=$"($OS)/($arch)" docker build . --tag $'($REPO):($arch)-($commit_hash)'
 	}
-	docker tag $'($REPO):($mainArch)-($commit_hash)' $'($REPO):latest'
-	docker tag $'($REPO):($mainArch)-($commit_hash)' $'($REPO):($commit_hash)'
-	docker push $REPO --all-tags
+	docker tag $'($REPO):($main_arch)-($commit_hash)' $'($REPO):latest'
+	docker tag $'($REPO):($main_arch)-($commit_hash)' $'($REPO):($commit_hash)'
+	if not $no_push {
+		docker push $REPO --all-tags
+	}
 }
