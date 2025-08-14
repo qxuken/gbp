@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod/v4-mini';
 
-import { register, requestVerification } from '@/api/pocketbase';
+import { register } from '@/api/pocketbase';
 import { Icons } from '@/components/icons';
 import { AvatarInput } from '@/components/ui/avatar-input';
 import { Button } from '@/components/ui/button';
@@ -80,7 +80,6 @@ function SignupComponent() {
       }
 
       await register(formData);
-      await requestVerification(values.email);
 
       await navigate({
         search: { ...search, email: values.email, password: values.password },

@@ -42,6 +42,8 @@ const formSchema = z.object({
 });
 
 function LoginComponent() {
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
       email: '',
@@ -55,7 +57,22 @@ function LoginComponent() {
       await login(values.email, values.password);
     } catch (e) {
       if (e instanceof Error) {
-        toast.error(e.message);
+        switch (e.message) {
+          case "The request doesn't satisfy the collection requirements to authenticate.":
+            await navigate({
+              search: {
+                ...search,
+                email: values.email,
+                password: values.password,
+              },
+              to: '/confirm',
+            });
+            break;
+
+          default:
+            toast.error(e.message);
+            break;
+        }
       }
     }
   };

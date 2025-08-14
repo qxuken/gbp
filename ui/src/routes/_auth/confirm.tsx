@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v4-mini';
 
@@ -15,6 +16,9 @@ export const Route = createFileRoute('/_auth/confirm')({
     email: z.string().check(z.email()),
     password: z.string().check(z.minLength(8)),
   }),
+  beforeLoad(ctx) {
+    requestVerification(ctx.search.email);
+  },
 });
 
 function ConfirmComponent() {
@@ -26,7 +30,15 @@ function ConfirmComponent() {
       await login(search.email, search.password);
     } catch (e) {
       if (e instanceof Error) {
-        toast.error(e.message);
+        switch (e.message) {
+          case "The request doesn't satisfy the collection requirements to authenticate.":
+            toast.error('Email is unverified');
+            break;
+
+          default:
+            toast.error(e.message);
+            break;
+        }
       }
     }
   };
