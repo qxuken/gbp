@@ -18,6 +18,10 @@ export def main [
 	docker tag $'($REPO):($main_arch)-($commit_hash)' $'($REPO):latest'
 	docker tag $'($REPO):($main_arch)-($commit_hash)' $'($REPO):($commit_hash)'
 	if not $no_push {
-		docker push $REPO --all-tags
+		push
 	}
+}
+
+export def push [] {
+	docker push $REPO --all-tags
 }
