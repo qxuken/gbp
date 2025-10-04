@@ -13,8 +13,8 @@ function TanstackDevTools() {
         position="bottom-left"
         router={router}
         toggleButtonProps={{
-          ref: (el) => {
-            el.style.left = '64px';
+          style: {
+            left: '64px',
           },
         }}
       />

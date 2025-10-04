@@ -1,5 +1,4 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v4-mini';
 
