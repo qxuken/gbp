@@ -7,17 +7,23 @@ import { mutateFieldImmer } from '@/lib/mutate-field';
 
 import { DoubleInputLabeled } from './double-input-labeled';
 
-const MIN_BOUNDS = { skill: { min: 1, max: 10 }, burst: { min: 1, max: 10 } };
-const MED_BOUNDS = { skill: { min: 4, max: 13 }, burst: { min: 1, max: 10 } };
-const MAX_BOUNDS = { skill: { min: 4, max: 13 }, burst: { min: 4, max: 13 } };
+// const MIN_BOUNDS = { skill: { min: 1, max: 10 }, burst: { min: 1, max: 10 } };
+// const MED_BOUNDS = { skill: { min: 4, max: 13 }, burst: { min: 1, max: 10 } };
+// const MAX_BOUNDS = { skill: { min: 4, max: 13 }, burst: { min: 4, max: 13 } };
+const SIMPLE_BOUNDS = {
+  skill: { min: 1, max: 13 },
+  burst: { min: 1, max: 13 },
+};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getTalentBounds(constellation: number) {
-  if (constellation < 3) {
-    return MIN_BOUNDS;
-  }
-  if (constellation < 6) {
-    return MED_BOUNDS;
-  }
-  return MAX_BOUNDS;
+  // if (constellation < 3) {
+  //   return MIN_BOUNDS;
+  // }
+  // if (constellation < 6) {
+  //   return MED_BOUNDS;
+  // }
+  // return MAX_BOUNDS;
+  return SIMPLE_BOUNDS;
 }
 
 type Props = {
@@ -37,8 +43,8 @@ export function MainStat({ plan, mutate, disabled }: Props) {
       mutate((plan) => (plan.talentSkillCurrent = targetBounds.skill.max));
     }
     if (
-      (MIN_BOUNDS.skill.max !== targetBounds.skill.max &&
-        plan.talentSkillTarget == MIN_BOUNDS.skill.max) ||
+      (SIMPLE_BOUNDS.skill.max !== targetBounds.skill.max &&
+        plan.talentSkillTarget == SIMPLE_BOUNDS.skill.max) ||
       plan.talentSkillTarget > targetBounds.skill.max
     ) {
       mutate((plan) => (plan.talentSkillTarget = targetBounds.skill.max));
@@ -49,8 +55,8 @@ export function MainStat({ plan, mutate, disabled }: Props) {
       mutate((plan) => (plan.talentBurstCurrent = currentBounds.burst.max));
     }
     if (
-      (MIN_BOUNDS.burst.max !== targetBounds.burst.max &&
-        plan.talentBurstTarget == MIN_BOUNDS.burst.max) ||
+      (SIMPLE_BOUNDS.burst.max !== targetBounds.burst.max &&
+        plan.talentBurstTarget == SIMPLE_BOUNDS.burst.max) ||
       plan.talentBurstTarget > targetBounds.burst.max
     ) {
       mutate((plan) => (plan.talentBurstTarget = targetBounds.burst.max));
