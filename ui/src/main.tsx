@@ -6,13 +6,13 @@ import ReactDOM from 'react-dom/client';
 
 import { DictionaryProvider } from '@/api/dictionaries/hooks';
 import '@/api/dictionaries/loader';
+import { queryClient } from '@/api/queryClient';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { DEBUG_ENABLED } from '@/config';
 import { router } from '@/router';
 
-import { queryClient } from './api/queryClient';
-
-if (!import.meta.env.PROD || localStorage.getItem('debugEnabled') == '1') {
+if (DEBUG_ENABLED) {
   import('@/devtoolsLoader');
 }
 

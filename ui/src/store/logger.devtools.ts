@@ -9,7 +9,7 @@ const OPTIONS = Object.fromEntries(
 const group = pane.addFolder({ title: 'Logger', expanded: false });
 const params = {
   get level() {
-    return logger.level();
+    return logger.level;
   },
   set level(level: LogLevel) {
     logger.enable(level);

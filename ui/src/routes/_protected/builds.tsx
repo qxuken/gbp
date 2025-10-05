@@ -69,13 +69,13 @@ const SEARCH_SCHEMA = z.object({
 
 export const Route = createFileRoute('/_protected/builds')({
   component: HomeComponent,
+  pendingComponent: HomeLoader,
   validateSearch: SEARCH_SCHEMA,
   loaderDeps: ({ search: { page = 1, perPage = PAGE_SIZE_OPTIONS[0] } }) => ({
     page,
     perPage,
   }),
   loader: () => queryClient.ensureQueryData(PLANS_QUERY),
-  pendingComponent: HomeLoader,
 });
 
 function HomeLoader() {

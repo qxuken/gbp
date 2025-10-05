@@ -7,11 +7,16 @@ import { pbClient } from '@/api/pocketbase';
 import { Plans } from '@/api/types';
 import { createRecordsMap } from '@/lib/create-records-map';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
+import { logger } from '@/store/logger';
 
 export const PLANS_QUERY = queryOptions({
   queryKey: ['plans'],
-  async queryFn() {
-    const res = await pbClient.collection<Plans>('plans').getFullList();
+  async queryFn({ signal,...conf }) {
+    logger.trace('query:plans->start', conf);
+    const res = await pbClient
+      .collection<Plans>('plans')
+      .getFullList({ signal });
+    logger.debug('query:plans->success');
     return res.map(
       (plan): Plans => ({
         ...plan,

@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { DEBUG_ENABLED } from '@/config';
+
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off';
 export const LEVELS = {
   trace: 0,
@@ -19,7 +21,7 @@ type LoggerState = {
 export const useLoggerStore = create(
   persist<LoggerState>(
     (set, get) => ({
-      level: get()?.level ?? (import.meta.env.DEV ? 'trace' : 'off'),
+      level: get()?.level ?? (DEBUG_ENABLED ? 'trace' : 'off'),
       setLevel: (level) => set({ level }),
     }),
     {
@@ -32,30 +34,30 @@ const shouldLog = (messageLevel: LogLevel, currentLevel: LogLevel) =>
   LEVELS[messageLevel] >= LEVELS[currentLevel];
 
 export const logger = {
-  trace: (...args: unknown[]) => {
-    const { level } = useLoggerStore.getState();
-    if (shouldLog('trace', level)) console.trace(...args);
+  trace(...args: unknown[]) {
+    if (shouldLog('trace', this.level)) console.trace(...args);
   },
-  debug: (...args: unknown[]) => {
-    const { level } = useLoggerStore.getState();
-    if (shouldLog('debug', level)) console.debug(...args);
+  debug(...args: unknown[]) {
+    if (shouldLog('debug', this.level)) console.debug(...args);
   },
-  info: (...args: unknown[]) => {
-    const { level } = useLoggerStore.getState();
-    if (shouldLog('info', level)) console.info(...args);
+  info(...args: unknown[]) {
+    if (shouldLog('info', this.level)) console.info(...args);
   },
-  warn: (...args: unknown[]) => {
-    const { level } = useLoggerStore.getState();
-    if (shouldLog('warn', level)) console.warn(...args);
+  warn(...args: unknown[]) {
+    if (shouldLog('warn', this.level)) console.warn(...args);
   },
-  error: (...args: unknown[]) => {
-    const { level } = useLoggerStore.getState();
-    if (shouldLog('error', level)) console.error(...args);
+  error(...args: unknown[]) {
+    if (shouldLog('error', this.level)) console.error(...args);
   },
-  level: () => useLoggerStore.getState().level,
-  enable: (level: LogLevel = 'debug') =>
-    useLoggerStore.getState().setLevel(level),
-  disable: () => useLoggerStore.getState().setLevel('off'),
+  get level() {
+    return useLoggerStore.getState().level;
+  },
+  enable(level: LogLevel = 'debug') {
+    useLoggerStore.getState().setLevel(level);
+  },
+  disable() {
+    useLoggerStore.getState().setLevel('off');
+  },
 } as const;
 
 export type Logger = typeof logger;
