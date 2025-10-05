@@ -12,7 +12,7 @@ import { router } from '@/router';
 
 import { queryClient } from './api/queryClient';
 
-if (!import.meta.env.PROD) {
+if (!import.meta.env.PROD || localStorage.getItem('debugEnabled') == '1') {
   import('@/devtoolsLoader');
 }
 

@@ -1,5 +1,5 @@
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools/production';
+import { TanStackRouterDevtoolsInProd } from '@tanstack/react-router-devtools';
 import ReactDOM from 'react-dom/client';
 
 import { queryClient } from '@/api/queryClient';
@@ -9,7 +9,7 @@ function TanstackDevTools() {
   return (
     <>
       <ReactQueryDevtools buttonPosition="bottom-left" client={queryClient} />
-      <TanStackRouterDevtools
+      <TanStackRouterDevtoolsInProd
         position="bottom-left"
         router={router}
         toggleButtonProps={{
