@@ -37,6 +37,7 @@ interface FiltersContextType {
   value: PlansFilters;
   availableFilters: PlansAvailableFilters;
   isFiltersEnabled: boolean;
+  filter(character: Characters, plan?: Plans): boolean;
   setValue(cb: (v: WritableDraft<PlansFilters>) => void): void;
 }
 
@@ -50,17 +51,84 @@ type Props = PropsWithChildren<{
 export function FiltersProvider({ children, value, setValue }: Props) {
   const plans = usePlans();
   const charactersMap = useCharactersMap();
+  const isFiltersEnabled = useMemo(
+    () =>
+      value.name.length > 0 ||
+      value.elements.size > 0 ||
+      value.weaponTypes.size > 0 ||
+      value.artifactSets.size > 0 ||
+      value.specialsByArtifactTypePlans.size > 0 ||
+      value.characters.size > 0,
+    [value],
+  );
+
+  const filter = useCallback(
+    (character: Characters, plan?: Plans): boolean => {
+      if (!isFiltersEnabled) return true;
+
+      const simpleFilters: boolean =
+        (value.elements.size == 0 ||
+          (!!character.element && value.elements.has(character.element))) &&
+        (value.weaponTypes.size == 0 ||
+          value.weaponTypes.has(character.weaponType));
+
+      const artifactTypeSpecialsFilter = () => {
+        if (value.specialsByArtifactTypePlans.size == 0) {
+          return true;
+        }
+        if (!plan?.artifactTypePlans) {
+          return false;
+        }
+        return Array.from(value.specialsByArtifactTypePlans.entries()).every(
+          ([at, specials]) =>
+            plan.artifactTypePlans?.some(
+              (atp) => atp.artifactType == at && specials.has(atp.special),
+            ),
+        );
+      };
+
+      const artifactSetsSpecialsFilter = () => {
+        if (value.artifactSets.size == 0) {
+          return true;
+        }
+        if (!plan?.artifactSetsPlans) {
+          return false;
+        }
+        return plan.artifactSetsPlans.some((atp) =>
+          atp.artifactSets.some((as) => value.artifactSets.has(as)),
+        );
+      };
+
+      const nameFilter = () =>
+        !value.name ||
+        fuzzysearch(value.name.toLowerCase(), character.name.toLowerCase());
+
+      return (
+        simpleFilters &&
+        artifactTypeSpecialsFilter() &&
+        artifactSetsSpecialsFilter() &&
+        nameFilter()
+      );
+    },
+    [value],
+  );
+
   const availableFilters = useMemo(() => {
     const res: PlansAvailableFilters = {
-      elements: new Set(),
-      weaponTypes: new Set(),
-      characters: new Set(),
-      artifactSets: new Set(),
-      specialsByArtifactTypePlans: new Map(),
+      elements: new Set(value.elements),
+      weaponTypes: new Set(value.weaponTypes),
+      characters: new Set(value.characters),
+      artifactSets: new Set(value.artifactSets),
+      specialsByArtifactTypePlans: new Map(
+        Array.from(
+          value.specialsByArtifactTypePlans.entries(),
+          ([key, value]) => [key, new Set(value)] as const,
+        ),
+      ),
     };
-    for (const item of plans) {
-      const character = charactersMap.get(item.character);
-      if (!character) {
+    for (const plan of plans) {
+      const character = charactersMap.get(plan.character);
+      if (!character || !filter(character, plan)) {
         continue;
       }
       if (character.element) {
@@ -68,12 +136,12 @@ export function FiltersProvider({ children, value, setValue }: Props) {
       }
       res.weaponTypes.add(character.weaponType);
       res.characters.add(character.id);
-      for (const asp of item.artifactSetsPlans ?? []) {
+      for (const asp of plan.artifactSetsPlans ?? []) {
         for (const as of asp.artifactSets) {
           res.artifactSets.add(as);
         }
       }
-      for (const atp of item.artifactTypePlans ?? []) {
+      for (const atp of plan.artifactTypePlans ?? []) {
         mapGetOrSetDefault(
           res.specialsByArtifactTypePlans,
           atp.artifactType,
@@ -82,24 +150,19 @@ export function FiltersProvider({ children, value, setValue }: Props) {
       }
     }
     return res;
-  }, [plans, charactersMap]);
+  }, [value, plans, charactersMap]);
 
   const context: FiltersContextType = useMemo(
     () => ({
       value,
       availableFilters,
-      isFiltersEnabled:
-        value.name.length > 0 ||
-        value.elements.size > 0 ||
-        value.weaponTypes.size > 0 ||
-        value.artifactSets.size > 0 ||
-        value.specialsByArtifactTypePlans.size > 0 ||
-        value.characters.size > 0,
+      isFiltersEnabled,
+      filter,
       setValue(cb: (v: WritableDraft<PlansFilters>) => void) {
         setValue(produce(context.value, (d) => void cb(d)));
       },
     }),
-    [value, availableFilters, setValue],
+    [value, isFiltersEnabled, availableFilters, setValue],
   );
 
   return (
@@ -156,56 +219,10 @@ export function useSetFilters() {
 }
 
 export function useCharacterFilterFn() {
-  const filters = useFilters();
-  const filtersEnabled = useFiltersEnabled();
-  return useCallback(
-    (character: Characters, plan?: Plans) => {
-      if (!filtersEnabled) return true;
-
-      const simpleFilters =
-        (filters.elements.size == 0 ||
-          (character.element && filters.elements.has(character.element))) &&
-        (filters.weaponTypes.size == 0 ||
-          filters.weaponTypes.has(character.weaponType));
-
-      const artifactTypeSpecialsFilter = () => {
-        if (filters.specialsByArtifactTypePlans.size == 0) {
-          return true;
-        }
-        if (!plan?.artifactTypePlans) {
-          return false;
-        }
-        return Array.from(filters.specialsByArtifactTypePlans.entries()).every(
-          ([at, specials]) =>
-            plan.artifactTypePlans?.some(
-              (atp) => atp.artifactType == at && specials.has(atp.special),
-            ),
-        );
-      };
-
-      const artifactSetsSpecialsFilter = () => {
-        if (filters.artifactSets.size == 0) {
-          return true;
-        }
-        if (!plan?.artifactSetsPlans) {
-          return false;
-        }
-        return plan.artifactSetsPlans.some((atp) =>
-          atp.artifactSets.some((as) => filters.artifactSets.has(as)),
-        );
-      };
-
-      const nameFilter = () =>
-        !filters.name ||
-        fuzzysearch(filters.name.toLowerCase(), character.name.toLowerCase());
-
-      return (
-        simpleFilters &&
-        artifactTypeSpecialsFilter() &&
-        artifactSetsSpecialsFilter() &&
-        nameFilter()
-      );
-    },
-    [filters],
-  );
+  const context = use(FiltersContext);
+  if (!context)
+    throw new Error(
+      'useCharacterFilterFn should be used inside FiltersContext',
+    );
+  return context.filter;
 }
