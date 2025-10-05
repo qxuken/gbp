@@ -21,11 +21,16 @@ RUN npm run build
 
 FROM golang:1.24.1-alpine AS backend-base
 
+WORKDIR /app
+
+COPY . .
+
+RUN go mod download
+
 FROM backend-base AS backend-builder
 
 WORKDIR /app
 
-COPY . .
 COPY --from=frontend-builder /app/dist /app/ui/dist
 
 RUN go build -o /app/gbp .

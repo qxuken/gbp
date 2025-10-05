@@ -1,4 +1,8 @@
-import { queryOptions, useQuery } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useQuery,
+  useSuspenseQuery,
+} from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -11,7 +15,7 @@ import { logger } from '@/store/logger';
 
 export const PLANS_QUERY = queryOptions({
   queryKey: ['plans'],
-  async queryFn({ signal,...conf }) {
+  async queryFn({ signal, ...conf }) {
     logger.trace('query:plans->start', conf);
     const res = await pbClient
       .collection<Plans>('plans')
@@ -50,7 +54,7 @@ export const PLANS_QUERY = queryOptions({
 });
 
 export function usePlans() {
-  const query = useQuery(PLANS_QUERY);
+  const query = useSuspenseQuery(PLANS_QUERY);
   return query.data ?? [];
 }
 

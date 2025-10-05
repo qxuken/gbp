@@ -1,4 +1,7 @@
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
+import {
+  CancelledError,
+  useQueryErrorResetBoundary,
+} from '@tanstack/react-query';
 import {
   createFileRoute,
   ErrorComponent,
@@ -22,6 +25,7 @@ import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
 import PlanMode from '@/components/plan-card/plan-mode';
 import PlansModeSkeleton from '@/components/plan-card/plan-mode-skeleton';
 import Plans from '@/components/plans';
+import { RouteError } from '@/components/route-error';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -76,7 +80,7 @@ const SEARCH_SCHEMA = z.object({
 export const Route = createFileRoute('/_protected/builds')({
   component: RouteComponent,
   pendingComponent: RouteLoader,
-  errorComponent: RouteError,
+  errorComponent: RouteError(RouteLoader),
   validateSearch: SEARCH_SCHEMA,
   loaderDeps: ({ search: { page = 1, perPage = PAGE_SIZE_OPTIONS[0] } }) => ({
     page,
@@ -84,33 +88,6 @@ export const Route = createFileRoute('/_protected/builds')({
   }),
   loader: () => queryClient.ensureQueryData(PLANS_QUERY),
 });
-
-function RouteError({ error }: ErrorComponentProps) {
-  const router = useRouter();
-  const queryErrorResetBoundary = useQueryErrorResetBoundary();
-
-  useEffect(() => {
-    queryErrorResetBoundary.reset();
-  }, [queryErrorResetBoundary]);
-
-  return (
-    <div>
-      <ErrorComponent error={error} />
-      <div className="p-2">
-        <Button
-          size="sm"
-          variant="destructive"
-          onClick={() => {
-            router.invalidate();
-          }}
-        >
-          <Icons.Retry className="size-4" />
-          Retry
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 function RouteLoader() {
   return (

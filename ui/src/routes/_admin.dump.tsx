@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { reloadDictionaries } from '@/api/dictionaries/loader';
 import { queryClient } from '@/api/queryClient';
 import { Icons } from '@/components/icons';
+import { RouteError } from '@/components/route-error';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -126,6 +127,7 @@ export const Route = createFileRoute('/_admin/dump')({
   },
   component: RouteComponent,
   loader: () => queryClient.ensureQueryData(dumpsQuery),
+  errorComponent: RouteError(() => null),
 });
 
 function RouteComponent() {
