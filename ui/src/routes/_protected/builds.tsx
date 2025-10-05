@@ -1,7 +1,11 @@
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import {
   createFileRoute,
+  ErrorComponent,
+  ErrorComponentProps,
   LinkOptions,
   linkOptions,
+  useRouter,
 } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
 import { PropsWithChildren, useEffect, useState } from 'react';
@@ -9,6 +13,7 @@ import { z } from 'zod/v4-mini';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
+import { Icons } from '@/components/icons';
 import PlanDomainsAnalysis from '@/components/plan-card/plan-domains-analysis';
 import PlanDomainsAnalysisSkeleton from '@/components/plan-card/plan-domains-analysis-skeleton';
 import PlanFilters from '@/components/plan-card/plan-filters';
@@ -17,6 +22,7 @@ import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
 import PlanMode from '@/components/plan-card/plan-mode';
 import PlansModeSkeleton from '@/components/plan-card/plan-mode-skeleton';
 import Plans from '@/components/plans';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
   Pagination as UIPagination,
@@ -68,8 +74,9 @@ const SEARCH_SCHEMA = z.object({
 });
 
 export const Route = createFileRoute('/_protected/builds')({
-  component: HomeComponent,
-  pendingComponent: HomeLoader,
+  component: RouteComponent,
+  pendingComponent: RouteLoader,
+  errorComponent: RouteError,
   validateSearch: SEARCH_SCHEMA,
   loaderDeps: ({ search: { page = 1, perPage = PAGE_SIZE_OPTIONS[0] } }) => ({
     page,
@@ -78,7 +85,34 @@ export const Route = createFileRoute('/_protected/builds')({
   loader: () => queryClient.ensureQueryData(PLANS_QUERY),
 });
 
-function HomeLoader() {
+function RouteError({ error }: ErrorComponentProps) {
+  const router = useRouter();
+  const queryErrorResetBoundary = useQueryErrorResetBoundary();
+
+  useEffect(() => {
+    queryErrorResetBoundary.reset();
+  }, [queryErrorResetBoundary]);
+
+  return (
+    <div>
+      <ErrorComponent error={error} />
+      <div className="p-2">
+        <Button
+          size="sm"
+          variant="destructive"
+          onClick={() => {
+            router.invalidate();
+          }}
+        >
+          <Icons.Retry className="size-4" />
+          Retry
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function RouteLoader() {
   return (
     <>
       <section
@@ -172,7 +206,7 @@ function useSearchFilters() {
   return [filters, setFilters] as const;
 }
 
-function HomeComponent() {
+function RouteComponent() {
   const deps = Route.useLoaderDeps();
   const [filters, setFilters] = useSearchFilters();
   const isDesktop = useIsDesktopQuery();
