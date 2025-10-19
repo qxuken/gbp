@@ -18,6 +18,7 @@ type FilterSpecialsByArtifactTypePlans = Map<string, Set<string>>;
 
 export type PlansFilters = {
   name: string;
+  complete: boolean;
   elements: Set<string>;
   weaponTypes: Set<string>;
   characters: Set<string>;
@@ -64,6 +65,7 @@ export function FiltersProvider({ children, value, setValue }: Props) {
 
   const filter = useCallback(
     (character: Characters, plan?: Plans): boolean => {
+      if (!value.complete && plan?.complete) return false;
       if (!isFiltersEnabled) return true;
 
       const simpleFilters: boolean =

@@ -19,7 +19,10 @@ export default function PlanFiltersSkeleton() {
 function FilterHeaderSkeleton() {
   return (
     <div className="flex justify-between gap-2">
-      <Skeleton className="h-6 w-14 rounded-md" />
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-12 rounded-md" />
+        <Skeleton className="mt-0.5 h-5 w-16 rounded-md" />
+      </div>
       <div className="w-10 flex justify-center">
         <Skeleton className="size-5 rounded-md" />
       </div>

@@ -53,17 +53,32 @@ export default function PlanFilters() {
 
 function FilterHeader() {
   const filtersEnabled = useFiltersEnabled();
+  const isComplete = useFiltersSelector('complete');
   const setFilters = useSetFilters();
   return (
     <div className="flex justify-between gap-2">
-      <h3 className="text-md font-semibold">Filter</h3>
+      <div className="flex gap-2">
+        <h3 className="text-md font-semibold">Filter</h3>
+        <Button
+          size="sm"
+          variant={isComplete ? 'default' : 'outline'}
+          className={cn('h-6', { 'text-muted-foreground': !isComplete })}
+          onClick={() =>
+            setFilters((filters) => {
+              filters.complete = !filters.complete;
+            })
+          }
+        >
+          Show All
+        </Button>
+      </div>
       <div className="flex gap-2">
         {filtersEnabled && (
           <Button
-            variant="outline"
             size="sm"
-            className="text-muted-foreground"
-            onClick={() => {
+            variant="outline"
+            className="h-6 text-muted-foreground"
+            onClick={() =>
               setFilters((filters) => {
                 filters.name = '';
                 filters.elements.clear();
@@ -71,15 +86,15 @@ function FilterHeader() {
                 filters.characters.clear();
                 filters.artifactSets.clear();
                 filters.specialsByArtifactTypePlans.clear();
-              });
-            }}
+              })
+            }
           >
             Clear All
           </Button>
         )}
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <Icons.Dropdown className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="h-6 w-6">
+            <Icons.Dropdown className="h-3 w-3" />
             <span className="sr-only">Toggle</span>
           </Button>
         </CollapsibleTrigger>

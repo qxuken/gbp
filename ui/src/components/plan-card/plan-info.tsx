@@ -76,7 +76,11 @@ export const PlanInfo = memo(
     };
 
     return (
-      <article id={props.plan.id} ref={cardRef}>
+      <article
+        id={props.plan.id}
+        ref={cardRef}
+        className={cn({ 'grayscale-100': props.plan.complete })}
+      >
         <Card
           ref={setNodeRef}
           className={cn('w-full overflow-hidden relative', {
@@ -214,8 +218,12 @@ function PlanCardStats(props: Props) {
   );
 }
 
+const DEFAULT_VISIBLE = 'block group-hover/plan-complete:hidden';
+const DEFAULT_HIDDEN = 'hidden group-hover/plan-complete:block';
+
 function PlanCardTitle(props: Props) {
   const mode = useUiPlansConfigModeValue();
+
   return (
     <CardTitle className="px-4 w-full flex items-start gap-3">
       {mode == UiPlansMode.Short && (
@@ -226,7 +234,12 @@ function PlanCardTitle(props: Props) {
           name={props.character.name}
         />
       )}
-      <div className="w-full flex items-center gap-3">
+      <div
+        className={cn('w-full flex gap-3', {
+          'items-start': mode == UiPlansMode.Short,
+          'items-center': mode == UiPlansMode.Full,
+        })}
+      >
         <span className="font-semibold text-lg">{props.character.name}</span>
         <CharacterInfo character={props.character} />
         <div className="flex-1" />
@@ -245,6 +258,36 @@ function PlanCardTitle(props: Props) {
             Retry
           </Button>
         </motion.div>
+
+        <Tooltip>
+          <TooltipTrigger>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="group/plan-complete size-6 p-1 opacity-50 hover:opacity-75 hover:outline"
+              disabled={props.disabled}
+              onClick={() =>
+                props.update((v) => {
+                  v.complete = !v.complete;
+                })
+              }
+            >
+              <Icons.NotComplete
+                className={
+                  props.plan.complete ? DEFAULT_HIDDEN : DEFAULT_VISIBLE
+                }
+              />
+              <Icons.Complete
+                className={
+                  props.plan.complete ? DEFAULT_VISIBLE : DEFAULT_HIDDEN
+                }
+              />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {props.plan.complete ? 'Mark incomplete' : 'Mark complete'}
+          </TooltipContent>
+        </Tooltip>
         <Popover>
           <PopoverTrigger asChild>
             <Button

@@ -156,6 +156,7 @@ function useMockData(): MockData | null {
       {
         id: 'plan-1',
         user: 'demo-user',
+        complete: false,
         character: character1.id,
         characterRole: 'role-1',
         order: 1,
@@ -203,6 +204,7 @@ function RouteComponent() {
     <FiltersProvider
       value={{
         name: '',
+        complete: false,
         elements: new Set(),
         weaponTypes: new Set(),
         characters: new Set(),

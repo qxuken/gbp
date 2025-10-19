@@ -1,5 +1,6 @@
 package models
 
+// NOTE: Do not change these, only make new ones
 const (
 	USERS_COLLECTION_NAME               = "users"
 	APP_SETTINGS_COLLECTION_NAME        = "_appSettings"

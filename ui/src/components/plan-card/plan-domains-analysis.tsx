@@ -37,8 +37,8 @@ export default function PlanDomainsAnalysis() {
         <div className="flex justify-between gap-2">
           <h3 className="text-md font-semibold">Farm tips</h3>
           <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <Icons.Dropdown className="h-4 w-4" />
+            <Button variant="ghost" size="sm" className="h-6 w-6">
+              <Icons.Dropdown className="h-3 w-3" />
               <span className="sr-only">Toggle</span>
             </Button>
           </CollapsibleTrigger>

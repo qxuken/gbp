@@ -22,6 +22,7 @@ export function newCharacterPlan(
     id,
     created: ts,
     updated: ts,
+    complete: false,
     user: pbClient.authStore.record.id,
     character,
     order,

@@ -1,14 +1,7 @@
 import {
-  CancelledError,
-  useQueryErrorResetBoundary,
-} from '@tanstack/react-query';
-import {
   createFileRoute,
-  ErrorComponent,
-  ErrorComponentProps,
   LinkOptions,
   linkOptions,
-  useRouter,
 } from '@tanstack/react-router';
 import { Outlet } from '@tanstack/react-router';
 import { PropsWithChildren, useEffect, useState } from 'react';
@@ -16,7 +9,6 @@ import { z } from 'zod/v4-mini';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
-import { Icons } from '@/components/icons';
 import PlanDomainsAnalysis from '@/components/plan-card/plan-domains-analysis';
 import PlanDomainsAnalysisSkeleton from '@/components/plan-card/plan-domains-analysis-skeleton';
 import PlanFilters from '@/components/plan-card/plan-filters';
@@ -26,7 +18,6 @@ import PlanMode from '@/components/plan-card/plan-mode';
 import PlansModeSkeleton from '@/components/plan-card/plan-mode-skeleton';
 import Plans from '@/components/plans';
 import { RouteError } from '@/components/route-error';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
   Pagination as UIPagination,
@@ -65,6 +56,8 @@ const SEARCH_SCHEMA = z.object({
   perPage: z.optional(z.number()),
   // Character Name
   cN: z.optional(z.string()),
+  // Include complete
+  cC: z.optional(z.boolean()),
   // Character Elements
   cE: z.optional(z.array(z.string())),
   // Character Weapon Types
@@ -147,6 +140,7 @@ function useSearchFilters() {
   const search = Route.useSearch();
   const [filters, setFilters] = useState<PlansFilters>(() => ({
     name: search.cN ?? '',
+    complete: search.cC ?? false,
     elements: new Set(search.cE),
     weaponTypes: new Set(search.cWT),
     artifactSets: new Set(search.cAS),
@@ -158,6 +152,7 @@ function useSearchFilters() {
 
   useEffect(() => {
     const cN = filters.name;
+    const cC = filters.complete;
     const cE = Array.from(filters.elements);
     const cWT = Array.from(filters.weaponTypes);
     const cAS = Array.from(filters.artifactSets);
@@ -172,6 +167,7 @@ function useSearchFilters() {
       search: (state) => ({
         ...state,
         cN: cN.length > 0 ? cN : undefined,
+        cC: cC ? true : undefined,
         cE: cE.length > 0 ? cE : undefined,
         cWT: cWT.length > 0 ? cWT : undefined,
         cAS: cAS.length > 0 ? cAS : undefined,

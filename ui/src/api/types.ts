@@ -96,6 +96,7 @@ export interface Plans extends CharacterPlans, PlansExtra {}
 export interface CharacterPlans {
   id: string;
   user: string;
+  complete: boolean;
   character: string;
   characterRole?: string;
   order: number;
