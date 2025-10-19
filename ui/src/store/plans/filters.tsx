@@ -128,7 +128,7 @@ export function FiltersProvider({ children, value, setValue }: Props) {
     };
     for (const plan of plans) {
       const character = charactersMap.get(plan.character);
-      if (!character || !filter(character, plan)) {
+      if (!character) {
         continue;
       }
       if (character.element) {
@@ -141,12 +141,14 @@ export function FiltersProvider({ children, value, setValue }: Props) {
           res.artifactSets.add(as);
         }
       }
-      for (const atp of plan.artifactTypePlans ?? []) {
-        mapGetOrSetDefault(
-          res.specialsByArtifactTypePlans,
-          atp.artifactType,
-          () => new Set<string>(),
-        ).add(atp.special);
+      if (filter(character, plan)) {
+        for (const atp of plan.artifactTypePlans ?? []) {
+          mapGetOrSetDefault(
+            res.specialsByArtifactTypePlans,
+            atp.artifactType,
+            () => new Set<string>(),
+          ).add(atp.special);
+        }
       }
     }
     return res;
