@@ -49,10 +49,11 @@ func getFileContent(fsys *filesystem.System, record *core.Record, fieldName stri
 	name := record.GetString("name")
 	fileName := strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(name), " ", "_"), "'", "_") + filepath.Ext(iconPath)
 
-	r, err := fsys.GetFile(iconPath)
+	r, err := fsys.GetReader(iconPath)
 	if err != nil {
 		return "", nil, err
 	}
+	defer r.Close()
 	buffer := make([]byte, r.Size())
 	n, err := r.Read(buffer)
 	if err != nil {
@@ -61,7 +62,6 @@ func getFileContent(fsys *filesystem.System, record *core.Record, fieldName stri
 	if n < int(r.Size()) {
 		return "", nil, errors.New("File read corruption")
 	}
-	r.Close()
 
 	return fileName, buffer, nil
 }
