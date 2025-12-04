@@ -1,10 +1,12 @@
+#:schema https://raw.githubusercontent.com/posit-dev/air/8049e67080e0976bfe8bcf60efa30912a88ddea1/air.schema.json
+
 root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
 args_bin = ["serve", "--dev"]
-bin = "./tmp/main.exe"
+entrypoint = ["./tmp/main.exe"]
 cmd = "go build -o ./tmp/main.exe ."
 delay = 1000
 exclude_dir = [
