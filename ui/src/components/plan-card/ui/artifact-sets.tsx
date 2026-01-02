@@ -108,6 +108,20 @@ export function ArtifactSets(props: Props) {
             </Button>
           </ArtifactSetPicker>
         )}
+        {mode == UiPlansMode.Short &&
+          mutation.records.length > 0 &&
+          mutation.records[0].artifactSets.length == 1 && (
+            <SplitButton
+              enabled
+              onSelect={(newArtifactSet) => {
+                const firstArtifactSet = mutation.records[0];
+                mutation.update(firstArtifactSet, (state) => {
+                  state.artifactSets.push(newArtifactSet);
+                });
+              }}
+              ignoreArtifacts={new Set(mutation.records?.[0]?.artifactSets)}
+            />
+          )}
         <div className="flex-1" />
         {mutation.isError && (
           <Button
@@ -320,27 +334,49 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
           delete={() => deleteSet(artifactSet)}
         />
       ))}
-      {artifactSets.length === 1 && (
-        <div
-          className={cn('min-h-2', {
-            'text-center mt-3 mb-4': props.isFullMode,
-          })}
+      <SplitButton
+        enabled={props.isFullMode && artifactSets.length === 1}
+        onSelect={(as) => addSet(as)}
+        ignoreArtifacts={artifactSetsSet}
+        isFullMode
+      />
+    </div>
+  );
+}
+
+type SplitButtonProps = {
+  enabled?: boolean;
+  onSelect(weaponId: string): void;
+  ignoreArtifacts: Set<string>;
+  isFullMode?: boolean;
+};
+export function SplitButton(props: SplitButtonProps) {
+  if (!props.enabled) return null;
+
+  return (
+    <div
+      className={cn({
+        'min-h-2 mt-3 mb-4 text-center': props.isFullMode,
+        'size-6': !props.isFullMode,
+      })}
+    >
+      <ArtifactSetPicker
+        title="Split into two pieces"
+        onSelect={props.onSelect}
+        ignoreArtifacts={props.ignoreArtifacts}
+      >
+        <Button
+          variant="ghost"
+          size={props.isFullMode ? 'sm' : 'icon'}
+          className={cn(
+            'opacity-50 transition-opacity focus:opacity-100 hover:opacity-100',
+            { 'size-6': !props.isFullMode },
+          )}
         >
-          <ArtifactSetPicker
-            title="Split into two pieces"
-            onSelect={(as) => addSet(as)}
-            ignoreArifacts={artifactSetsSet}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              className="opacity-50 transition-opacity focus:opacity-100 hover:opacity-100"
-            >
-              <Icons.SplitY /> Split into two pieces
-            </Button>
-          </ArtifactSetPicker>
-        </div>
-      )}
+          <Icons.SplitY />
+          {props.isFullMode ? 'Split into two pieces' : null}
+        </Button>
+      </ArtifactSetPicker>
     </div>
   );
 }

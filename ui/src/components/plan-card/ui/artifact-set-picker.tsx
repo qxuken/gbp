@@ -15,9 +15,9 @@ const DEF_FILTER = {
 
 type PickerProps = {
   onSelect(weaponId: string): void;
-  ignoreArifacts?: Set<string>;
+  ignoreArtifacts?: Set<string>;
 };
-function Picker({ onSelect, ignoreArifacts }: PickerProps) {
+function Picker({ onSelect, ignoreArtifacts }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
   const artifactSets = useArtifactSets();
 
@@ -26,7 +26,7 @@ function Picker({ onSelect, ignoreArifacts }: PickerProps) {
       artifactSets.filter(
         (as) =>
           as.rarity > 3 &&
-          (ignoreArifacts === undefined || !ignoreArifacts.has(as.id)) &&
+          (ignoreArtifacts === undefined || !ignoreArtifacts.has(as.id)) &&
           (filter.name.length === 0 ||
             fuzzysearch(filter.name.toLowerCase(), as.name.toLowerCase())),
       ),
@@ -50,7 +50,7 @@ function Picker({ onSelect, ignoreArifacts }: PickerProps) {
             }}
           />
         </div>
-        <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
+        <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] grid-rows-[auto_auto] gap-2">
           {filteredArtifactSets.map((w) => (
             <Button
               variant="secondary"
@@ -89,7 +89,7 @@ type Props = PropsWithChildren<
 export function ArtifactSetPicker({
   title,
   onSelect,
-  ignoreArifacts,
+  ignoreArtifacts,
   children,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -108,7 +108,7 @@ export function ArtifactSetPicker({
       description="Pick artifact set"
       contentClassName="lg:max-w-3xl max-h-[calc(100%-4rem)] top-8 translate-y-0 overflow-hidden p-5"
     >
-      <Picker onSelect={select} ignoreArifacts={ignoreArifacts} />
+      <Picker onSelect={select} ignoreArtifacts={ignoreArtifacts} />
     </ResponsiveDialog>
   );
 }

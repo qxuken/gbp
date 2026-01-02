@@ -242,29 +242,12 @@ function PlanCardTitle(props: Props) {
       >
         <span className="font-semibold text-lg">{props.character.name}</span>
         <CharacterInfo character={props.character} />
-        <div className="flex-1" />
-        <motion.div
-          initial={{
-            scale: props.isError ? 1 : 0,
-          }}
-          animate={{
-            scale: props.isError ? 1 : 0,
-          }}
-          transition={{ duration: 0.15 }}
-          aria-hidden={!props.isError}
-        >
-          <Button size="sm" variant="destructive" onClick={props.retry}>
-            <Icons.Retry className="size-4" />
-            Retry
-          </Button>
-        </motion.div>
-
         <Tooltip>
           <TooltipTrigger>
             <Button
               variant="ghost"
               size="icon"
-              className="group/plan-complete size-6 p-1 opacity-50 hover:opacity-75 hover:outline"
+              className="group/plan-complete size-7 opacity-50 hover:opacity-75 hover:outline"
               disabled={props.disabled}
               onClick={() =>
                 props.update((v) => {
@@ -288,12 +271,35 @@ function PlanCardTitle(props: Props) {
             {props.plan.complete ? 'Mark incomplete' : 'Mark complete'}
           </TooltipContent>
         </Tooltip>
+        <div className="flex-1" />
+        <motion.div
+          initial={{
+            scale: 0,
+          }}
+          animate={{
+            scale: props.isError ? 1 : 0,
+          }}
+          transition={{ duration: 0.15 }}
+          aria-hiden={!props.isError}
+        >
+          <Button
+            size={mode == UiPlansMode.Full ? 'sm' : 'icon'}
+            className={cn({
+              'size-7': mode == UiPlansMode.Short,
+            })}
+            variant="destructive"
+            onClick={props.retry}
+          >
+            <Icons.Retry className="size-4" />
+            {mode == UiPlansMode.Full ? 'Retry' : null}
+          </Button>
+        </motion.div>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+              className="size-7 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
               disabled={props.isLoading}
             >
               <Icons.Remove />

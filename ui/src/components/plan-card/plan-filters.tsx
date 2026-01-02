@@ -69,7 +69,7 @@ function FilterHeader() {
             })
           }
         >
-          Show All
+          {isComplete ? 'Hide Complete' : 'Show Complete'}
         </Button>
       </div>
       <div className="flex gap-2">
@@ -226,7 +226,7 @@ function FilterArtifactSets() {
           onSelect={(as) =>
             setFilters((state) => void state.artifactSets.add(as))
           }
-          ignoreArifacts={ignored}
+          ignoreArtifacts={ignored}
         >
           <Button
             variant="ghost"
