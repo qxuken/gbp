@@ -65,7 +65,6 @@ export function handleReorderImmer<T extends ReorderableItem>(
   startTransition(() => {
     arrayMove(items, oldIndex, newIndex).forEach((v, i) =>
       update(v, (draft) => {
-        // @ts-expect-error immer wtf
         draft.order = i + 1;
       }),
     );

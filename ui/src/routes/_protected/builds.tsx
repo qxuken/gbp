@@ -49,7 +49,7 @@ import {
   useUiPlansConfigModeValue,
 } from '@/store/ui-plans-config';
 
-const PAGE_SIZE_OPTIONS = [30, 50, 80, MAX_ITEMS] as const;
+const PAGE_SIZE_OPTIONS = [30, 50, MAX_ITEMS] as const;
 
 const SEARCH_SCHEMA = z.object({
   page: z.optional(z.number().check(z.minimum(1))),
@@ -73,7 +73,7 @@ const SEARCH_SCHEMA = z.object({
 export const Route = createFileRoute('/_protected/builds')({
   component: RouteComponent,
   pendingComponent: RouteLoader,
-  errorComponent: RouteError(RouteLoader),
+  errorComponent: RouteError,
   validateSearch: SEARCH_SCHEMA,
   loaderDeps: ({ search: { page = 1, perPage = PAGE_SIZE_OPTIONS[0] } }) => ({
     page,
@@ -99,7 +99,7 @@ function RouteLoader() {
         </aside>
         <section
           aria-label="Build cards"
-          className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-4 justify-center items-start"
+          className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-4 justify-center items-start"
         >
           <PlanInfoSkeleton />
           <PlanInfoSkeleton />
@@ -214,9 +214,9 @@ function RouteComponent() {
             <section
               aria-label="Build cards"
               className={cn('grow-9999 p-2 grid justify-center items-start', {
-                'grid-cols-[repeat(auto-fill,_minmax(24rem,_1fr))] gap-4':
+                'grid-cols-[repeat(auto-fill,minmax(24rem,1fr))] gap-4':
                   mode == UiPlansMode.Full,
-                'grid-cols-[repeat(auto-fill,_minmax(20rem,_1fr))] gap-2':
+                'grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-2':
                   mode == UiPlansMode.Short,
               })}
             >
@@ -333,7 +333,7 @@ function PerPageSelect() {
         value={String(deps.perPage)}
         onValueChange={(perPage) => perPageChange(Number(perPage))}
       >
-        <SelectTrigger className="w-[4.5rem] h-9">
+        <SelectTrigger className="w-18 h-9">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

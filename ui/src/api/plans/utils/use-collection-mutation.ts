@@ -123,6 +123,7 @@ function updatesReducer<T>(
         break;
       }
       const entry = mapGetOrSetDefault(state.toUpdate, action.id, () => ({
+        // @ts-expect-error some fky-wky in immer again
         value: castDraft(action.value),
         patches: [],
       }));

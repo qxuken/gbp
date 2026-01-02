@@ -28,9 +28,9 @@ type planCollectionDict struct {
 }
 
 const (
-	PRELOAD_SEED_FILE = "./seed.db"
-	PRELOAD_SEED_HASH = "./seed.hash"
-	PRELOAD_SEED_NOTE = "./seed.note"
+	PRELOAD_SEED_FILE = "seed.db"
+	PRELOAD_SEED_HASH = "seed.hash"
+	PRELOAD_SEED_NOTE = "seed.note"
 )
 
 var PLANS_COLLECTIONS = []string{

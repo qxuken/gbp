@@ -9,5 +9,8 @@ node_modules
 tmp
 pb_data
 backup/*
+seed.db
+seed.note
+seed.hash
 
 !.keep

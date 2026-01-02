@@ -16,6 +16,7 @@ export const router = createRouter({
   routeMasks: [confirmationScreenMask],
   defaultPreload: 'intent',
   scrollRestoration: true,
+  defaultPreloadStaleTime: 0,
   defaultPendingComponent: () => {
     <div className="w-full p-2 flex justify-center">
       <Icons.Spinner className="animate-spin size-12" />

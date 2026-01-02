@@ -127,7 +127,7 @@ export const Route = createFileRoute('/_admin/dump')({
   },
   component: RouteComponent,
   loader: () => queryClient.ensureQueryData(dumpsQuery),
-  errorComponent: RouteError(() => null),
+  errorComponent: RouteError,
 });
 
 function RouteComponent() {

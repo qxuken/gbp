@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 import {
   Dialog,
   DialogContent,
@@ -20,6 +18,7 @@ import {
 } from '@/components/ui/drawer';
 import { useIsDesktopQuery } from '@/hooks/use-is-desktop-query';
 import { cn } from '@/lib/utils';
+import { logger } from '@/store/logger';
 
 interface ResponsiveDialogProps {
   children?: React.ReactNode;
@@ -46,9 +45,15 @@ export function ResponsiveDialog({
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          logger.debug('ResponsiveDialog->onOpenChange', v);
+          onOpenChange?.(v);
+        }}
+      >
         {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-        <DialogContent className={cn('sm:max-w-[425px]', contentClassName)}>
+        <DialogContent className={cn('sm:max-w-106.25', contentClassName)}>
           {(title || description) && (
             <DialogHeader>
               {title && <DialogTitle>{title}</DialogTitle>}
@@ -65,7 +70,13 @@ export function ResponsiveDialog({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer
+      open={open}
+      onOpenChange={(v) => {
+        logger.debug('ResponsiveDialog->onOpenChange', v);
+        onOpenChange?.(v);
+      }}
+    >
       {trigger && <DrawerTrigger asChild>{trigger}</DrawerTrigger>}
       <DrawerContent>
         {(title || description) && (
