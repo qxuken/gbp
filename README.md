@@ -54,7 +54,7 @@ Navigate to the "Settings" panel in the application to configure additional opti
 
 1.  **Get the `dump.db` file.** (See the ["Seed Data"](#seed-data) section below for download links).
 2.  Log in to your new instance with the admin account you just created.
-3.  Navigate to the `/dump` endpoint in your browser (e.g., `http://localhost:8080/dump`).
+3.  Navigate to the `/_dump` endpoint in your browser (e.g., `http://localhost:8080/_dump`).
 4.  Upload the `dump.db` file.
 
 ### Step 5: Done!

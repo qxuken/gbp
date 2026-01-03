@@ -118,7 +118,7 @@ function useDumpUploadDbMutations() {
   return mutation;
 }
 
-export const Route = createFileRoute('/_admin/dump')({
+export const Route = createFileRoute('/_admin/_dump')({
   beforeLoad: () => {
     if (!authStore.isValid || !authStore.isSuperuser) {
       window.location.href =
@@ -127,7 +127,7 @@ export const Route = createFileRoute('/_admin/dump')({
   },
   component: RouteComponent,
   loader: () => queryClient.ensureQueryData(dumpsQuery),
-  errorComponent: RouteError,
+  errorComponent: RouteError(() => null),
 });
 
 function RouteComponent() {
@@ -184,7 +184,7 @@ function RouteComponent() {
           <TableCaption>A list of dumps.</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-144">Hash</TableHead>
+              <TableHead className="w-xl">Hash</TableHead>
               <TableHead className="w-70">File</TableHead>
               <TableHead>Hotes</TableHead>
               <TableHead className="w-60">Created At</TableHead>

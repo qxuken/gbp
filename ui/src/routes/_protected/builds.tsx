@@ -73,7 +73,7 @@ const SEARCH_SCHEMA = z.object({
 export const Route = createFileRoute('/_protected/builds')({
   component: RouteComponent,
   pendingComponent: RouteLoader,
-  errorComponent: RouteError,
+  errorComponent: RouteError(RouteLoader),
   validateSearch: SEARCH_SCHEMA,
   loaderDeps: ({ search: { page = 1, perPage = PAGE_SIZE_OPTIONS[0] } }) => ({
     page,
