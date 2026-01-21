@@ -12,12 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AuthIndexRouteImport } from './routes/_auth/index'
+import { Route as AdminDumpRouteImport } from './routes/admin/dump'
 import { Route as ProtectedBuildsRouteImport } from './routes/_protected/builds'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as AuthConfirmRouteImport } from './routes/_auth/confirm'
-import { Route as AdminDumpRouteImport } from './routes/_admin._dump'
 import { Route as ProtectedBuildsUserProfileRouteImport } from './routes/_protected/builds/user/profile'
 import { Route as ProtectedBuildsUserPasswordRouteImport } from './routes/_protected/builds/user/password'
 import { Route as ProtectedBuildsUserLogoutRouteImport } from './routes/_protected/builds/user/logout'
@@ -36,6 +36,11 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthRoute,
+} as any)
+const AdminDumpRoute = AdminDumpRouteImport.update({
+  id: '/admin/dump',
+  path: '/admin/dump',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedBuildsRoute = ProtectedBuildsRouteImport.update({
   id: '/builds',
@@ -61,10 +66,6 @@ const AuthConfirmRoute = AuthConfirmRouteImport.update({
   id: '/confirm',
   path: '/confirm',
   getParentRoute: () => AuthRoute,
-} as any)
-const AdminDumpRoute = AdminDumpRouteImport.update({
-  id: '/_admin/_dump',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedBuildsUserProfileRoute =
   ProtectedBuildsUserProfileRouteImport.update({
@@ -103,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/builds': typeof ProtectedBuildsRouteWithChildren
+  '/admin/dump': typeof AdminDumpRoute
   '/': typeof AuthIndexRoute
   '/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
   '/builds/user/email': typeof ProtectedBuildsUserEmailRoute
@@ -116,6 +118,7 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/signup': typeof AuthSignupRoute
   '/builds': typeof ProtectedBuildsRouteWithChildren
+  '/admin/dump': typeof AdminDumpRoute
   '/': typeof AuthIndexRoute
   '/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
   '/builds/user/email': typeof ProtectedBuildsUserEmailRoute
@@ -127,12 +130,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteWithChildren
   '/_protected': typeof ProtectedRouteWithChildren
-  '/_admin/_dump': typeof AdminDumpRoute
   '/_auth/confirm': typeof AuthConfirmRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/_protected/builds': typeof ProtectedBuildsRouteWithChildren
+  '/admin/dump': typeof AdminDumpRoute
   '/_auth/': typeof AuthIndexRoute
   '/_protected/builds/user/delete': typeof ProtectedBuildsUserDeleteRoute
   '/_protected/builds/user/email': typeof ProtectedBuildsUserEmailRoute
@@ -148,6 +151,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/builds'
+    | '/admin/dump'
     | '/'
     | '/builds/user/delete'
     | '/builds/user/email'
@@ -161,6 +165,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/builds'
+    | '/admin/dump'
     | '/'
     | '/builds/user/delete'
     | '/builds/user/email'
@@ -171,12 +176,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_auth'
     | '/_protected'
-    | '/_admin/_dump'
     | '/_auth/confirm'
     | '/_auth/forgot-password'
     | '/_auth/login'
     | '/_auth/signup'
     | '/_protected/builds'
+    | '/admin/dump'
     | '/_auth/'
     | '/_protected/builds/user/delete'
     | '/_protected/builds/user/email'
@@ -214,6 +219,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/admin/dump': {
+      id: '/admin/dump'
+      path: '/admin/dump'
+      fullPath: '/admin/dump'
+      preLoaderRoute: typeof AdminDumpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_protected/builds': {
       id: '/_protected/builds'
       path: '/builds'
@@ -248,13 +260,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/confirm'
       preLoaderRoute: typeof AuthConfirmRouteImport
       parentRoute: typeof AuthRoute
-    }
-    '/_admin/_dump': {
-      id: '/_admin/_dump'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AdminDumpRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_protected/builds/user/profile': {
       id: '/_protected/builds/user/profile'

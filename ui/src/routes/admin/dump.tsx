@@ -118,11 +118,12 @@ function useDumpUploadDbMutations() {
   return mutation;
 }
 
-export const Route = createFileRoute('/_admin/_dump')({
+export const Route = createFileRoute('/admin/dump')({
   beforeLoad: () => {
     if (!authStore.isValid || !authStore.isSuperuser) {
-      window.location.href =
-        (import.meta.env.VITE_POCKETBASE_URL ?? '') + '/_/';
+      window.location.assign(
+        (import.meta.env.VITE_POCKETBASE_URL ?? '') + '/_/',
+      );
     }
   },
   component: RouteComponent,
