@@ -30,6 +30,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { removeByPredMut } from '@/lib/array-remove-mut';
 import { handleReorderImmer } from '@/lib/handle-reorder';
 import { cn } from '@/lib/utils';
@@ -323,23 +328,19 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
     <div
       className={cn('flex-1', {
         'animate-pulse': props.isLoading,
-        'mb-2': artifactSets.length !== 1,
+        'mb-1': artifactSets.length !== 1,
       })}
     >
       {artifactSets.map((artifactSet, _, items) => (
         <Component
           key={artifactSet}
           artifactSet={artifactSet}
+          add={addSet}
+          ignoreArtifacts={artifactSetsSet}
           isSplit={items.length == 2}
           delete={() => deleteSet(artifactSet)}
         />
       ))}
-      <SplitButton
-        enabled={props.isFullMode && artifactSets.length === 1}
-        onSelect={(as) => addSet(as)}
-        ignoreArtifacts={artifactSetsSet}
-        isFullMode
-      />
     </div>
   );
 }
@@ -354,37 +355,35 @@ export function SplitButton(props: SplitButtonProps) {
   if (!props.enabled) return null;
 
   return (
-    <div
-      className={cn({
-        'min-h-2 mt-3 mb-4 text-center': props.isFullMode,
-        'size-6': !props.isFullMode,
-      })}
-    >
-      <ArtifactSetPicker
-        title="Split into two pieces"
-        onSelect={props.onSelect}
-        ignoreArtifacts={props.ignoreArtifacts}
-      >
-        <Button
-          variant="ghost"
-          size={props.isFullMode ? 'sm' : 'icon'}
-          className={cn(
-            'opacity-50 transition-opacity focus:opacity-100 hover:opacity-100',
-            { 'size-6': !props.isFullMode },
-          )}
-        >
-          <Icons.SplitY />
-          {props.isFullMode ? 'Split into two pieces' : null}
-        </Button>
-      </ArtifactSetPicker>
-    </div>
+    <Tooltip>
+      <TooltipTrigger>
+        <div className="size-6">
+          <ArtifactSetPicker
+            title="Split into two pieces"
+            onSelect={props.onSelect}
+            ignoreArtifacts={props.ignoreArtifacts}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 size-6"
+            >
+              <Icons.SplitY />
+            </Button>
+          </ArtifactSetPicker>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent> Split into two pieces </TooltipContent>
+    </Tooltip>
   );
 }
 
 type ArtifactSetProps = {
   artifactSet: string;
+  add(weaponId: string): void;
   isSplit?: boolean;
   delete: () => void;
+  ignoreArtifacts: Set<string>;
   disabled?: boolean;
   skipConfirmation?: boolean;
 };
@@ -396,7 +395,7 @@ function ArtifactSetFull(props: ArtifactSetProps) {
     return null;
   }
   return (
-    <div className="flex gap-2 w-full nth-2:mt-1">
+    <div className="flex gap-2 w-full">
       <div
         className="cursor-pointer"
         onClick={() =>
@@ -440,9 +439,17 @@ function ArtifactSetFull(props: ArtifactSetProps) {
             </PopoverContent>
           </Popover>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {props.isSplit ? '2 pcs' : '4 pcs'}
-        </span>
+        <div className="flex justify-between">
+          <span className="text-xs text-muted-foreground flex-1">
+            {props.isSplit ? '2 pcs' : '4 pcs'}
+          </span>
+          <SplitButton
+            enabled={!props.isSplit}
+            onSelect={props.add}
+            ignoreArtifacts={props.ignoreArtifacts}
+            isFullMode
+          />
+        </div>
       </div>
     </div>
   );
@@ -455,7 +462,7 @@ export function ArtifactSetShort(props: ArtifactSetProps) {
     return null;
   }
   return (
-    <div className="flex gap-2 w-full nth-2:mt-1">
+    <div className="flex gap-2 w-full">
       <div
         className="cursor-pointer"
         onClick={() =>
