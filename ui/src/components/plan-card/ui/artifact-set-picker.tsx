@@ -50,7 +50,7 @@ function Picker({ onSelect, ignoreArtifacts }: PickerProps) {
             }}
           />
         </div>
-        <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] grid-rows-[auto_auto] gap-2">
+        <div className="min-h-32 max-h-[calc(80svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] grid-rows-[auto_auto] gap-2">
           {filteredArtifactSets.map((w) => (
             <Button
               variant="secondary"

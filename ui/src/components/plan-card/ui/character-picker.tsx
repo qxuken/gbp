@@ -132,7 +132,7 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
             </Button>
           ))}
         </div>
-        <div className="min-h-32 max-h-[calc(75svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
+        <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] grid-rows-[auto_auto] gap-2">
           {filteredCharacters.map((ch) => (
             <Button
               variant="secondary"

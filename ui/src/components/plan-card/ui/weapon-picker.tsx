@@ -95,7 +95,7 @@ function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
             ))}
           </div>
         )}
-        <div className="min-h-32 max-h-[calc(90svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,_minmax(6.5rem,_1fr))] grid-rows-[auto_auto] gap-2">
+        <div className="min-h-32 max-h-[calc(80svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] grid-rows-[auto_auto] gap-2">
           {filteredWeapons.map((w) => (
             <Button
               variant="secondary"
