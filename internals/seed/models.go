@@ -153,6 +153,7 @@ type ArtifactSet struct {
 	Name         string `db:"name"`
 	Rarity       string `db:"rarity"`
 	Patch        string `db:"patch"`
+	Useless      bool   `db:"useless"`
 	IconFilename string `db:"iconFilename"`
 	IconContent  Icon   `db:"iconContent"`
 }
@@ -164,6 +165,7 @@ func createArtifactSetsTable(db dbx.Builder) error {
 		"name":         "TEXT not NULL",
 		"rarity":       "TEXT not NULL",
 		"patch":        "TEXT",
+		"useless":      "BOOL not NULL",
 		"iconFilename": "TEXT not NULL",
 		"iconContent":  "BLOB not NULL",
 	}).Execute()
@@ -178,6 +180,7 @@ func (item ArtifactSet) Seed(app core.App) error {
 	record.Set("name", item.Name)
 	record.Set("rarity", item.Rarity)
 	record.Set("patch", item.Patch)
+	record.Set("useless", item.Useless)
 	file, err := filesystem.NewFileFromBytes(item.IconContent, item.IconFilename)
 	if err != nil {
 		return err
@@ -196,6 +199,7 @@ func (item ArtifactSet) Dump(db dbx.Builder, fsys *filesystem.System, record *co
 		"name":         record.GetString("name"),
 		"rarity":       record.GetString("rarity"),
 		"patch":        record.GetString("patch"),
+		"useless":      record.GetBool("useless"),
 		"iconFilename": iconFilename,
 		"iconContent":  iconContent,
 	}).Execute()

@@ -7,11 +7,12 @@ import type {
   Characters,
   DomainsOfBlessing,
   Elements,
+  Patch,
   PlansCollections,
   Specials,
   Weapons,
   WeaponTypes,
-} from '@/api/types';
+} from '../types';
 
 type Config = {
   key: string;
@@ -20,18 +21,6 @@ type Config = {
 
 export const DICTIONARY_VERSION_CONFIG_KEY = 'dictionaryVersion';
 
-export const DB_COLLECTIONS = [
-  'elements',
-  'specials',
-  'characterRoles',
-  'weaponTypes',
-  'weapons',
-  'characters',
-  'artifactSets',
-  'artifactTypes',
-  'domainsOfBlessing',
-] as const;
-export type DBCollections = (typeof DB_COLLECTIONS)[number];
 export type DBCollectionValues = {
   config: EntityTable<Config, 'key'>;
   plansCollections: EntityTable<PlansCollections, 'name'>;
@@ -44,22 +33,37 @@ export type DBCollectionValues = {
   artifactSets: EntityTable<ArtifactSets, 'id'>;
   artifactTypes: EntityTable<ArtifactTypes, 'id'>;
   domainsOfBlessing: EntityTable<DomainsOfBlessing, 'id'>;
+  patch: EntityTable<Patch, 'id'>;
 };
+export const DB_COLLECTIONS = [
+  'elements',
+  'specials',
+  'characterRoles',
+  'weaponTypes',
+  'weapons',
+  'characters',
+  'artifactSets',
+  'artifactTypes',
+  'domainsOfBlessing',
+  'patch',
+] as const;
+export type DBCollections = (typeof DB_COLLECTIONS)[number];
 
 export type DB = Dexie & DBCollectionValues;
 
 export const db = new Dexie('Dictionaries') as DB;
 
-db.version(1).stores({
+db.version(2).stores({
   config: '++key, value',
   plansCollections: '++name, id',
   elements: '++id, name, color, inverseTextColor, icon',
   specials: '++id, name, substat, order',
   characterRoles: '++id, name',
   weaponTypes: '++id, name, icon',
-  weapons: '++id, name, icon, weaponType, special, rarity',
-  characters: '++id, name, icon, element, weaponType, special, rarity',
-  artifactSets: '++id, name, icon, rarity',
+  weapons: '++id, name, icon, weaponType, special, rarity, patch',
+  characters: '++id, name, icon, element, weaponType, special, rarity, patch',
+  artifactSets: '++id, name, icon, rarity, patch, useless',
   artifactTypes: '++id, name, order, icon, specials',
   domainsOfBlessing: '++id, name, artifactSets',
+  patch: '++id, major, patch',
 });

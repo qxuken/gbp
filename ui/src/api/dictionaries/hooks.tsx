@@ -17,6 +17,7 @@ import {
   Characters,
   DomainsOfBlessing,
   Elements,
+  Patch,
   PlansCollections,
   Specials,
   Weapons,
@@ -57,6 +58,7 @@ interface DictionaryContext {
   domainsOfBlessing: DictionaryCollectionValue<DomainsOfBlessing> & {
     byArtifactSetId: Map<string, DomainsOfBlessing>;
   };
+  patch: DictionaryCollectionValue<Patch>;
 }
 
 export function getDomainsByArtifactSetId(items: DomainsOfBlessing[]) {
@@ -83,6 +85,7 @@ const dictionaryContextInitialValue: DictionaryContext = {
   artifactSets: { items: [], map: new Map() },
   artifactTypes: { items: [], map: new Map() },
   domainsOfBlessing: { items: [], map: new Map(), byArtifactSetId: new Map() },
+  patch: { items: [], map: new Map() },
 };
 
 const DictionaryContext = createContext(dictionaryContextInitialValue);
@@ -90,6 +93,9 @@ const DictionaryContext = createContext(dictionaryContextInitialValue);
 export function DictionaryProvider({ children }: PropsWithChildren) {
   const value: DictionaryContext = useLiveQuery(
     async () => {
+      const patch = await db.patch
+        .toArray()
+        .then(arrayToDictionaryCollectionValue);
       const [
         plansCollections,
         elements,
@@ -151,6 +157,7 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
           ...domainsOfBlessing,
           byArtifactSetId: getDomainsByArtifactSetId(domainsOfBlessing.items),
         },
+        patch,
       };
     },
     [],
@@ -252,3 +259,6 @@ export const [
 export function useDomainsOfBlessingMapByArtifactSetId() {
   return use(DictionaryContext).domainsOfBlessing.byArtifactSetId;
 }
+
+export const [useGamePatches, useGamePatch, useGamePatchMap] =
+  createCollectionValueHooks('patch');

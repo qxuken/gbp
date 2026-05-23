@@ -75,6 +75,7 @@ export interface ArtifactSets extends RecordModel {
   icon: string;
   rarity: number;
   patch: string;
+  useless: boolean;
 }
 
 export interface DomainsOfBlessing extends RecordModel {
