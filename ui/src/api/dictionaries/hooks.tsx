@@ -25,6 +25,7 @@ import {
 } from '../types';
 import { db, DBCollections } from './db';
 import { reloadDictionaries } from './loader';
+import { byVersionAndRarity } from './sort';
 
 interface DictionaryCollectionValue<Value> {
   items: Value[];
@@ -93,20 +94,18 @@ const DictionaryContext = createContext(dictionaryContextInitialValue);
 export function DictionaryProvider({ children }: PropsWithChildren) {
   const value: DictionaryContext = useLiveQuery(
     async () => {
-      const patch = await db.patch
-        .toArray()
-        .then(arrayToDictionaryCollectionValue);
       const [
         plansCollections,
         elements,
         specials,
         characterRoles,
         weaponTypes,
-        weapons,
-        characters,
-        artifactSets,
         artifactTypes,
+        weapons,
+        artifactSets,
+        characters,
         domainsOfBlessing,
+        patch,
       ] = await Promise.all([
         db.plansCollections.toArray().then(arrayToDictionaryCollectionValue),
         db.elements.toArray().then(arrayToDictionaryCollectionValue),
@@ -116,27 +115,27 @@ export function DictionaryProvider({ children }: PropsWithChildren) {
           .then(arrayToDictionaryCollectionValue),
         db.characterRoles.toArray().then(arrayToDictionaryCollectionValue),
         db.weaponTypes.toArray().then(arrayToDictionaryCollectionValue),
-        db.weapons
-          .orderBy('rarity')
-          .reverse()
-          .toArray()
-          .then(arrayToDictionaryCollectionValue),
-        db.characters
-          .orderBy('rarity')
-          .reverse()
-          .toArray()
-          .then(arrayToDictionaryCollectionValue),
-        db.artifactSets
-          .orderBy('rarity')
-          .reverse()
-          .toArray()
-          .then(arrayToDictionaryCollectionValue),
         db.artifactTypes
           .orderBy('order')
           .toArray()
           .then(arrayToDictionaryCollectionValue),
+        db.weapons
+          .filter((it) => !it.useless)
+          .toArray()
+          .then(arrayToDictionaryCollectionValue),
+        db.artifactSets
+          .filter((it) => !it.useless)
+          .toArray()
+          .then(arrayToDictionaryCollectionValue),
+        db.characters.toArray().then(arrayToDictionaryCollectionValue),
         db.domainsOfBlessing.toArray().then(arrayToDictionaryCollectionValue),
+        db.patch.toArray().then(arrayToDictionaryCollectionValue),
       ]);
+
+      characters.items.sort(byVersionAndRarity(patch.map));
+      artifactSets.items.sort(byVersionAndRarity(patch.map));
+      weapons.items.sort(byVersionAndRarity(patch.map));
+
       return {
         meta: {
           loaded: true,

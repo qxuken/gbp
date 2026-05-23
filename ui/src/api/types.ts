@@ -56,6 +56,7 @@ export interface Weapons extends RecordModel {
   special?: string;
   rarity: number;
   patch: string;
+  useless: boolean;
 }
 
 export interface Characters extends RecordModel {
