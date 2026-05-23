@@ -99,6 +99,10 @@ func Seed(app core.App, path string) error {
 			return err
 		}
 
+		if err := seedCollection[Patch](txApp, db, models.PATCH_COLLECTION_NAME); err != nil {
+			return err
+		}
+
 		if err := seedCollection[ArtifactSet](txApp, db, models.ARTIFACT_SETS_COLLECTION_NAME); err != nil {
 			return err
 		}
