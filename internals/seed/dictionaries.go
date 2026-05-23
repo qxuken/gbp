@@ -196,70 +196,70 @@ func Dump(app core.App, path string, notes string) error {
 
 	err = app.RunInTransaction(func(txApp core.App) error {
 		return db.Transactional(func(txDb *dbx.Tx) error {
-			if err := createSpecialsTable(txDb); err != nil {
+			if err := createTableFromStruct[Special](txDb, models.SPECIALS_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[Special](txApp, fsys, txDb, models.SPECIALS_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createElementsTable(txDb); err != nil {
+			if err := createTableFromStruct[Element](txDb, models.ELEMENTS_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[Element](txApp, fsys, txDb, models.ELEMENTS_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createCharacterRolesTable(txDb); err != nil {
+			if err := createTableFromStruct[CharacterRole](txDb, models.CHARACTER_ROLES_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[CharacterRole](txApp, fsys, txDb, models.CHARACTER_ROLES_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createPatchTable(txDb); err != nil {
+			if err := createTableFromStruct[Patch](txDb, models.PATCH_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[Patch](txApp, fsys, txDb, models.PATCH_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createArtifactSetsTable(txDb); err != nil {
+			if err := createTableFromStruct[ArtifactSet](txDb, models.ARTIFACT_SETS_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[ArtifactSet](txApp, fsys, txDb, models.ARTIFACT_SETS_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createArtifactTypesTable(txDb); err != nil {
+			if err := createTableFromStruct[ArtifactType](txDb, models.ARTIFACT_TYPES_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[ArtifactType](txApp, fsys, txDb, models.ARTIFACT_TYPES_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createDomainsOfBlessingTable(txDb); err != nil {
+			if err := createTableFromStruct[DomainOfBlessing](txDb, models.DOMAINS_OF_BLESSING_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[DomainOfBlessing](txApp, fsys, txDb, models.DOMAINS_OF_BLESSING_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createWeaponTypesTable(txDb); err != nil {
+			if err := createTableFromStruct[WeaponType](txDb, models.WEAPON_TYPES_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[WeaponType](txApp, fsys, txDb, models.WEAPON_TYPES_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createWeaponsTable(txDb); err != nil {
+			if err := createTableFromStruct[Weapon](txDb, models.WEAPONS_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[Weapon](txApp, fsys, txDb, models.WEAPONS_COLLECTION_NAME); err != nil {
 				return err
 			}
 
-			if err := createCharactersTable(txDb); err != nil {
+			if err := createTableFromStruct[Character](txDb, models.CHARACTERS_COLLECTION_NAME); err != nil {
 				return err
 			}
 			if err := dumpCollection[Character](txApp, fsys, txDb, models.CHARACTERS_COLLECTION_NAME); err != nil {
