@@ -356,6 +356,7 @@ type Weapon struct {
 	WeaponType   string `db:"weaponType"`
 	Special      string `db:"special"`
 	Patch        string `db:"patch"`
+	Useless      bool   `db:"useless"`
 	IconContent  Icon   `db:"iconContent"`
 	IconFilename string `db:"iconFilename"`
 }
@@ -369,6 +370,7 @@ func createWeaponsTable(db dbx.Builder) error {
 		"weaponType":   "TEXT not NULL",
 		"special":      "TEXT default ''",
 		"patch":        "TEXT",
+		"useless":      "BOOL not NULL",
 		"iconFilename": "TEXT not NULL",
 		"iconContent":  "BLOB not NULL",
 	}).Execute()
@@ -385,6 +387,7 @@ func (item Weapon) Seed(app core.App) error {
 	record.Set("weaponType", item.WeaponType)
 	record.Set("special", item.Special)
 	record.Set("patch", item.Patch)
+	record.Set("useless", item.Useless)
 	file, err := filesystem.NewFileFromBytes(item.IconContent, item.IconFilename)
 	if err != nil {
 		return err
@@ -405,6 +408,7 @@ func (item Weapon) Dump(db dbx.Builder, fsys *filesystem.System, record *core.Re
 		"weaponType":   record.GetString("weaponType"),
 		"special":      record.GetString("special"),
 		"patch":        record.GetString("patch"),
+		"useless":      record.GetBool("useless"),
 		"iconFilename": iconFilename,
 		"iconContent":  iconContent,
 	}).Execute()
