@@ -34,7 +34,7 @@ export default function PlanDomainsAnalysis() {
         aria-label="Filters"
         className="p-3 grid gap-2 min-w-xs bg-background border border-border border-dashed rounded-xl"
       >
-        <div className="flex justify-between gap-2">
+        <div className="flex items-center justify-between gap-4">
           <h3 className="text-md font-semibold">Farm tips</h3>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="h-6 w-6">

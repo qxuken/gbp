@@ -36,10 +36,10 @@ export default function PlanFilters() {
     <Collapsible defaultOpen asChild>
       <section
         aria-label="Filters"
-        className="p-3 grid gap-2 min-w-xs bg-background border border-border border-dashed rounded-xl"
+        className="min-w-xs rounded-xl border border-border border-dashed bg-background p-4 sm:p-5 grid gap-4"
       >
         <FilterHeader />
-        <CollapsibleContent className="grid gap-2">
+        <CollapsibleContent className="grid gap-4 pt-1">
           <FilterName />
           <FilterElements />
           <FilterWeaponTypes />
@@ -56,8 +56,8 @@ function FilterHeader() {
   const isComplete = useFiltersSelector('complete');
   const setFilters = useSetFilters();
   return (
-    <div className="flex justify-between gap-2">
-      <div className="flex gap-2">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-4">
         <h3 className="text-md font-semibold">Filter</h3>
         <Button
           size="sm"
@@ -72,7 +72,7 @@ function FilterHeader() {
           {isComplete ? 'Hide Complete' : 'Show Complete'}
         </Button>
       </div>
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
         {filtersEnabled && (
           <Button
             size="sm"
@@ -127,7 +127,7 @@ function FilterElements() {
   const available = useAvailableFiltersSelector('elements');
   const setFilters = useSetFilters();
   return (
-    <div className="flex flex-wrap gap-y-1 gap-x-2">
+    <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
       {elements.map((element) => (
         <Button
           key={element.id}
@@ -164,7 +164,7 @@ function FilterWeaponTypes() {
   const available = useAvailableFiltersSelector('weaponTypes');
   const setFilters = useSetFilters();
   return (
-    <div className="flex flex-wrap gap-y-1 gap-x-2">
+    <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
       {weaponTypes.map((weaponType) => (
         <Button
           key={weaponType.id}
@@ -212,8 +212,8 @@ function FilterArtifactSets() {
     return res;
   }, [available, value]);
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1">
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
         <span
           className={cn('text-sm', {
             'text-muted-foreground': value.size == 0,
@@ -239,11 +239,13 @@ function FilterArtifactSets() {
         </ArtifactSetPicker>
         <div className="flex-1" />
       </div>
-      <div className="grid gap-1 w-full">
+      <div className="grid w-full gap-2">
         {Array.from(value, (as) => (
           <ArtifactSetShort
             key={as}
             artifactSet={as}
+            add={() => {}}
+            ignoreArtifacts={ignored}
             skipConfirmation
             delete={() =>
               setFilters((state) => void state.artifactSets.delete(as))
@@ -262,7 +264,7 @@ function FilterArtifactTypes() {
   const available = useAvailableFiltersSelector('specialsByArtifactTypePlans');
   const setFilters = useSetFilters();
   return (
-    <div className="grid gap-2 w-full">
+    <div className="grid w-full gap-3">
       {artifactTypes.map((at) => {
         const selectedSpecials = value.get(at.id);
         const selectedArr = Array.from(selectedSpecials?.values() ?? []);
@@ -275,7 +277,7 @@ function FilterArtifactTypes() {
           return null;
         }
         return (
-          <div key={at.id} className="w-full flex gap-2">
+          <div key={at.id} className="flex w-full gap-3">
             <CollectionAvatar
               record={at}
               fileName={at.icon}
@@ -284,14 +286,17 @@ function FilterArtifactTypes() {
                 ['opacity-50']: selectedArr.length === 0,
               })}
             />
-            <div className="flex flex-wrap gap-1 items-center">
+            <div className="flex flex-wrap items-center gap-2">
               {selectedArr.map((s, i) => {
                 const special = specialsMap?.get(s);
                 if (!special) {
                   return null;
                 }
                 return (
-                  <div key={special.id} className="flex gap-1 items-center">
+                  <div
+                    key={special.id}
+                    className="flex items-center gap-1.5"
+                  >
                     <Button
                       variant="destructive"
                       className="text-md leading-none py-0 px-2 not-hover:text-primary not-hover:bg-transparent"

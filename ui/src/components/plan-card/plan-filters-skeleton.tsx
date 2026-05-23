@@ -4,10 +4,10 @@ export default function PlanFiltersSkeleton() {
   return (
     <section
       aria-label="Filters"
-      className="p-3 grid gap-2 min-w-xs border border-border border-dashed rounded-xl"
+      className="min-w-xs rounded-xl border border-border border-dashed p-4 sm:p-5 grid gap-4"
     >
       <FilterHeaderSkeleton />
-      <div className="grid gap-2">
+      <div className="grid gap-4 pt-1">
         <FilterNameSkeleton />
         <FilterElementsSkeleton />
         <FilterWeaponTypesSkeleton />
@@ -18,8 +18,8 @@ export default function PlanFiltersSkeleton() {
 
 function FilterHeaderSkeleton() {
   return (
-    <div className="flex justify-between gap-2">
-      <div className="flex gap-2">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-2.5">
         <Skeleton className="h-6 w-12 rounded-md" />
         <Skeleton className="mt-0.5 h-5 w-16 rounded-md" />
       </div>
@@ -36,7 +36,7 @@ function FilterNameSkeleton() {
 
 function FilterElementsSkeleton() {
   return (
-    <div className="flex flex-wrap gap-y-1 gap-x-2">
+    <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
       <Skeleton className="h-8 w-16 rounded-md" />
       <Skeleton className="h-8 w-16 rounded-md" />
       <Skeleton className="h-8 w-16 rounded-md" />
@@ -46,7 +46,7 @@ function FilterElementsSkeleton() {
 
 function FilterWeaponTypesSkeleton() {
   return (
-    <div className="flex flex-wrap gap-y-1 gap-x-2">
+    <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
       <Skeleton className="h-8 w-16 rounded-md" />
       <Skeleton className="h-8 w-16 rounded-md" />
       <Skeleton className="h-8 w-16 rounded-md" />

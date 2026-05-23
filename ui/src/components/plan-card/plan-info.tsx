@@ -84,6 +84,7 @@ export const PlanInfo = memo(
         <Card
           ref={setNodeRef}
           className={cn('w-full overflow-hidden relative', {
+            'px-4': mode == UiPlansMode.Full,
             'opacity-50': isDragging,
             'border-rose-700': isError,
           })}
@@ -225,7 +226,7 @@ function PlanCardTitle(props: Props) {
   const mode = useUiPlansConfigModeValue();
 
   return (
-    <CardTitle className="px-4 w-full flex items-start gap-3">
+    <CardTitle className="px-4 pb-2 w-full flex items-start gap-3">
       {mode == UiPlansMode.Short && (
         <CollectionAvatar
           className="size-12 rounded-md"
@@ -243,7 +244,7 @@ function PlanCardTitle(props: Props) {
         <span className="font-semibold text-lg">{props.character.name}</span>
         <CharacterInfo character={props.character} />
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
@@ -280,7 +281,7 @@ function PlanCardTitle(props: Props) {
             scale: props.isError ? 1 : 0,
           }}
           transition={{ duration: 0.15 }}
-          aria-hiden={!props.isError}
+          aria-hidden={!props.isError}
         >
           <Button
             size={mode == UiPlansMode.Full ? 'sm' : 'icon'}

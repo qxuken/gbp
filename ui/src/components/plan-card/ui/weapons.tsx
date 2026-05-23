@@ -26,7 +26,9 @@ import { WeaponPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
+import { Label } from '@/components/ui/label';
 import { PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ShortNumberInput } from '@/components/ui/short-number-input';
 import {
   Tooltip,
   TooltipContent,
@@ -288,41 +290,19 @@ function WeaponFull(props: WeaponProps) {
   if (!weapon) return null;
 
   return (
-    <>
+    <div className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
       <CollectionAvatar
         record={weapon}
         fileName={weapon.icon}
         name={weapon.name}
-        className="size-12 me-2"
+        className="size-12 shrink-0"
       />
-      <div className="flex-1">
-        <div className="flex justify-between items-start mb-1">
-          <span className="flex-1">{weapon.name}</span>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-                disabled={props.disabled}
-              >
-                <Icons.Remove />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" side="top">
-              <Button
-                variant="destructive"
-                className="w-full"
-                disabled={props.disabled}
-                onClick={props.delete}
-              >
-                Yes, I really want to delete
-              </Button>
-            </PopoverContent>
-          </Popover>
+      <div className="min-w-0">
+        <div className="min-w-0">
+          <span className="min-w-0 text-balance">{weapon.name}</span>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-1">
-          <DoubleInputLabeled
+        <div className="mt-1 flex flex-wrap items-center gap-x-6 gap-y-1">
+          <InlineDoubleInputLabeled
             name="Level"
             min={0}
             max={90}
@@ -332,7 +312,7 @@ function WeaponFull(props: WeaponProps) {
             onTargetChange={mutateFieldImmer(props.update, 'levelTarget')}
             disabled={props.disabled}
           />
-          <DoubleInputLabeled
+          <InlineDoubleInputLabeled
             name="Refinement"
             min={1}
             max={5}
@@ -353,7 +333,29 @@ function WeaponFull(props: WeaponProps) {
           offsetX={-56}
         />
       </div>
-    </>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mt-0.5 size-6 self-center p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+            disabled={props.disabled}
+          >
+            <Icons.Remove />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" side="top">
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled={props.disabled}
+            onClick={props.delete}
+          >
+            Yes, I really want to delete
+          </Button>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
 
@@ -415,6 +417,41 @@ function WeaponTag(props: WeaponTagProps) {
     return null;
   }
   return <WeaponTagAnimated {...props} />;
+}
+
+type InlineDoubleInputLabeledProps = {
+  name: string;
+  min: number;
+  max: number;
+  current: number;
+  target: number;
+  onCurrentChange(v: number): void;
+  onTargetChange(v: number): void;
+  disabled?: boolean;
+};
+function InlineDoubleInputLabeled(props: InlineDoubleInputLabeledProps) {
+  return (
+    <div className="flex min-w-fit items-center gap-2 whitespace-nowrap">
+      <Label className="text-xs text-muted-foreground">{props.name}</Label>
+      <div className="flex items-center gap-1">
+        <ShortNumberInput
+          value={props.current}
+          onChange={props.onCurrentChange}
+          min={props.min}
+          max={props.max}
+          disabled={props.disabled}
+        />
+        <Icons.Right className="size-4" />
+        <ShortNumberInput
+          value={props.target}
+          onChange={props.onTargetChange}
+          min={props.min}
+          max={props.max}
+          disabled={props.disabled}
+        />
+      </div>
+    </div>
+  );
 }
 
 function WeaponTagAnimated({

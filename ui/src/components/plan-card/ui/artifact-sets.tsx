@@ -356,7 +356,7 @@ export function SplitButton(props: SplitButtonProps) {
 
   return (
     <Tooltip>
-      <TooltipTrigger>
+      <TooltipTrigger asChild>
         <div className="size-6">
           <ArtifactSetPicker
             title="Split into two pieces"
@@ -395,7 +395,7 @@ function ArtifactSetFull(props: ArtifactSetProps) {
     return null;
   }
   return (
-    <div className="flex gap-2 w-full">
+    <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
       <div
         className="cursor-pointer"
         onClick={() =>
@@ -413,34 +413,12 @@ function ArtifactSetFull(props: ArtifactSetProps) {
           className="size-12"
         />
       </div>
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <span className="flex-1">{artifactSet.name}</span>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-                disabled={props.disabled}
-              >
-                <Icons.Remove />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" side="top">
-              <Button
-                variant="destructive"
-                className="w-full"
-                onClick={props.delete}
-                disabled={props.disabled}
-              >
-                Yes, I really want to delete
-              </Button>
-            </PopoverContent>
-          </Popover>
+      <div className="min-w-0">
+        <div className="min-w-0">
+          <span className="min-w-0 text-balance">{artifactSet.name}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-xs text-muted-foreground flex-1">
+        <div className="mt-1 flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">
             {props.isSplit ? '2 pcs' : '4 pcs'}
           </span>
           <SplitButton
@@ -451,6 +429,28 @@ function ArtifactSetFull(props: ArtifactSetProps) {
           />
         </div>
       </div>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 self-center p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+            disabled={props.disabled}
+          >
+            <Icons.Remove />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" side="top">
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={props.delete}
+            disabled={props.disabled}
+          >
+            Yes, I really want to delete
+          </Button>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

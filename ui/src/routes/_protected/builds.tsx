@@ -28,7 +28,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -87,19 +86,16 @@ function RouteLoader() {
     <>
       <section
         aria-label="Builds with controls"
-        className="flex flex-wrap gap-2"
+        className="grid gap-2 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
       >
-        <aside
-          aria-label="Controls"
-          className="p-2 basis-80 grow flex flex-col gap-4"
-        >
+        <aside aria-label="Controls" className="p-2 flex flex-col gap-4">
           <PlansModeSkeleton />
           <PlanFiltersSkeleton />
           <PlanDomainsAnalysisSkeleton />
         </aside>
         <section
           aria-label="Build cards"
-          className="grow-9999 p-2 grid grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-4 justify-center items-start"
+          className="min-w-0 p-2 grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-4 justify-center items-start"
         >
           <PlanInfoSkeleton />
           <PlanInfoSkeleton />
@@ -190,33 +186,48 @@ function RouteComponent() {
         <RedirectOnBadPage>
           <section
             aria-label="Builds with controls"
-            className="flex flex-wrap gap-2"
+            className={cn('grid gap-2', {
+              '2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
+                mode == UiPlansMode.Full,
+              'xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
+                mode == UiPlansMode.Short,
+            })}
           >
             <div
-              className={cn('min-h-fit p-2 basis-80 grow', {
-                'sticky top-0 max-h-screen': isDesktop,
+              className={cn('min-h-fit min-w-0 p-2', {
+                '2xl:sticky 2xl:top-0 2xl:max-h-screen':
+                  isDesktop && mode == UiPlansMode.Full,
+                'xl:sticky xl:top-0 xl:max-h-screen':
+                  isDesktop && mode == UiPlansMode.Short,
               })}
             >
-              <ScrollArea>
+              <div
+                className={cn('min-w-0', {
+                  '2xl:max-h-screen 2xl:overflow-y-auto':
+                    isDesktop && mode == UiPlansMode.Full,
+                  'xl:max-h-screen xl:overflow-y-auto':
+                    isDesktop && mode == UiPlansMode.Short,
+                })}
+              >
                 <aside
                   aria-label="Controls"
-                  className={cn('h-fit flex flex-col gap-4', {
-                    'max-h-screen': isDesktop,
+                  className={cn('h-fit min-w-0 flex flex-col gap-4', {
+                    '2xl:max-h-screen': isDesktop && mode == UiPlansMode.Full,
+                    'xl:max-h-screen': isDesktop && mode == UiPlansMode.Short,
                   })}
                 >
                   <PlanMode />
                   <PlanFilters />
                   <PlanDomainsAnalysis />
                 </aside>
-                <ScrollBar />
-              </ScrollArea>
+              </div>
             </div>
             <section
               aria-label="Build cards"
-              className={cn('grow-9999 p-2 grid justify-center items-start', {
-                'grid-cols-[repeat(auto-fill,minmax(24rem,1fr))] gap-4':
+              className={cn('min-w-0 p-2 grid justify-center items-start', {
+                'grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4':
                   mode == UiPlansMode.Full,
-                'grid-cols-[repeat(auto-fill,minmax(20rem,1fr))] gap-2':
+                'grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-2':
                   mode == UiPlansMode.Short,
               })}
             >
@@ -225,7 +236,7 @@ function RouteComponent() {
           </section>
           <nav
             aria-label="Page navigation"
-            className="mt-2 mb-6 flex flex-wrap-reverse justify-between items-start gap-3"
+            className="mt-4 mb-6 flex flex-wrap-reverse justify-between items-start gap-3"
           >
             <PerPageSelect />
             <Pagination />
@@ -325,7 +336,7 @@ function PerPageSelect() {
     return <div className="h-9" aria-hidden />;
   }
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 pl-6">
       <Label className="text-sm text-muted-foreground whitespace-nowrap">
         Show:
       </Label>

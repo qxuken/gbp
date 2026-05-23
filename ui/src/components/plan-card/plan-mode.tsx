@@ -13,7 +13,7 @@ export function PlanMode() {
       aria-label="Plans Ui Mode"
       className="p-3 grid gap-2 min-w-xs bg-background border border-border border-dashed rounded-xl"
     >
-      <div className="flex gap-2 w-full items-center">
+      <div className="flex w-full items-center gap-4">
         <span>Cards view</span>
         <Tabs value={mode} onValueChange={onChange} className="flex-1">
           <TabsList className="w-full">
