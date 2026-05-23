@@ -213,6 +213,13 @@ func Dump(app core.App, path string, notes string) error {
 				return err
 			}
 
+			if err := createPatchTable(txDb); err != nil {
+				return err
+			}
+			if err := dumpCollection[Patch](txApp, fsys, txDb, models.PATCH_COLLECTION_NAME); err != nil {
+				return err
+			}
+
 			if err := createArtifactSetsTable(txDb); err != nil {
 				return err
 			}

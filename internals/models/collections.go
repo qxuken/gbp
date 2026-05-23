@@ -1,6 +1,6 @@
 package models
 
-// NOTE: Do not change these, only make new ones
+// NOTE: These constants are append-only
 const (
 	USERS_COLLECTION_NAME               = "users"
 	APP_SETTINGS_COLLECTION_NAME        = "_appSettings"
@@ -20,4 +20,5 @@ const (
 	ARTIFACT_TYPE_PLANS_COLLECTION_NAME = "artifactTypePlans"
 	TEAM_PLANS_COLLECTION_NAME          = "teamPlans"
 	PLANS_VIEW_COLLECTION_NAME          = "plans"
+	PATCH_COLLECTION_NAME               = "patch"
 )

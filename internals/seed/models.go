@@ -152,6 +152,7 @@ type ArtifactSet struct {
 	Id           string `db:"id"`
 	Name         string `db:"name"`
 	Rarity       string `db:"rarity"`
+	Patch        string `db:"patch"`
 	IconFilename string `db:"iconFilename"`
 	IconContent  Icon   `db:"iconContent"`
 }
@@ -162,6 +163,7 @@ func createArtifactSetsTable(db dbx.Builder) error {
 		"id":           "TEXT not NULL PRIMARY KEY",
 		"name":         "TEXT not NULL",
 		"rarity":       "TEXT not NULL",
+		"patch":        "TEXT",
 		"iconFilename": "TEXT not NULL",
 		"iconContent":  "BLOB not NULL",
 	}).Execute()
@@ -175,6 +177,7 @@ func (item ArtifactSet) Seed(app core.App) error {
 	}
 	record.Set("name", item.Name)
 	record.Set("rarity", item.Rarity)
+	record.Set("patch", item.Patch)
 	file, err := filesystem.NewFileFromBytes(item.IconContent, item.IconFilename)
 	if err != nil {
 		return err
@@ -192,6 +195,7 @@ func (item ArtifactSet) Dump(db dbx.Builder, fsys *filesystem.System, record *co
 		"id":           record.Id,
 		"name":         record.GetString("name"),
 		"rarity":       record.GetString("rarity"),
+		"patch":        record.GetString("patch"),
 		"iconFilename": iconFilename,
 		"iconContent":  iconContent,
 	}).Execute()
@@ -347,6 +351,7 @@ type Weapon struct {
 	Rarity       int    `db:"rarity"`
 	WeaponType   string `db:"weaponType"`
 	Special      string `db:"special"`
+	Patch        string `db:"patch"`
 	IconContent  Icon   `db:"iconContent"`
 	IconFilename string `db:"iconFilename"`
 }
@@ -359,6 +364,7 @@ func createWeaponsTable(db dbx.Builder) error {
 		"rarity":       "INTEGER not NULL",
 		"weaponType":   "TEXT not NULL",
 		"special":      "TEXT default ''",
+		"patch":        "TEXT",
 		"iconFilename": "TEXT not NULL",
 		"iconContent":  "BLOB not NULL",
 	}).Execute()
@@ -374,6 +380,7 @@ func (item Weapon) Seed(app core.App) error {
 	record.Set("rarity", item.Rarity)
 	record.Set("weaponType", item.WeaponType)
 	record.Set("special", item.Special)
+	record.Set("patch", item.Patch)
 	file, err := filesystem.NewFileFromBytes(item.IconContent, item.IconFilename)
 	if err != nil {
 		return err
@@ -393,8 +400,44 @@ func (item Weapon) Dump(db dbx.Builder, fsys *filesystem.System, record *core.Re
 		"rarity":       record.GetInt("rarity"),
 		"weaponType":   record.GetString("weaponType"),
 		"special":      record.GetString("special"),
+		"patch":        record.GetString("patch"),
 		"iconFilename": iconFilename,
 		"iconContent":  iconContent,
+	}).Execute()
+	return err
+}
+
+type Patch struct {
+	Id    string `db:"id"`
+	Major int    `db:"major"`
+	Patch int    `db:"patch"`
+}
+
+func createPatchTable(db dbx.Builder) error {
+	db.DropTable(models.PATCH_COLLECTION_NAME).Execute()
+	_, err := db.CreateTable(models.PATCH_COLLECTION_NAME, map[string]string{
+		"id":    "TEXT not NULL PRIMARY KEY",
+		"major": "INTEGER not NULL",
+		"patch": "INTEGER",
+	}).Execute()
+	return err
+}
+
+func (item Patch) Seed(app core.App) error {
+	record, err := upsertRecordById(app, models.PATCH_COLLECTION_NAME, item.Id)
+	if err != nil {
+		return err
+	}
+	record.Set("major", item.Major)
+	record.Set("patch", item.Patch)
+	return app.Save(record)
+}
+
+func (item Patch) Dump(db dbx.Builder, fsys *filesystem.System, record *core.Record) (err error) {
+	_, err = db.Insert(models.PATCH_COLLECTION_NAME, dbx.Params{
+		"id":    record.Id,
+		"major": record.GetInt("major"),
+		"patch": record.GetInt("patch"),
 	}).Execute()
 	return err
 }
@@ -406,6 +449,7 @@ type Character struct {
 	Element      string `db:"element"`
 	WeaponType   string `db:"weaponType"`
 	Special      string `db:"special"`
+	Patch        string `db:"patch"`
 	IconContent  Icon   `db:"iconContent"`
 	IconFilename string `db:"iconFilename"`
 }
@@ -419,6 +463,7 @@ func createCharactersTable(db dbx.Builder) error {
 		"element":      "TEXT default ''",
 		"weaponType":   "TEXT not NULL",
 		"special":      "TEXT not NULL",
+		"patch":        "TEXT",
 		"iconFilename": "TEXT not NULL",
 		"iconContent":  "BLOB not NULL",
 	}).Execute()
@@ -435,6 +480,7 @@ func (item Character) Seed(app core.App) error {
 	record.Set("element", item.Element)
 	record.Set("weaponType", item.WeaponType)
 	record.Set("special", item.Special)
+	record.Set("patch", item.Patch)
 	file, err := filesystem.NewFileFromBytes(item.IconContent, item.IconFilename)
 	if err != nil {
 		return err
@@ -455,6 +501,7 @@ func (item Character) Dump(db dbx.Builder, fsys *filesystem.System, record *core
 		"element":      record.GetString("element"),
 		"weaponType":   record.GetString("weaponType"),
 		"special":      record.GetString("special"),
+		"patch":        record.GetString("patch"),
 		"iconFilename": iconFilename,
 		"iconContent":  iconContent,
 	}).Execute()

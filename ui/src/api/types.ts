@@ -42,6 +42,12 @@ export interface WeaponTypes extends RecordModel {
   icon: string;
 }
 
+export interface Patch extends RecordModel {
+  id: string;
+  major: number;
+  patch: number;
+}
+
 export interface Weapons extends RecordModel {
   id: string;
   name: string;
@@ -49,6 +55,7 @@ export interface Weapons extends RecordModel {
   weaponType: string;
   special?: string;
   rarity: number;
+  patch: string;
 }
 
 export interface Characters extends RecordModel {
@@ -59,6 +66,7 @@ export interface Characters extends RecordModel {
   weaponType: string;
   special: string;
   rarity: number;
+  patch: string;
 }
 
 export interface ArtifactSets extends RecordModel {
@@ -66,6 +74,7 @@ export interface ArtifactSets extends RecordModel {
   name: string;
   icon: string;
   rarity: number;
+  patch: string;
 }
 
 export interface DomainsOfBlessing extends RecordModel {
