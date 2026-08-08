@@ -19,6 +19,7 @@ import {
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
 import { cn } from '@/lib/utils';
 import {
@@ -53,24 +54,11 @@ export default function PlanFilters() {
 
 function FilterHeader() {
   const filtersEnabled = useFiltersEnabled();
-  const isComplete = useFiltersSelector('complete');
   const setFilters = useSetFilters();
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="flex flex-wrap items-center gap-4">
         <h3 className="text-md font-semibold">Filter</h3>
-        <Button
-          size="sm"
-          variant={isComplete ? 'default' : 'outline'}
-          className={cn('h-6', { 'text-muted-foreground': !isComplete })}
-          onClick={() =>
-            setFilters((filters) => {
-              filters.complete = !filters.complete;
-            })
-          }
-        >
-          {isComplete ? 'Hide Complete' : 'Show Complete'}
-        </Button>
       </div>
       <div className="flex items-center gap-2">
         {filtersEnabled && (

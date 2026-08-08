@@ -1,9 +1,9 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function PlansModeSkeleton() {
+export default function PlansCompletedSkeleton() {
   return (
     <section
-      aria-label="Plans Ui Mode Loading"
+      aria-label="Completed Flag Loading"
       className="p-3 grid gap-2 min-w-xs border border-border border-dashed rounded-xl"
     >
       <div className="flex gap-2 items-center">

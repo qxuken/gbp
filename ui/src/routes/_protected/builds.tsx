@@ -9,11 +9,13 @@ import { z } from 'zod/v4-mini';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
+import PlanCompleted from '@/components/plan-card/plan-completed';
+import PlansCompletedSkeleton from '@/components/plan-card/plan-completed-skeleton';
 import PlanDomainsAnalysis from '@/components/plan-card/plan-domains-analysis';
 import PlanDomainsAnalysisSkeleton from '@/components/plan-card/plan-domains-analysis-skeleton';
 import PlanFilters from '@/components/plan-card/plan-filters';
 import PlanFiltersSkeleton from '@/components/plan-card/plan-filters-skeleton';
-import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
+import PlanInfoSkeleton from '@/components/plan-card/plan-info-skeleton';
 import PlanMode from '@/components/plan-card/plan-mode';
 import PlansModeSkeleton from '@/components/plan-card/plan-mode-skeleton';
 import Plans from '@/components/plans';
@@ -90,6 +92,7 @@ function RouteLoader() {
       >
         <aside aria-label="Controls" className="p-2 flex flex-col gap-4">
           <PlansModeSkeleton />
+          <PlansCompletedSkeleton />
           <PlanFiltersSkeleton />
           <PlanDomainsAnalysisSkeleton />
         </aside>
@@ -217,6 +220,7 @@ function RouteComponent() {
                   })}
                 >
                   <PlanMode />
+                  <PlanCompleted />
                   <PlanFilters />
                   <PlanDomainsAnalysis />
                 </aside>

@@ -41,3 +41,5 @@ export function PlanInfoSkeleton({
     </Card>
   );
 }
+
+export default PlanInfoSkeleton;
