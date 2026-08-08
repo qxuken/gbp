@@ -93,14 +93,11 @@ export default function Plans() {
     const el = document.getElementById(revealId);
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    el.classList.add('ring-2', 'ring-rose-500', 'rounded-2xl');
     const t = setTimeout(() => {
-      el.classList.remove('ring-2', 'ring-rose-500', 'rounded-2xl');
       setRevealId(null);
     }, 2000);
     return () => {
       clearTimeout(t);
-      el.classList.remove('ring-2', 'ring-rose-500', 'rounded-2xl');
     };
   }, [
     revealId,

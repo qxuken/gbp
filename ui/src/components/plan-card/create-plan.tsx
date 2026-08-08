@@ -15,11 +15,9 @@ export function CreatePlan(props: Props) {
     <CharacterPicker title="Create new build" onSelect={props.create}>
       <Button
         disabled={props.disabled}
-        className={cn(
-          'gap-2',
-          props.round && 'size-16 rounded-full p-0 [&_span]:hidden',
-          props.className,
-        )}
+        className={cn('gap-2', props.className, {
+          'size-16 rounded-full p-0 [&_span]:hidden': props.round,
+        })}
       >
         {props.round ? <Icons.Add /> : <Icons.New />}
         <span>Create new build</span>
