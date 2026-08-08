@@ -1,13 +1,14 @@
+import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
 import tanstackRouter from '@tanstack/router-plugin/vite';
-import react from '@vitejs/plugin-react';
+import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
 
-const ReactCompilerConfig = {
+const reactCompiler = reactCompilerPreset({
   sources: (filename: string) => filename.indexOf('src') !== -1,
-};
+});
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,56 +16,52 @@ export default defineConfig({
     devtools(),
     tailwindcss(),
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
-    react({
-      babel: {
-        plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
-      },
-    }),
+    react(),
+    babel({ presets: [reactCompiler] }),
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
   },
   build: {
     sourcemap: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html'),
-        monitor: path.resolve(__dirname, 'monitor.html'),
+        main: path.resolve(import.meta.dirname, 'index.html'),
+        monitor: path.resolve(import.meta.dirname, 'monitor.html'),
       },
       output: {
-        manualChunks: {
-          tanstack: ['@tanstack/react-router', '@tanstack/react-query'],
-          dexie: ['dexie', 'dexie-react-hooks'],
-          pocketbase: ['pocketbase'],
-          zod: ['zod/v4-mini'],
-          motion: ['motion'],
-          'dnd-kit': [
-            '@dnd-kit/core',
-            '@dnd-kit/sortable',
-            '@dnd-kit/utilities',
-          ],
-          icons: ['lucide-react'],
-          sonner: ['sonner'],
-          zustand: ['zustand'],
-          fuzzysearch: ['fuzzysearch'],
-          immer: ['immer'],
-          tailwind: ['tailwind-merge', 'clsx'],
-          radix: [
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-collapsible',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-label',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-select',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip',
+        codeSplitting: {
+          groups: [
+            {
+              name: 'tanstack',
+              test: /node_modules[\\/]@tanstack[\\/]react-(router|query)(?:[\\/]|$)/,
+            },
+            {
+              name: 'dexie',
+              test: /node_modules[\\/]dexie(?:-react-hooks)?(?:[\\/]|$)/,
+            },
+            {
+              name: 'pocketbase',
+              test: /node_modules[\\/]pocketbase(?:[\\/]|$)/,
+            },
+            { name: 'zod', test: /node_modules[\\/]zod(?:[\\/]|$)/ },
+            { name: 'motion', test: /node_modules[\\/]motion(?:[\\/]|$)/ },
+            { name: 'dnd-kit', test: /node_modules[\\/]@dnd-kit[\\/]/ },
+            { name: 'icons', test: /node_modules[\\/]lucide-react(?:[\\/]|$)/ },
+            { name: 'sonner', test: /node_modules[\\/]sonner(?:[\\/]|$)/ },
+            { name: 'zustand', test: /node_modules[\\/]zustand(?:[\\/]|$)/ },
+            {
+              name: 'fuzzysearch',
+              test: /node_modules[\\/]fuzzysearch(?:[\\/]|$)/,
+            },
+            { name: 'immer', test: /node_modules[\\/]immer(?:[\\/]|$)/ },
+            {
+              name: 'tailwind',
+              test: /node_modules[\\/](tailwind-merge|clsx)(?:[\\/]|$)/,
+            },
+            { name: 'radix', test: /node_modules[\\/]@radix-ui[\\/]/ },
           ],
         },
       },

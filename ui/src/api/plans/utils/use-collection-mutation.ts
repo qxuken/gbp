@@ -79,9 +79,7 @@ interface SetCurrentBatchStateAction {
   value: 'done' | 'error' | 'pending' | 'scheduled';
 }
 type MutationReducerActions<T> =
-  | MutationAction<T>
-  | SetCurrentBatchStateAction
-  | PrepareBatchAction;
+  MutationAction<T> | SetCurrentBatchStateAction | PrepareBatchAction;
 
 interface ToUpdateRecord<T> {
   value: T;
@@ -511,9 +509,9 @@ export function useCollectionMutation<T extends { id: string }>(
 
 export function usePlanCollectionAccessor<
   Key extends keyof PlansExtra,
-  T extends PlansExtra[Key] extends (infer T)[] | undefined
+  T extends (PlansExtra[Key] extends (infer T)[] | undefined
     ? T
-    : { id: string },
+    : { id: string }),
 >(collectionName: Key, planId: string) {
   return useCallback(
     (plans: Plans[]): T[] | undefined => {
