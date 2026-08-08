@@ -293,10 +293,7 @@ function FilterArtifactTypes() {
                   return null;
                 }
                 return (
-                  <div
-                    key={special.id}
-                    className="flex items-center gap-1.5"
-                  >
+                  <div key={special.id} className="flex items-center gap-1.5">
                     <Button
                       variant="destructive"
                       className="text-md leading-none py-0 px-2 not-hover:text-primary not-hover:bg-transparent"

@@ -51,12 +51,7 @@ type PlansItem<T> = {
   character: Characters;
 };
 
-type CreateItem = {
-  type: 'create';
-  order: number;
-};
-
-export type PlansRenderItem<T> = PlansItem<T> | CreateItem;
+export type PlansRenderItem<T> = PlansItem<T>;
 
 export function useRenderingPlanItems<T extends Plans>(
   plans: T[],
@@ -82,13 +77,6 @@ export function useRenderingPlanItems<T extends Plans>(
         plan,
         character: characters.get(plan.character)!,
       }));
-
-    if (items.length < MAX_ITEMS) {
-      items.push({
-        type: 'create',
-        order: Infinity,
-      });
-    }
 
     return items;
   }, [plans, filter, characters]);

@@ -43,7 +43,6 @@ import {
   useUiPlansConfigModeValue,
 } from '@/store/ui-plans-config';
 
-import { DoubleInputLabeled } from './double-input-labeled';
 import { WeaponPicker } from './weapon-picker';
 
 const MAX_WEAPONS = 10;

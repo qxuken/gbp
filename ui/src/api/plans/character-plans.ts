@@ -71,12 +71,12 @@ export function useCharacterPlansMutation(plans: Plans[], disabled?: boolean) {
   );
 
   const createHandler = (characterId: string) => {
-    mutation.create(
-      newCharacterPlan(
-        characterId,
-        mutation.records.at(-1)?.order ?? 1,
-      ) as Plans,
+    const record: Plans = newCharacterPlan(
+      characterId,
+      mutation.records.at(-1)?.order ?? 1,
     );
+    mutation.create(record);
+    return record.id;
   };
 
   return {

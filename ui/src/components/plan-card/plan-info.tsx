@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { WritableDraft } from 'immer';
 import { motion } from 'motion/react';
-import { memo, useRef } from 'react';
+import { memo } from 'react';
 
 import { OptimisticPlans } from '@/api/plans/character-plans';
 import { useSharedPendingPlansStatusEntry } from '@/api/plans/plans';
@@ -20,6 +20,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useIsDesktopQuery } from '@/hooks/use-is-desktop-query';
 import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
 import {
@@ -49,12 +50,11 @@ type Props = {
 
 export const PlanInfo = memo(
   function PlanInfo(props: Props) {
-    const cardRef = useRef<HTMLDivElement>(null);
-
     const [plansInnerMutationsIsPending, plansInnerMutationsHasError] =
       useSharedPendingPlansStatusEntry(props.plan.id);
 
     const mode = useUiPlansConfigModeValue();
+    const isDesktop = useIsDesktopQuery();
 
     const isUpdating = props.isLoading || plansInnerMutationsIsPending;
     const isError = props.isError || plansInnerMutationsHasError;
@@ -76,111 +76,109 @@ export const PlanInfo = memo(
     };
 
     return (
-      <article
+      <Card
         id={props.plan.id}
-        ref={cardRef}
-        className={cn({ 'grayscale-100': props.plan.complete })}
+        ref={setNodeRef}
+        className={cn('w-full overflow-hidden relative', {
+          '2xl:max-w-lg': isDesktop && mode == UiPlansMode.Full,
+          'xl:max-w-lg': isDesktop && mode == UiPlansMode.Short,
+          'px-4': mode == UiPlansMode.Full,
+          'opacity-50': isDragging,
+          'border-rose-700': isError,
+          'grayscale-100': props.plan.complete,
+        })}
+        style={style}
       >
-        <Card
-          ref={setNodeRef}
-          className={cn('w-full overflow-hidden relative', {
-            'px-4': mode == UiPlansMode.Full,
-            'opacity-50': isDragging,
-            'border-rose-700': isError,
-          })}
-          style={style}
+        <motion.div
+          className="size-4 absolute top-2 left-4"
+          initial={{
+            scale: isUpdating ? 1 : 0,
+          }}
+          animate={{
+            scale: isUpdating ? 1 : 0,
+          }}
+          transition={{ duration: 0.15 }}
+          aria-hidden={!isUpdating}
         >
-          <motion.div
-            className="size-4 absolute top-2 left-4"
-            initial={{
-              scale: isUpdating ? 1 : 0,
-            }}
-            animate={{
-              scale: isUpdating ? 1 : 0,
-            }}
-            transition={{ duration: 0.15 }}
-            aria-hidden={!isUpdating}
-          >
-            <Tooltip>
-              <TooltipTrigger>
-                <Icons.Spinner className="size-4 animate-spin text-accent-foreground opacity-75" />
-              </TooltipTrigger>
-              <TooltipContent>
-                Dont exit this page until updates is pending
-              </TooltipContent>
-            </Tooltip>
-          </motion.div>
-          <motion.div
-            className="w-full flex justify-center pt-1"
-            initial={{
-              opacity: props.disabled ? 0 : 1,
-            }}
-            animate={{
-              opacity: props.disabled ? 0 : 1,
-            }}
-            transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
-            aria-hidden={!props.disabled}
-          >
-            {!props.disabled ? (
-              <Icons.Drag
-                className="py-1 cursor-grab"
-                {...listeners}
-                {...attributes}
+          <Tooltip>
+            <TooltipTrigger>
+              <Icons.Spinner className="size-4 animate-spin text-accent-foreground opacity-75" />
+            </TooltipTrigger>
+            <TooltipContent>
+              Dont exit this page until updates is pending
+            </TooltipContent>
+          </Tooltip>
+        </motion.div>
+        <motion.div
+          className="w-full flex justify-center pt-1"
+          initial={{
+            opacity: props.disabled ? 0 : 1,
+          }}
+          animate={{
+            opacity: props.disabled ? 0 : 1,
+          }}
+          transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
+          aria-hidden={!props.disabled}
+        >
+          {!props.disabled ? (
+            <Icons.Drag
+              className="py-1 cursor-grab"
+              {...listeners}
+              {...attributes}
+            />
+          ) : (
+            <Icons.Drag
+              className="opacity-25 py-1 cursor-default"
+              {...attributes}
+            />
+          )}
+        </motion.div>
+        <PlanCardTitle {...props} isLoading={isUpdating} />
+        <PlanCardStats {...props} />
+        <CardContent
+          className={cn('w-full pt-4 flex flex-col', {
+            'gap-3': mode == UiPlansMode.Full,
+            'gap-1.5': mode == UiPlansMode.Short,
+          })}
+        >
+          <Weapons
+            planId={props.plan.id}
+            weaponType={props.character.weaponType}
+            weaponPlansPlans={props.plan.weaponPlans}
+            disabled={props.disabled}
+          />
+          <ArtifactSets
+            planId={props.plan.id}
+            artifactSetsPlans={props.plan.artifactSetsPlans}
+            disabled={props.disabled}
+          />
+          <ArtifactTypes
+            planId={props.plan.id}
+            artfactTypesPlans={props.plan.artifactTypePlans}
+            disabled={props.disabled}
+          />
+          <ArtifactSubstats
+            substats={props.plan.substats}
+            mutate={props.update}
+            disabled={props.disabled}
+          />
+          {mode == UiPlansMode.Full && (
+            <>
+              <Teams
+                planId={props.plan.id}
+                character={props.character}
+                teamPlans={props.plan.teamPlans}
+                disabled={props.disabled}
               />
-            ) : (
-              <Icons.Drag
-                className="opacity-25 py-1 cursor-default"
-                {...attributes}
+              <Note
+                note={props.plan.note}
+                mutate={mutateFieldImmer(props.update, 'note')}
+                disabled={props.disabled}
               />
-            )}
-          </motion.div>
-          <PlanCardTitle {...props} isLoading={isUpdating} />
-          <PlanCardStats {...props} />
-          <CardContent
-            className={cn('w-full pt-4 flex flex-col', {
-              'gap-3': mode == UiPlansMode.Full,
-              'gap-1.5': mode == UiPlansMode.Short,
-            })}
-          >
-            <Weapons
-              planId={props.plan.id}
-              weaponType={props.character.weaponType}
-              weaponPlansPlans={props.plan.weaponPlans}
-              disabled={props.disabled}
-            />
-            <ArtifactSets
-              planId={props.plan.id}
-              artifactSetsPlans={props.plan.artifactSetsPlans}
-              disabled={props.disabled}
-            />
-            <ArtifactTypes
-              planId={props.plan.id}
-              artfactTypesPlans={props.plan.artifactTypePlans}
-              disabled={props.disabled}
-            />
-            <ArtifactSubstats
-              substats={props.plan.substats}
-              mutate={props.update}
-              disabled={props.disabled}
-            />
-            {mode == UiPlansMode.Full && (
-              <>
-                <Teams
-                  planId={props.plan.id}
-                  character={props.character}
-                  teamPlans={props.plan.teamPlans}
-                  disabled={props.disabled}
-                />
-                <Note
-                  note={props.plan.note}
-                  mutate={mutateFieldImmer(props.update, 'note')}
-                  disabled={props.disabled}
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </article>
+            </>
+          )}
+        </CardContent>
+      </Card>
     );
   },
   (prev, next) => {
