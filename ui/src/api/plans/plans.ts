@@ -51,13 +51,29 @@ export const PLANS_QUERY = queryOptions({
   },
 });
 
-export function usePlans() {
-  const query = useSuspenseQuery(PLANS_QUERY);
-  return query.data ?? [];
+const incompletePlansCache = new WeakMap<Plans[], Plans[]>();
+
+function getIncompletePlans(plans: Plans[]) {
+  const cachedPlans = incompletePlansCache.get(plans);
+  if (cachedPlans) {
+    return cachedPlans;
+  }
+
+  const incompletePlans = plans.filter((plan) => !plan.complete);
+  incompletePlansCache.set(plans, incompletePlans);
+  return incompletePlans;
 }
 
-export function usePlansMap() {
-  const plans = usePlans();
+export function usePlans(includeComplete: boolean = true) {
+  const query = useSuspenseQuery(PLANS_QUERY);
+  if (!query.data || includeComplete) {
+    return query.data ?? [];
+  }
+  return getIncompletePlans(query.data);
+}
+
+export function usePlansMap(includeComplete?: boolean) {
+  const plans = usePlans(includeComplete);
   return useMemo(() => createRecordsMap(plans), [plans]);
 }
 

@@ -22,7 +22,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useSetFilters } from '@/store/plans/filters';
+import { useFiltersSelector, useSetFilters } from '@/store/plans/filters';
 
 import { BuildDomainsAnalysisContentSkeleton } from './plan-domains-analysis-skeleton';
 import { CharacterInfoContent } from './ui/character-info';
@@ -53,7 +53,8 @@ export default function PlanDomainsAnalysis() {
 
 function PlanDomainsAnalysisContent() {
   const isLoading = usePlansIsLoading();
-  const items = useDomainsByArtifactSets();
+  const isComplete = useFiltersSelector('complete');
+  const items = useDomainsByArtifactSets(isComplete);
 
   if (isLoading) {
     return <BuildDomainsAnalysisContentSkeleton />;

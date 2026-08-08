@@ -8,8 +8,8 @@ import {
   usePlanCollectionAccessor,
 } from './utils/use-collection-mutation';
 
-export function useArtifactSetsPlans() {
-  const plans = usePlans();
+export function useArtifactSetsPlans(includeComplete?: boolean) {
+  const plans = usePlans(includeComplete);
   return useMemo(
     () => plans.flatMap((p) => p.artifactSetsPlans ?? []),
     [plans],

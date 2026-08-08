@@ -50,7 +50,7 @@ type Props = PropsWithChildren<{
 }>;
 
 export function FiltersProvider({ children, value, setValue }: Props) {
-  const plans = usePlans();
+  const plans = usePlans(value.complete);
   const charactersMap = useCharactersMap();
   const isFiltersEnabled = useMemo(
     () =>

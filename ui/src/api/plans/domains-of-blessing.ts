@@ -10,10 +10,10 @@ export interface DomainsByArtifactSets {
   artifactSets: string[];
 }
 
-export function useDomainsByArtifactSets() {
+export function useDomainsByArtifactSets(includeComplete?: boolean) {
   const domainsBySet = useDomainsOfBlessingMapByArtifactSetId();
-  const plans = usePlansMap();
-  const artifactSetsPlans = useArtifactSetsPlans();
+  const plans = usePlansMap(includeComplete);
+  const artifactSetsPlans = useArtifactSetsPlans(includeComplete);
 
   const domainsWithSets = new Map<
     string,
