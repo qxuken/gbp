@@ -68,7 +68,6 @@ export default function Plans() {
     setFilters((v) => {
       const defaults = createDefaultFilters();
       v.name = defaults.name;
-      v.complete = defaults.complete;
       v.elements = defaults.elements;
       v.weaponTypes = defaults.weaponTypes;
       v.characters = defaults.characters;

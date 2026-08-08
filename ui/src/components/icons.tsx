@@ -28,5 +28,5 @@ export const Icons = {
   Retry: lucideReact.RotateCcw,
   NotComplete: lucideReact.Circle,
   Complete: lucideReact.CircleCheck,
-  Github: lucideReact.Github,
+  Github: lucideReact.GitBranch,
 };

@@ -21,35 +21,33 @@ export const PLANS_QUERY = queryOptions({
       .collection<Plans>('plans')
       .getFullList({ signal });
     logger.debug('query:plans->success');
-    return res.map(
-      (plan): Plans => ({
-        ...plan,
-        created: new Date(plan.created),
-        updated: new Date(plan.updated),
-        artifactSetsPlans: plan.artifactSetsPlans?.map((asp) => ({
-          ...asp,
-          artifactSets: JSON.parse(asp.artifactSets as unknown as string),
-          created: new Date(asp.created),
-          updated: new Date(asp.updated),
-        })),
-        artifactTypePlans: plan.artifactTypePlans?.map((atp) => ({
-          ...atp,
-          created: new Date(atp.created),
-          updated: new Date(atp.updated),
-        })),
-        weaponPlans: plan.weaponPlans?.map((wp) => ({
-          ...wp,
-          created: new Date(wp.created),
-          updated: new Date(wp.updated),
-        })),
-        teamPlans: plan.teamPlans?.map((tp) => ({
-          ...tp,
-          characters: JSON.parse(tp.characters as unknown as string),
-          created: new Date(tp.created),
-          updated: new Date(tp.updated),
-        })),
-      }),
-    );
+    return res.map((plan): Plans => ({
+      ...plan,
+      created: new Date(plan.created),
+      updated: new Date(plan.updated),
+      artifactSetsPlans: plan.artifactSetsPlans?.map((asp) => ({
+        ...asp,
+        artifactSets: JSON.parse(asp.artifactSets as unknown as string),
+        created: new Date(asp.created),
+        updated: new Date(asp.updated),
+      })),
+      artifactTypePlans: plan.artifactTypePlans?.map((atp) => ({
+        ...atp,
+        created: new Date(atp.created),
+        updated: new Date(atp.updated),
+      })),
+      weaponPlans: plan.weaponPlans?.map((wp) => ({
+        ...wp,
+        created: new Date(wp.created),
+        updated: new Date(wp.updated),
+      })),
+      teamPlans: plan.teamPlans?.map((tp) => ({
+        ...tp,
+        characters: JSON.parse(tp.characters as unknown as string),
+        created: new Date(tp.created),
+        updated: new Date(tp.updated),
+      })),
+    }));
   },
 });
 
