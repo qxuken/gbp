@@ -1,10 +1,14 @@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UiPlansMode, useUiPlansConfigMode } from '@/store/ui-plans-config';
+import {
+  isUiPlansMode,
+  UiPlansMode,
+  useUiPlansConfigMode,
+} from '@/store/ui-plans-config';
 
 export function PlanMode() {
   const [mode, setMode] = useUiPlansConfigMode();
   const onChange = (value: string) => {
-    if (value == UiPlansMode.Full || value == UiPlansMode.Short) {
+    if (isUiPlansMode(value)) {
       setMode(value);
     }
   };
@@ -19,6 +23,7 @@ export function PlanMode() {
           <TabsList className="w-full">
             <TabsTrigger value={UiPlansMode.Full}>Full</TabsTrigger>
             <TabsTrigger value={UiPlansMode.Short}>Short</TabsTrigger>
+            <TabsTrigger value={UiPlansMode.V2}>V2</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
