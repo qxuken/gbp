@@ -23,10 +23,6 @@ import {
 import { useIsDesktopQuery } from '@/hooks/use-is-desktop-query';
 import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
-import {
-  UiPlansMode,
-  useUiPlansConfigModeValue,
-} from '@/store/ui-plans-config';
 
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactSubstats } from './ui/artifact-substats';
@@ -53,7 +49,6 @@ export const PlanInfo = memo(
     const [plansInnerMutationsIsPending, plansInnerMutationsHasError] =
       useSharedPendingPlansStatusEntry(props.plan.id);
 
-    const mode = useUiPlansConfigModeValue();
     const isDesktop = useIsDesktopQuery();
 
     const isUpdating = props.isLoading || plansInnerMutationsIsPending;
@@ -79,10 +74,8 @@ export const PlanInfo = memo(
       <Card
         id={props.plan.id}
         ref={setNodeRef}
-        className={cn('w-full overflow-hidden relative', {
-          '2xl:max-w-lg': isDesktop && mode == UiPlansMode.Full,
-          'xl:max-w-lg': isDesktop && mode == UiPlansMode.Short,
-          'px-4': mode == UiPlansMode.Full,
+        className={cn('w-full overflow-hidden relative px-4', {
+          '2xl:max-w-lg': isDesktop,
           'opacity-50': isDragging,
           'border-rose-700': isError,
           'grayscale-100': props.plan.complete,
@@ -109,60 +102,55 @@ export const PlanInfo = memo(
             </TooltipContent>
           </Tooltip>
         </motion.div>
-        <motion.div
-          className="w-full flex justify-center pt-1"
-          initial={{
-            opacity: props.disabled ? 0 : 1,
-          }}
-          animate={{
-            opacity: props.disabled ? 0 : 1,
-          }}
-          transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
-          aria-hidden={!props.disabled}
-        >
-          {!props.disabled ? (
-            <Icons.Drag
-              className="py-1 cursor-grab"
-              {...listeners}
-              {...attributes}
+        <>
+          <motion.div
+            className="w-full flex justify-center pt-1"
+            initial={{
+              opacity: props.disabled ? 0 : 1,
+            }}
+            animate={{
+              opacity: props.disabled ? 0 : 1,
+            }}
+            transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
+            aria-hidden={!props.disabled}
+          >
+            {!props.disabled ? (
+              <Icons.Drag
+                className="py-1 cursor-grab"
+                {...listeners}
+                {...attributes}
+              />
+            ) : (
+              <Icons.Drag
+                className="opacity-25 py-1 cursor-default"
+                {...attributes}
+              />
+            )}
+          </motion.div>
+          <PlanCardTitle {...props} isLoading={isUpdating} />
+          <PlanCardStats {...props} />
+          <CardContent className="w-full pt-4 flex flex-col gap-3">
+            <Weapons
+              planId={props.plan.id}
+              weaponType={props.character.weaponType}
+              weaponPlansPlans={props.plan.weaponPlans}
+              disabled={props.disabled}
             />
-          ) : (
-            <Icons.Drag
-              className="opacity-25 py-1 cursor-default"
-              {...attributes}
+            <ArtifactSets
+              planId={props.plan.id}
+              artifactSetsPlans={props.plan.artifactSetsPlans}
+              disabled={props.disabled}
             />
-          )}
-        </motion.div>
-        <PlanCardTitle {...props} isLoading={isUpdating} />
-        <PlanCardStats {...props} />
-        <CardContent
-          className={cn('w-full pt-4 flex flex-col', {
-            'gap-3': mode == UiPlansMode.Full,
-            'gap-1.5': mode == UiPlansMode.Short,
-          })}
-        >
-          <Weapons
-            planId={props.plan.id}
-            weaponType={props.character.weaponType}
-            weaponPlansPlans={props.plan.weaponPlans}
-            disabled={props.disabled}
-          />
-          <ArtifactSets
-            planId={props.plan.id}
-            artifactSetsPlans={props.plan.artifactSetsPlans}
-            disabled={props.disabled}
-          />
-          <ArtifactTypes
-            planId={props.plan.id}
-            artfactTypesPlans={props.plan.artifactTypePlans}
-            disabled={props.disabled}
-          />
-          <ArtifactSubstats
-            substats={props.plan.substats}
-            mutate={props.update}
-            disabled={props.disabled}
-          />
-          {mode == UiPlansMode.Full && (
+            <ArtifactTypes
+              planId={props.plan.id}
+              artfactTypesPlans={props.plan.artifactTypePlans}
+              disabled={props.disabled}
+            />
+            <ArtifactSubstats
+              substats={props.plan.substats}
+              mutate={props.update}
+              disabled={props.disabled}
+            />
             <>
               <Teams
                 planId={props.plan.id}
@@ -176,8 +164,8 @@ export const PlanInfo = memo(
                 disabled={props.disabled}
               />
             </>
-          )}
-        </CardContent>
+          </CardContent>
+        </>
       </Card>
     );
   },
@@ -194,11 +182,6 @@ export const PlanInfo = memo(
 );
 
 function PlanCardStats(props: Props) {
-  const mode = useUiPlansConfigModeValue();
-
-  if (mode != UiPlansMode.Full) {
-    return null;
-  }
   return (
     <div className="flex items-start justify-around">
       <MainStat
@@ -206,6 +189,7 @@ function PlanCardStats(props: Props) {
         mutate={props.update}
         disabled={props.disabled}
       />
+      <div />
       <CollectionAvatar
         className="size-35 rounded-2xl ml-6"
         record={props.character}
@@ -221,101 +205,89 @@ const DEFAULT_VISIBLE = 'block group-hover/plan-complete:hidden';
 const DEFAULT_HIDDEN = 'hidden group-hover/plan-complete:block';
 
 function PlanCardTitle(props: Props) {
-  const mode = useUiPlansConfigModeValue();
-
   return (
     <CardTitle className="px-4 pb-2 w-full flex items-start gap-3">
-      {mode == UiPlansMode.Short && (
-        <CollectionAvatar
-          className="size-12 rounded-md"
-          record={props.character}
-          fileName={props.character.icon}
-          name={props.character.name}
-        />
-      )}
-      <div
-        className={cn('w-full flex gap-3', {
-          'items-start': mode == UiPlansMode.Short,
-          'items-center': mode == UiPlansMode.Full,
-        })}
-      >
+      <div className="w-full flex gap-3 items-center">
         <span className="font-semibold text-lg">{props.character.name}</span>
         <CharacterInfo character={props.character} />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="group/plan-complete size-7 opacity-50 hover:opacity-75 hover:outline"
-              disabled={props.disabled}
-              onClick={() =>
-                props.update((v) => {
-                  v.complete = !v.complete;
-                })
-              }
-            >
-              <Icons.NotComplete
-                className={
-                  props.plan.complete ? DEFAULT_HIDDEN : DEFAULT_VISIBLE
-                }
-              />
-              <Icons.Complete
-                className={
-                  props.plan.complete ? DEFAULT_VISIBLE : DEFAULT_HIDDEN
-                }
-              />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {props.plan.complete ? 'Mark incomplete' : 'Mark complete'}
-          </TooltipContent>
-        </Tooltip>
+        <PlanCardCompleteToggle {...props} />
         <div className="flex-1" />
-        <motion.div
-          initial={{
-            scale: 0,
-          }}
-          animate={{
-            scale: props.isError ? 1 : 0,
-          }}
-          transition={{ duration: 0.15 }}
-          aria-hidden={!props.isError}
-        >
-          <Button
-            size={mode == UiPlansMode.Full ? 'sm' : 'icon'}
-            className={cn({
-              'size-7': mode == UiPlansMode.Short,
-            })}
-            variant="destructive"
-            onClick={props.retry}
-          >
-            <Icons.Retry className="size-4" />
-            {mode == UiPlansMode.Full ? 'Retry' : null}
-          </Button>
-        </motion.div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-              disabled={props.isLoading}
-            >
-              <Icons.Remove />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0" side="top">
-            <Button
-              variant="destructive"
-              className="w-full"
-              disabled={props.disabled}
-              onClick={props.delete}
-            >
-              Yes, I really want to delete
-            </Button>
-          </PopoverContent>
-        </Popover>
+        <PlanCardActions {...props} />
       </div>
     </CardTitle>
+  );
+}
+
+function PlanCardCompleteToggle(props: Props) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="group/plan-complete size-7 shrink-0 opacity-50 hover:opacity-75 hover:outline"
+          disabled={props.disabled}
+          onClick={() =>
+            props.update((v) => {
+              v.complete = !v.complete;
+            })
+          }
+        >
+          <Icons.NotComplete
+            className={props.plan.complete ? DEFAULT_HIDDEN : DEFAULT_VISIBLE}
+          />
+          <Icons.Complete
+            className={props.plan.complete ? DEFAULT_VISIBLE : DEFAULT_HIDDEN}
+          />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        {props.plan.complete ? 'Mark incomplete' : 'Mark complete'}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function PlanCardActions(props: Props) {
+  return (
+    <>
+      <motion.div
+        initial={{
+          scale: 0,
+        }}
+        animate={{
+          scale: props.isError ? 1 : 0,
+        }}
+        transition={{ duration: 0.15 }}
+        aria-hidden={!props.isError}
+      >
+        <Button size="sm" variant="destructive" onClick={props.retry}>
+          <Icons.Retry className="size-4" />
+          Retry
+        </Button>
+      </motion.div>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+            disabled={props.isLoading}
+          >
+            <Icons.Remove />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" side="top">
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled={props.disabled}
+            onClick={props.delete}
+          >
+            Yes, I really want to delete
+          </Button>
+        </PopoverContent>
+      </Popover>
+    </>
   );
 }

@@ -13,11 +13,6 @@ import {
 } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { removeByPredMut } from '@/lib/array-remove-mut';
-import { cn } from '@/lib/utils';
-import {
-  UiPlansMode,
-  useUiPlansConfigModeValue,
-} from '@/store/ui-plans-config';
 
 type Props = {
   substats: string[];
@@ -100,7 +95,6 @@ export function ArtifactSubstatsItem({
   disabled?: boolean;
 }) {
   const special = useSpecialsItem(value);
-  const mode = useUiPlansConfigModeValue();
 
   if (!special) {
     return null;
@@ -111,15 +105,9 @@ export function ArtifactSubstatsItem({
       <Popover>
         <PopoverTrigger asChild>
           <Button
-            size={mode == UiPlansMode.Short ? 'sm' : 'default'}
+            size="default"
             variant="destructive"
-            className={cn(
-              'leading-none not-hover:text-primary not-hover:bg-transparent',
-              {
-                'text-md py-0 px-2': mode == UiPlansMode.Full,
-                'text-xs py-0 px-2 h-6': mode == UiPlansMode.Short,
-              },
-            )}
+            className="leading-none not-hover:text-primary not-hover:bg-transparent text-md py-0 px-2"
             disabled={disabled}
           >
             {special.name}

@@ -3,10 +3,10 @@ export function weakMapGetOrSetDefault<K extends WeakKey, V>(
   key: K,
   defaultFactory: () => V,
 ): V {
-  if (!(map as Map<K, V>).has(key)) {
-    (map as Map<K, V>).set(key, defaultFactory());
+  if (!map.has(key)) {
+    map.set(key, defaultFactory());
   }
-  return (map as Map<K, V>).get(key)!;
+  return map.get(key)!;
 }
 
 export function mapGetOrSetDefault<K, V>(
@@ -14,8 +14,8 @@ export function mapGetOrSetDefault<K, V>(
   key: K,
   defaultFactory: () => V,
 ): V {
-  if (!(map as Map<K, V>).has(key)) {
-    (map as Map<K, V>).set(key, defaultFactory());
+  if (!map.has(key)) {
+    map.set(key, defaultFactory());
   }
-  return (map as Map<K, V>).get(key)!;
+  return map.get(key)!;
 }

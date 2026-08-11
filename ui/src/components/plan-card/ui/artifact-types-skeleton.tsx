@@ -1,10 +1,14 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function ArtifactTypesSkeleton() {
+export function ArtifactTypesSkeleton({
+  hideTitle = false,
+}: {
+  hideTitle?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-2">
-      <Skeleton className="h-3 w-9 rounded-md" />
-      <div className="grid gap-2 w-full">
+      {!hideTitle && <Skeleton className="h-3 w-9 rounded-md" />}
+      <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-3">
         <ArtifactTypesItemSkeleton />
         <ArtifactTypesItemSkeleton />
         <ArtifactTypesItemSkeleton />
