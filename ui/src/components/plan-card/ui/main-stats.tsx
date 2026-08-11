@@ -1,4 +1,5 @@
 import { WritableDraft } from 'immer';
+import { useId } from 'react';
 
 import { CharacterPlans } from '@/api/types';
 import { Label } from '@/components/ui/label';
@@ -65,12 +66,17 @@ export function MainStat({ plan, mutate, disabled }: Props) {
 
 type StatInputProps = ShortNumberInputProps & { name: string };
 function StatInput(props: StatInputProps) {
+  const id = useId();
   return (
     <>
-      <Label className="justify-self-end text-xs text-muted-foreground">
+      <Label
+        htmlFor={id}
+        className="justify-self-end text-xs text-muted-foreground"
+      >
         {props.name}
       </Label>
       <ShortNumberInput
+        id={id}
         value={props.value}
         onChange={props.onChange}
         min={props.min}
