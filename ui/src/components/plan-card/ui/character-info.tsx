@@ -1,4 +1,5 @@
 import { PopoverTrigger } from '@radix-ui/react-popover';
+import { HTMLAttributes } from 'react';
 
 import { useElementsItem, useWeaponTypesItem } from '@/api/dictionaries/hooks';
 import { Characters } from '@/api/types';
@@ -54,6 +55,50 @@ export function CharacterInfoContent({ character }: CharacterInfoContentProps) {
         />
         {weaponType.name}
       </Badge>
+    </div>
+  );
+}
+
+type CharacterInlineInfoProps = CharacterInfoContentProps &
+  HTMLAttributes<HTMLDivElement>;
+export function CharacterInlineInfo({
+  character,
+  className,
+  ...props
+}: CharacterInlineInfoProps) {
+  const element = useElementsItem(character.element ?? '', false);
+  const weaponType = useWeaponTypesItem(character.weaponType);
+
+  if (!element || !weaponType) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        'flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground',
+        className,
+      )}
+      {...props}
+    >
+      <span className="flex items-center gap-1">
+        <CollectionAvatar
+          record={element}
+          fileName={element.icon}
+          name={element.name}
+          className="size-4"
+        />
+        {element.name}
+      </span>
+      <span className="flex items-center gap-1">
+        <CollectionAvatar
+          record={weaponType}
+          fileName={weaponType.icon}
+          name={weaponType.name}
+          className="size-4 not-dark:bg-black"
+        />
+        {weaponType.name}
+      </span>
     </div>
   );
 }

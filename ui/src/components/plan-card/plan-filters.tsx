@@ -19,7 +19,6 @@ import {
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
 import { cn } from '@/lib/utils';
 import {

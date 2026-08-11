@@ -85,8 +85,16 @@ export function Weapons(props: Props) {
             disabled={props.disabled}
           />
         );
+      case UiPlansMode.V2:
+        return (
+          <WeaponsCompact
+            planId={props.planId}
+            mutation={mutation}
+            disabled={props.disabled}
+          />
+        );
     }
-  }, [props.planId, mutation, props.disabled]);
+  }, [mode, props.planId, mutation, props.disabled]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -133,7 +141,14 @@ export function Weapons(props: Props) {
           </Button>
         )}
       </div>
-      <div className="grid gap-2 w-full">{weapons}</div>
+      <div
+        className={cn('grid w-full', {
+          'gap-1': mode == UiPlansMode.V2,
+          'gap-2': mode != UiPlansMode.V2,
+        })}
+      >
+        {weapons}
+      </div>
     </div>
   );
 }
@@ -190,9 +205,63 @@ function WeaponsFull(
   );
 }
 
+function WeaponsCompact(
+  props: Pick<Props, 'disabled' | 'planId'> & {
+    mutation: ReturnType<typeof useWeaponPlansMutation>;
+  },
+) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    handleReorderImmer(event, props.mutation.records, props.mutation.update);
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={props.mutation.records}
+        strategy={verticalListSortingStrategy}
+      >
+        {props.mutation.records.map((wp) => (
+          <WeaponDrag
+            key={wp.id}
+            weaponPlan={wp}
+            isLoading={wp.isOptimistic}
+            disabled={
+              props.disabled ||
+              wp.isOptimisticBlocked ||
+              props.mutation.records.length === 1
+            }
+            compact
+          >
+            <WeaponCompact
+              weaponPlan={wp}
+              delete={() => props.mutation.delete(wp.id)}
+              isLoading={wp.isOptimistic}
+              disabled={props.disabled || wp.isOptimisticBlocked}
+            />
+          </WeaponDrag>
+        ))}
+      </SortableContext>
+    </DndContext>
+  );
+}
+
 function WeaponDrag(
   props: PropsWithChildren<
-    Pick<WeaponProps, 'weaponPlan' | 'isLoading' | 'disabled'>
+    Pick<WeaponProps, 'weaponPlan' | 'isLoading' | 'disabled'> & {
+      compact?: boolean;
+    }
   >,
 ) {
   const {
@@ -222,15 +291,23 @@ function WeaponDrag(
       })}
     >
       <div className="flex">
-        <div className="pt-4">
+        <div className={cn({ 'pt-1': props.compact, 'pt-4': !props.compact })}>
           {!props.disabled ? (
             <Icons.Drag
-              className="rotate-90 size-6 py-1"
+              className={cn('rotate-90 py-1', {
+                'size-5': props.compact,
+                'size-6': !props.compact,
+              })}
               {...listeners}
               {...attributes}
             />
           ) : (
-            <div className="size-6 py-1" />
+            <div
+              className={cn('py-1', {
+                'size-5': props.compact,
+                'size-6': !props.compact,
+              })}
+            />
           )}
         </div>
         {props.children}
@@ -338,6 +415,53 @@ function WeaponFull(props: WeaponProps) {
             variant="ghost"
             size="icon"
             className="mt-0.5 size-6 self-center p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+            disabled={props.disabled}
+          >
+            <Icons.Remove />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" side="top">
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled={props.disabled}
+            onClick={props.delete}
+          >
+            Yes, I really want to delete
+          </Button>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+function WeaponCompact(
+  props: Pick<WeaponProps, 'weaponPlan' | 'delete' | 'isLoading' | 'disabled'>,
+) {
+  const weapon = useWeaponsItem(props.weaponPlan.weapon);
+
+  if (!weapon) return null;
+
+  return (
+    <div
+      className={cn(
+        'grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 py-1',
+        { 'animate-pulse': props.isLoading },
+      )}
+    >
+      <CollectionAvatar
+        record={weapon}
+        fileName={weapon.icon}
+        name={weapon.name}
+        className="size-8 shrink-0"
+      />
+      <span className="truncate text-sm">{weapon.name}</span>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
             disabled={props.disabled}
           >
             <Icons.Remove />

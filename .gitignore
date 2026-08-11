@@ -15,3 +15,5 @@ seed.hash
 
 !.keep
 dump.db
+/.playwright-mcp
+/.playwright-cli

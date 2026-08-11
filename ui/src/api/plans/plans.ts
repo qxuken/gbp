@@ -10,7 +10,10 @@ import { immer } from 'zustand/middleware/immer';
 import { pbClient } from '@/api/pocketbase';
 import { Plans } from '@/api/types';
 import { createRecordsMap } from '@/lib/create-records-map';
-import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
+import {
+  mapGetOrSetDefault,
+  weakMapGetOrSetDefault,
+} from '@/lib/map-get-or-set-default';
 import { logger } from '@/store/logger';
 
 export const PLANS_QUERY = queryOptions({
@@ -53,23 +56,14 @@ export const PLANS_QUERY = queryOptions({
 
 const incompletePlansCache = new WeakMap<Plans[], Plans[]>();
 
-function getIncompletePlans(plans: Plans[]) {
-  const cachedPlans = incompletePlansCache.get(plans);
-  if (cachedPlans) {
-    return cachedPlans;
-  }
-
-  const incompletePlans = plans.filter((plan) => !plan.complete);
-  incompletePlansCache.set(plans, incompletePlans);
-  return incompletePlans;
-}
-
 export function usePlans(includeComplete: boolean = true) {
   const query = useSuspenseQuery(PLANS_QUERY);
   if (!query.data || includeComplete) {
     return query.data ?? [];
   }
-  return getIncompletePlans(query.data);
+  return weakMapGetOrSetDefault(incompletePlansCache, query.data, () =>
+    query.data.filter((plan) => !plan.complete),
+  );
 }
 
 export function usePlansMap(includeComplete?: boolean) {

@@ -1,8 +1,7 @@
 import { WritableDraft } from 'immer';
 import { useMemo } from 'react';
-import { Fragment } from 'react/jsx-runtime';
 
-import { useCharactersItem } from '@/api/dictionaries/hooks';
+import { useCharactersItem, useElementsItem } from '@/api/dictionaries/hooks';
 import { useTeamPlansMutation } from '@/api/plans/team-plans';
 import { Characters, TeamPlans } from '@/api/types';
 import { Icons } from '@/components/icons';
@@ -13,9 +12,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
 import { removeByPredMut } from '@/lib/array-remove-mut';
 import { cn } from '@/lib/utils';
+import {
+  UiPlansMode,
+  useUiPlansConfigModeValue,
+} from '@/store/ui-plans-config';
 
 import { CharacterPicker } from './character-picker';
 
@@ -78,22 +80,18 @@ export function Teams(props: Props) {
         )}
       </div>
       {mutation.records.length > 0 && (
-        <div className="grid gap-4 w-full">
-          {mutation.records.map((tp, i) => (
-            <Fragment key={tp.id}>
-              <Team
-                planId={props.planId}
-                teamPlan={tp}
-                character={props.character}
-                update={(cb) => mutation.update(tp, cb)}
-                delete={() => mutation.delete(tp.id)}
-                isLoading={tp.isOptimistic}
-                disabled={props.disabled || tp.isOptimisticBlocked}
-              />
-              {mutation.records.length - 1 !== i && (
-                <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
-              )}
-            </Fragment>
+        <div className="grid w-full gap-3">
+          {mutation.records.map((tp) => (
+            <Team
+              key={tp.id}
+              planId={props.planId}
+              teamPlan={tp}
+              character={props.character}
+              update={(cb) => mutation.update(tp, cb)}
+              delete={() => mutation.delete(tp.id)}
+              isLoading={tp.isOptimistic}
+              disabled={props.disabled || tp.isOptimisticBlocked}
+            />
           ))}
         </div>
       )}
@@ -176,43 +174,56 @@ type CharacterProps = {
 };
 function Character(props: CharacterProps) {
   const character = useCharactersItem(props.characterId);
+  const mode = useUiPlansConfigModeValue();
+  const element = useElementsItem(character?.element ?? '', false);
   if (!character) {
     return null;
   }
 
   return (
-    <div className="grid justify-items-center relative">
-      <CollectionAvatar
-        record={character}
-        fileName={character.icon}
-        name={character.name}
-        className="size-10 my-1"
-      />
+    <div className="grid justify-items-center">
+      <div className="group/team-avatar relative my-1 size-10">
+        {mode == UiPlansMode.V2 && element ? (
+          <CollectionAvatar
+            record={element}
+            fileName={element.icon}
+            name={character.name}
+            className="size-10 border border-border bg-muted/30 p-2"
+          />
+        ) : (
+          <CollectionAvatar
+            record={character}
+            fileName={character.icon}
+            name={character.name}
+            className="size-10"
+          />
+        )}
+        {props.delete && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute inset-0 size-full rounded-full bg-destructive/90 p-2 text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive focus:opacity-100 group-hover/team-avatar:opacity-100 data-[state=open]:opacity-100"
+                disabled={props.disabled}
+              >
+                <Icons.Remove />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" side="top">
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={props.delete}
+                disabled={props.disabled}
+              >
+                Yes, I really want to delete
+              </Button>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
       <span className="text-center text-xs opacity-85">{character.name}</span>
-      {props.delete && (
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-0 right-0 size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-              disabled={props.disabled}
-            >
-              <Icons.Remove />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0" side="top">
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={props.delete}
-              disabled={props.disabled}
-            >
-              Yes, I really want to delete
-            </Button>
-          </PopoverContent>
-        </Popover>
-      )}
     </div>
   );
 }

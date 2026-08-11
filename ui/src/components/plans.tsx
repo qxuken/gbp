@@ -10,6 +10,7 @@ import {
 } from '@dnd-kit/core';
 import {
   rectSortingStrategy,
+  verticalListSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
@@ -26,6 +27,10 @@ import {
   useRenderingPlanItems,
   useRenderingPlanTotal,
 } from '@/store/plans/rendering-items';
+import {
+  UiPlansMode,
+  useUiPlansConfigModeValue,
+} from '@/store/ui-plans-config';
 
 import { CreatePlan } from './plan-card/create-plan';
 import { Card } from './ui/card';
@@ -51,6 +56,7 @@ export default function Plans() {
   const navigate = Route.useNavigate();
   const deps = Route.useLoaderDeps();
   const setFilters = useSetFilters();
+  const mode = useUiPlansConfigModeValue();
   const [revealId, setRevealId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -114,7 +120,14 @@ export default function Plans() {
         collisionDetection={closestCorners}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={plans} strategy={rectSortingStrategy}>
+        <SortableContext
+          items={plans}
+          strategy={
+            mode == UiPlansMode.V2
+              ? verticalListSortingStrategy
+              : rectSortingStrategy
+          }
+        >
           {renderingItems.length === 0 && (
             <Card className="w-full border-2 border-dashed border-muted bg-muted/5">
               <div className="w-full h-full flex items-center justify-center p-12">

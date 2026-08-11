@@ -101,6 +101,7 @@ export function ArtifactSubstatsItem({
 }) {
   const special = useSpecialsItem(value);
   const mode = useUiPlansConfigModeValue();
+  const isV2 = mode == UiPlansMode.V2;
 
   if (!special) {
     return null;
@@ -112,12 +113,14 @@ export function ArtifactSubstatsItem({
         <PopoverTrigger asChild>
           <Button
             size={mode == UiPlansMode.Short ? 'sm' : 'default'}
-            variant="destructive"
+            variant={isV2 ? 'ghost' : 'destructive'}
             className={cn(
               'leading-none not-hover:text-primary not-hover:bg-transparent',
               {
                 'text-md py-0 px-2': mode == UiPlansMode.Full,
                 'text-xs py-0 px-2 h-6': mode == UiPlansMode.Short,
+                'h-auto min-h-6 rounded-sm px-1 py-0 text-sm text-muted-foreground shadow-none transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground':
+                  isV2,
               },
             )}
             disabled={disabled}

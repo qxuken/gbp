@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 
 import { CharacterPlans } from '@/api/types';
 import { Separator } from '@/components/ui/separator';
+import { ShortNumberInput } from '@/components/ui/short-number-input';
 import { mutateFieldImmer } from '@/lib/mutate-field';
 
 import { DoubleInputLabeled } from './double-input-labeled';
@@ -30,9 +31,10 @@ type Props = {
   plan: CharacterPlans;
   mutate(cb: (v: WritableDraft<CharacterPlans>) => void): void;
   disabled?: boolean;
+  compact?: boolean;
 };
 
-export function MainStat({ plan, mutate, disabled }: Props) {
+export function MainStat({ plan, mutate, disabled, compact = false }: Props) {
   const currentBounds = getTalentBounds(plan.constellationCurrent);
   const targetBounds = getTalentBounds(plan.constellationTarget);
 
@@ -67,6 +69,53 @@ export function MainStat({ plan, mutate, disabled }: Props) {
     targetBounds.skill.max,
     targetBounds.burst.max,
   ]);
+
+  if (compact) {
+    return (
+      <div className="grid gap-y-1.5">
+        <TargetInputLabeled
+          name="Level"
+          min={1}
+          max={90}
+          value={plan.levelTarget}
+          onChange={mutateFieldImmer(mutate, 'levelTarget')}
+          disabled={disabled}
+        />
+        <TargetInputLabeled
+          name="Constellation"
+          min={0}
+          max={6}
+          value={plan.constellationTarget}
+          onChange={mutateFieldImmer(mutate, 'constellationTarget')}
+          disabled={disabled}
+        />
+        <TargetInputLabeled
+          name="Attack"
+          min={1}
+          max={10}
+          value={plan.talentAtkTarget}
+          onChange={mutateFieldImmer(mutate, 'talentAtkTarget')}
+          disabled={disabled}
+        />
+        <TargetInputLabeled
+          name="Skill"
+          min={targetBounds.skill.min}
+          max={targetBounds.skill.max}
+          value={plan.talentSkillTarget}
+          onChange={mutateFieldImmer(mutate, 'talentSkillTarget')}
+          disabled={disabled}
+        />
+        <TargetInputLabeled
+          name="Burst"
+          min={targetBounds.burst.min}
+          max={targetBounds.burst.max}
+          value={plan.talentBurstTarget}
+          onChange={mutateFieldImmer(mutate, 'talentBurstTarget')}
+          disabled={disabled}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-[auto_min-content] items-center justify-end gap-1">
@@ -119,6 +168,35 @@ export function MainStat({ plan, mutate, disabled }: Props) {
         target={plan.talentBurstTarget}
         onCurrentChange={mutateFieldImmer(mutate, 'talentBurstCurrent')}
         onTargetChange={mutateFieldImmer(mutate, 'talentBurstTarget')}
+        disabled={disabled}
+      />
+    </div>
+  );
+}
+
+function TargetInputLabeled({
+  name,
+  min,
+  max,
+  value,
+  onChange,
+  disabled,
+}: {
+  name: string;
+  min: number;
+  max: number;
+  value: number;
+  onChange(v: number): void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-1.5">
+      <span className="truncate text-xs text-muted-foreground">{name}</span>
+      <ShortNumberInput
+        value={value}
+        onChange={onChange}
+        min={min}
+        max={max}
         disabled={disabled}
       />
     </div>

@@ -84,11 +84,18 @@ export const Route = createFileRoute('/_protected/builds')({
 });
 
 function RouteLoader() {
+  const mode = useUiPlansConfigModeValue();
+
   return (
     <>
       <section
         aria-label="Builds with controls"
-        className="grid gap-2 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
+        className={cn('grid gap-2', {
+          '2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
+            mode != UiPlansMode.V2,
+          'xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
+            mode == UiPlansMode.V2,
+        })}
       >
         <aside aria-label="Controls" className="p-2 flex flex-col gap-4">
           <PlansModeSkeleton />
@@ -98,7 +105,11 @@ function RouteLoader() {
         </aside>
         <section
           aria-label="Build cards"
-          className="min-w-0 p-2 grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-4 justify-center items-start"
+          className={cn('min-w-0 p-2', {
+            'grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-4 justify-center items-start':
+              mode != UiPlansMode.V2,
+            'flex flex-col gap-4': mode == UiPlansMode.V2,
+          })}
         >
           <PlanInfoSkeleton />
           <PlanInfoSkeleton />
@@ -183,6 +194,7 @@ function RouteComponent() {
   const [filters, setFilters] = useSearchFilters();
   const isDesktop = useIsDesktopQuery();
   const mode = useUiPlansConfigModeValue();
+
   return (
     <FiltersProvider value={filters} setValue={setFilters}>
       <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
@@ -193,7 +205,7 @@ function RouteComponent() {
               '2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
                 mode == UiPlansMode.Full,
               'xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
-                mode == UiPlansMode.Short,
+                mode == UiPlansMode.Short || mode == UiPlansMode.V2,
             })}
           >
             <div
@@ -201,7 +213,8 @@ function RouteComponent() {
                 '2xl:sticky 2xl:top-0 2xl:max-h-screen':
                   isDesktop && mode == UiPlansMode.Full,
                 'xl:sticky xl:top-0 xl:max-h-screen':
-                  isDesktop && mode == UiPlansMode.Short,
+                  isDesktop &&
+                  (mode == UiPlansMode.Short || mode == UiPlansMode.V2),
               })}
             >
               <div
@@ -209,14 +222,17 @@ function RouteComponent() {
                   '2xl:max-h-screen 2xl:overflow-y-auto':
                     isDesktop && mode == UiPlansMode.Full,
                   'xl:max-h-screen xl:overflow-y-auto':
-                    isDesktop && mode == UiPlansMode.Short,
+                    isDesktop &&
+                    (mode == UiPlansMode.Short || mode == UiPlansMode.V2),
                 })}
               >
                 <aside
                   aria-label="Controls"
                   className={cn('h-fit min-w-0 flex flex-col gap-4', {
                     '2xl:max-h-screen': isDesktop && mode == UiPlansMode.Full,
-                    'xl:max-h-screen': isDesktop && mode == UiPlansMode.Short,
+                    'xl:max-h-screen':
+                      isDesktop &&
+                      (mode == UiPlansMode.Short || mode == UiPlansMode.V2),
                   })}
                 >
                   <PlanMode />
@@ -228,11 +244,12 @@ function RouteComponent() {
             </div>
             <section
               aria-label="Build cards"
-              className={cn('min-w-0 p-2 grid justify-center items-start', {
-                'grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4':
+              className={cn('min-w-0 p-2', {
+                'grid justify-center items-start grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4':
                   mode == UiPlansMode.Full,
-                'grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-2':
+                'grid justify-center items-start grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-2':
                   mode == UiPlansMode.Short,
+                'flex flex-col gap-4': mode == UiPlansMode.V2,
               })}
             >
               <Plans />

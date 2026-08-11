@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { WritableDraft } from 'immer';
 import { motion } from 'motion/react';
-import { memo } from 'react';
+import { memo, ReactNode } from 'react';
 
 import { OptimisticPlans } from '@/api/plans/character-plans';
 import { useSharedPendingPlansStatusEntry } from '@/api/plans/plans';
@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import {
   Tooltip,
   TooltipContent,
@@ -31,7 +32,7 @@ import {
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactSubstats } from './ui/artifact-substats';
 import { ArtifactTypes } from './ui/artifact-types';
-import { CharacterInfo } from './ui/character-info';
+import { CharacterInfo, CharacterInlineInfo } from './ui/character-info';
 import { MainStat } from './ui/main-stats';
 import { Note } from './ui/note';
 import { Teams } from './ui/teams';
@@ -82,6 +83,7 @@ export const PlanInfo = memo(
         className={cn('w-full overflow-hidden relative', {
           '2xl:max-w-lg': isDesktop && mode == UiPlansMode.Full,
           'xl:max-w-lg': isDesktop && mode == UiPlansMode.Short,
+          '2xl:max-w-6xl': isDesktop && mode == UiPlansMode.V2,
           'px-4': mode == UiPlansMode.Full,
           'opacity-50': isDragging,
           'border-rose-700': isError,
@@ -109,75 +111,95 @@ export const PlanInfo = memo(
             </TooltipContent>
           </Tooltip>
         </motion.div>
-        <motion.div
-          className="w-full flex justify-center pt-1"
-          initial={{
-            opacity: props.disabled ? 0 : 1,
-          }}
-          animate={{
-            opacity: props.disabled ? 0 : 1,
-          }}
-          transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
-          aria-hidden={!props.disabled}
-        >
-          {!props.disabled ? (
-            <Icons.Drag
-              className="py-1 cursor-grab"
-              {...listeners}
-              {...attributes}
-            />
-          ) : (
-            <Icons.Drag
-              className="opacity-25 py-1 cursor-default"
-              {...attributes}
-            />
-          )}
-        </motion.div>
-        <PlanCardTitle {...props} isLoading={isUpdating} />
-        <PlanCardStats {...props} />
-        <CardContent
-          className={cn('w-full pt-4 flex flex-col', {
-            'gap-3': mode == UiPlansMode.Full,
-            'gap-1.5': mode == UiPlansMode.Short,
-          })}
-        >
-          <Weapons
-            planId={props.plan.id}
-            weaponType={props.character.weaponType}
-            weaponPlansPlans={props.plan.weaponPlans}
-            disabled={props.disabled}
+        {mode == UiPlansMode.V2 ? (
+          <PlanCardV2
+            {...props}
+            isLoading={isUpdating}
+            isError={isError}
+            dragHandle={
+              <Icons.Drag
+                className={cn('size-5 shrink-0 py-1', {
+                  'cursor-grab': !props.disabled,
+                  'cursor-default opacity-25': props.disabled,
+                })}
+                {...attributes}
+                {...(!props.disabled ? listeners : {})}
+              />
+            }
           />
-          <ArtifactSets
-            planId={props.plan.id}
-            artifactSetsPlans={props.plan.artifactSetsPlans}
-            disabled={props.disabled}
-          />
-          <ArtifactTypes
-            planId={props.plan.id}
-            artfactTypesPlans={props.plan.artifactTypePlans}
-            disabled={props.disabled}
-          />
-          <ArtifactSubstats
-            substats={props.plan.substats}
-            mutate={props.update}
-            disabled={props.disabled}
-          />
-          {mode == UiPlansMode.Full && (
-            <>
-              <Teams
+        ) : (
+          <>
+            <motion.div
+              className="w-full flex justify-center pt-1"
+              initial={{
+                opacity: props.disabled ? 0 : 1,
+              }}
+              animate={{
+                opacity: props.disabled ? 0 : 1,
+              }}
+              transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
+              aria-hidden={!props.disabled}
+            >
+              {!props.disabled ? (
+                <Icons.Drag
+                  className="py-1 cursor-grab"
+                  {...listeners}
+                  {...attributes}
+                />
+              ) : (
+                <Icons.Drag
+                  className="opacity-25 py-1 cursor-default"
+                  {...attributes}
+                />
+              )}
+            </motion.div>
+            <PlanCardTitle {...props} isLoading={isUpdating} />
+            <PlanCardStats {...props} />
+            <CardContent
+              className={cn('w-full pt-4 flex flex-col', {
+                'gap-3': mode == UiPlansMode.Full,
+                'gap-1.5': mode == UiPlansMode.Short,
+              })}
+            >
+              <Weapons
                 planId={props.plan.id}
-                character={props.character}
-                teamPlans={props.plan.teamPlans}
+                weaponType={props.character.weaponType}
+                weaponPlansPlans={props.plan.weaponPlans}
                 disabled={props.disabled}
               />
-              <Note
-                note={props.plan.note}
-                mutate={mutateFieldImmer(props.update, 'note')}
+              <ArtifactSets
+                planId={props.plan.id}
+                artifactSetsPlans={props.plan.artifactSetsPlans}
                 disabled={props.disabled}
               />
-            </>
-          )}
-        </CardContent>
+              <ArtifactTypes
+                planId={props.plan.id}
+                artfactTypesPlans={props.plan.artifactTypePlans}
+                disabled={props.disabled}
+              />
+              <ArtifactSubstats
+                substats={props.plan.substats}
+                mutate={props.update}
+                disabled={props.disabled}
+              />
+              {mode == UiPlansMode.Full && (
+                <>
+                  <Teams
+                    planId={props.plan.id}
+                    character={props.character}
+                    teamPlans={props.plan.teamPlans}
+                    disabled={props.disabled}
+                  />
+                  <Note
+                    note={props.plan.note}
+                    mutate={mutateFieldImmer(props.update, 'note')}
+                    disabled={props.disabled}
+                  />
+                </>
+              )}
+            </CardContent>
+          </>
+        )}
       </Card>
     );
   },
@@ -217,6 +239,102 @@ function PlanCardStats(props: Props) {
   );
 }
 
+function PlanCardV2(
+  props: Props & { dragHandle: ReactNode; isError?: boolean },
+) {
+  return (
+    <>
+      <CardTitle className="flex w-full items-center gap-2 px-4 py-3">
+        {props.dragHandle}
+        <CollectionAvatar
+          className="size-11 shrink-0 rounded-lg border border-border"
+          record={props.character}
+          fileName={props.character.icon}
+          name={props.character.name}
+        />
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-lg font-semibold">
+            {props.character.name}
+          </span>
+          <CharacterInlineInfo character={props.character} className="mt-0.5" />
+        </div>
+        <span
+          className={cn(
+            'hidden rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-flex',
+            { 'bg-primary/15 text-primary': props.plan.complete },
+          )}
+        >
+          {props.plan.complete ? 'Built' : 'Farming'}
+        </span>
+        <PlanCardCompleteToggle {...props} />
+        <PlanCardActions {...props} />
+      </CardTitle>
+      <CardContent className="p-0">
+        <div className="grid border-t lg:grid-cols-[12rem_minmax(14rem,0.85fr)_minmax(18rem,1.2fr)]">
+          <section className="min-w-0 p-4 lg:border-r">
+            <MainStat
+              plan={props.plan}
+              mutate={props.update}
+              disabled={props.disabled}
+              compact
+            />
+          </section>
+          <section className="min-w-0 border-t p-4 lg:border-t-0 lg:border-r">
+            <Weapons
+              planId={props.plan.id}
+              weaponType={props.character.weaponType}
+              weaponPlansPlans={props.plan.weaponPlans}
+              disabled={props.disabled}
+            />
+          </section>
+          <section className="min-w-0 border-t p-4 lg:border-t-0">
+            <ArtifactSets
+              planId={props.plan.id}
+              artifactSetsPlans={props.plan.artifactSetsPlans}
+              disabled={props.disabled}
+            />
+          </section>
+        </div>
+        <div className="grid border-t xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.52fr)]">
+          <div className="min-w-0 xl:border-r">
+            <section className="min-w-0 p-4">
+              <ArtifactTypes
+                title={null}
+                planId={props.plan.id}
+                artfactTypesPlans={props.plan.artifactTypePlans}
+                disabled={props.disabled}
+              />
+            </section>
+            <section className="min-w-0 border-t p-4">
+              <ArtifactSubstats
+                substats={props.plan.substats}
+                mutate={props.update}
+                disabled={props.disabled}
+              />
+            </section>
+          </div>
+          <section className="min-w-0 border-t p-4 xl:border-t-0">
+            <Teams
+              planId={props.plan.id}
+              character={props.character}
+              teamPlans={props.plan.teamPlans}
+              disabled={props.disabled}
+            />
+          </section>
+        </div>
+        <Separator />
+        <div className="p-4">
+          <Note
+            note={props.plan.note}
+            mutate={mutateFieldImmer(props.update, 'note')}
+            disabled={props.disabled}
+          />
+        </div>
+      </CardContent>
+    </>
+  );
+}
+
 const DEFAULT_VISIBLE = 'block group-hover/plan-complete:hidden';
 const DEFAULT_HIDDEN = 'hidden group-hover/plan-complete:block';
 
@@ -241,81 +359,93 @@ function PlanCardTitle(props: Props) {
       >
         <span className="font-semibold text-lg">{props.character.name}</span>
         <CharacterInfo character={props.character} />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="group/plan-complete size-7 opacity-50 hover:opacity-75 hover:outline"
-              disabled={props.disabled}
-              onClick={() =>
-                props.update((v) => {
-                  v.complete = !v.complete;
-                })
-              }
-            >
-              <Icons.NotComplete
-                className={
-                  props.plan.complete ? DEFAULT_HIDDEN : DEFAULT_VISIBLE
-                }
-              />
-              <Icons.Complete
-                className={
-                  props.plan.complete ? DEFAULT_VISIBLE : DEFAULT_HIDDEN
-                }
-              />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {props.plan.complete ? 'Mark incomplete' : 'Mark complete'}
-          </TooltipContent>
-        </Tooltip>
+        <PlanCardCompleteToggle {...props} />
         <div className="flex-1" />
-        <motion.div
-          initial={{
-            scale: 0,
-          }}
-          animate={{
-            scale: props.isError ? 1 : 0,
-          }}
-          transition={{ duration: 0.15 }}
-          aria-hidden={!props.isError}
-        >
-          <Button
-            size={mode == UiPlansMode.Full ? 'sm' : 'icon'}
-            className={cn({
-              'size-7': mode == UiPlansMode.Short,
-            })}
-            variant="destructive"
-            onClick={props.retry}
-          >
-            <Icons.Retry className="size-4" />
-            {mode == UiPlansMode.Full ? 'Retry' : null}
-          </Button>
-        </motion.div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-              disabled={props.isLoading}
-            >
-              <Icons.Remove />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0" side="top">
-            <Button
-              variant="destructive"
-              className="w-full"
-              disabled={props.disabled}
-              onClick={props.delete}
-            >
-              Yes, I really want to delete
-            </Button>
-          </PopoverContent>
-        </Popover>
+        <PlanCardActions {...props} />
       </div>
     </CardTitle>
+  );
+}
+
+function PlanCardCompleteToggle(props: Props) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="group/plan-complete size-7 shrink-0 opacity-50 hover:opacity-75 hover:outline"
+          disabled={props.disabled}
+          onClick={() =>
+            props.update((v) => {
+              v.complete = !v.complete;
+            })
+          }
+        >
+          <Icons.NotComplete
+            className={props.plan.complete ? DEFAULT_HIDDEN : DEFAULT_VISIBLE}
+          />
+          <Icons.Complete
+            className={props.plan.complete ? DEFAULT_VISIBLE : DEFAULT_HIDDEN}
+          />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        {props.plan.complete ? 'Mark incomplete' : 'Mark complete'}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function PlanCardActions(props: Props) {
+  const mode = useUiPlansConfigModeValue();
+
+  return (
+    <>
+      <motion.div
+        initial={{
+          scale: 0,
+        }}
+        animate={{
+          scale: props.isError ? 1 : 0,
+        }}
+        transition={{ duration: 0.15 }}
+        aria-hidden={!props.isError}
+      >
+        <Button
+          size={mode == UiPlansMode.Full ? 'sm' : 'icon'}
+          className={cn({
+            'size-7': mode == UiPlansMode.Short,
+          })}
+          variant="destructive"
+          onClick={props.retry}
+        >
+          <Icons.Retry className="size-4" />
+          {mode == UiPlansMode.Full ? 'Retry' : null}
+        </Button>
+      </motion.div>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+            disabled={props.isLoading}
+          >
+            <Icons.Remove />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0" side="top">
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled={props.disabled}
+            onClick={props.delete}
+          >
+            Yes, I really want to delete
+          </Button>
+        </PopoverContent>
+      </Popover>
+    </>
   );
 }

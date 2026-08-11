@@ -80,8 +80,16 @@ export function ArtifactSets(props: Props) {
             disabled={props.disabled}
           />
         );
+      case UiPlansMode.V2:
+        return (
+          <ArtifactSetsV2
+            planId={props.planId}
+            mutation={mutation}
+            disabled={props.disabled}
+          />
+        );
     }
-  }, [props.planId, mutation, props.disabled]);
+  }, [mode, props.planId, mutation, props.disabled]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -140,7 +148,14 @@ export function ArtifactSets(props: Props) {
           </Button>
         )}
       </div>
-      <div className="grid gap-1 w-full">{artifacts}</div>
+      <div
+        className={cn('grid w-full', {
+          'gap-2': mode == UiPlansMode.V2,
+          'gap-1': mode != UiPlansMode.V2,
+        })}
+      >
+        {artifacts}
+      </div>
     </div>
   );
 }
@@ -202,6 +217,63 @@ export function ArtifactSetsFull(
   );
 }
 
+function ArtifactSetsV2(
+  props: Pick<Props, 'disabled' | 'planId'> & {
+    mutation: ReturnType<typeof useArtifactSetsPlansMutation>;
+  },
+) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    handleReorderImmer(event, props.mutation.records, props.mutation.update);
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={props.mutation.records}
+        strategy={verticalListSortingStrategy}
+      >
+        {props.mutation.records.map((as) => (
+          <ArtifactSetDrag
+            key={as.id}
+            artifactSetPlan={as}
+            isLoading={as.isOptimistic}
+            disabled={
+              props.disabled ||
+              as.isOptimisticBlocked ||
+              props.mutation.records.length === 1
+            }
+            compact
+          >
+            <div className="w-full">
+              <ArtifactSetPlan
+                artifactSetPlan={as}
+                update={(cb) => props.mutation.update(as, cb)}
+                delete={() => props.mutation.delete(as.id)}
+                isLoading={as.isOptimistic}
+                disabled={as.isOptimisticBlocked || props.disabled}
+                isFullMode
+                compact
+              />
+            </div>
+          </ArtifactSetDrag>
+        ))}
+      </SortableContext>
+    </DndContext>
+  );
+}
+
 export function ArtifactSetsShort(
   props: Pick<Props, 'disabled' | 'planId'> & {
     mutation: ReturnType<typeof useArtifactSetsPlansMutation>;
@@ -225,7 +297,9 @@ export function ArtifactSetsShort(
 
 function ArtifactSetDrag(
   props: PropsWithChildren<
-    Pick<ArtifactSetPlanProps, 'artifactSetPlan' | 'isLoading' | 'disabled'>
+    Pick<ArtifactSetPlanProps, 'artifactSetPlan' | 'isLoading' | 'disabled'> & {
+      compact?: boolean;
+    }
   >,
 ) {
   const {
@@ -255,15 +329,23 @@ function ArtifactSetDrag(
       })}
     >
       <div className="flex">
-        <div className="pt-4">
+        <div className={cn({ 'pt-1': props.compact, 'pt-4': !props.compact })}>
           {!props.disabled ? (
             <Icons.Drag
-              className="rotate-90 size-6 py-1"
+              className={cn('rotate-90 py-1', {
+                'size-5': props.compact,
+                'size-6': !props.compact,
+              })}
               {...listeners}
               {...attributes}
             />
           ) : (
-            <div className="size-6 py-1" />
+            <div
+              className={cn('py-1', {
+                'size-5': props.compact,
+                'size-6': !props.compact,
+              })}
+            />
           )}
         </div>
         {props.children}
@@ -293,6 +375,7 @@ type ArtifactSetPlanProps = {
   isLoading?: boolean;
   disabled?: boolean;
   isFullMode?: boolean;
+  compact?: boolean;
 };
 function ArtifactSetPlan(props: ArtifactSetPlanProps) {
   const artifactSets = props.artifactSetPlan.artifactSets;
@@ -329,6 +412,7 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
       className={cn('flex-1', {
         'animate-pulse': props.isLoading,
         'mb-1': artifactSets.length !== 1,
+        'flex gap-3': props.compact && artifactSets.length === 2,
       })}
     >
       {artifactSets.map((artifactSet, _, items) => (
@@ -339,6 +423,7 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
           ignoreArtifacts={artifactSetsSet}
           isSplit={items.length == 2}
           delete={() => deleteSet(artifactSet)}
+          compact={props.compact}
         />
       ))}
     </div>
@@ -386,6 +471,7 @@ type ArtifactSetProps = {
   ignoreArtifacts: Set<string>;
   disabled?: boolean;
   skipConfirmation?: boolean;
+  compact?: boolean;
 };
 
 function ArtifactSetFull(props: ArtifactSetProps) {
@@ -395,7 +481,7 @@ function ArtifactSetFull(props: ArtifactSetProps) {
     return null;
   }
   return (
-    <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+    <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 py-1">
       <div
         className="cursor-pointer"
         onClick={() =>
@@ -410,14 +496,28 @@ function ArtifactSetFull(props: ArtifactSetProps) {
           record={artifactSet}
           fileName={artifactSet.icon}
           name={artifactSet.name}
-          className="size-12"
+          className={cn('shrink-0', {
+            'size-8': props.compact,
+            'size-12': !props.compact,
+          })}
         />
       </div>
       <div className="min-w-0">
         <div className="min-w-0">
-          <span className="min-w-0 text-balance">{artifactSet.name}</span>
+          <span
+            className={cn('min-w-0 text-balance', {
+              'truncate text-sm': props.compact,
+            })}
+          >
+            {artifactSet.name}
+          </span>
         </div>
-        <div className="mt-1 flex items-center gap-1.5">
+        <div
+          className={cn('flex items-center gap-1.5', {
+            'mt-0': props.compact,
+            'mt-1': !props.compact,
+          })}
+        >
           <span className="text-xs text-muted-foreground">
             {props.isSplit ? '2 pcs' : '4 pcs'}
           </span>
