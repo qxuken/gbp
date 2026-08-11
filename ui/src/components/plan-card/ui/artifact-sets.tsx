@@ -299,7 +299,6 @@ type ArtifactSetProps = {
   ignoreArtifacts: Set<string>;
   disabled?: boolean;
   skipConfirmation?: boolean;
-  compact?: boolean;
 };
 
 function ArtifactSetFull(props: ArtifactSetProps) {
@@ -324,28 +323,14 @@ function ArtifactSetFull(props: ArtifactSetProps) {
           record={artifactSet}
           fileName={artifactSet.icon}
           name={artifactSet.name}
-          className={cn('shrink-0', {
-            'size-8': props.compact,
-            'size-12': !props.compact,
-          })}
+          className="shrink-0 size-12"
         />
       </div>
       <div className="min-w-0">
         <div className="min-w-0">
-          <span
-            className={cn('min-w-0 text-balance', {
-              'truncate text-sm': props.compact,
-            })}
-          >
-            {artifactSet.name}
-          </span>
+          <span className="min-w-0 text-balance">{artifactSet.name}</span>
         </div>
-        <div
-          className={cn('flex items-center gap-1.5', {
-            'mt-0': props.compact,
-            'mt-1': !props.compact,
-          })}
-        >
+        <div className="flex items-center gap-1.5 mt-1">
           <span className="text-xs text-muted-foreground">
             {props.isSplit ? '2 pcs' : '4 pcs'}
           </span>

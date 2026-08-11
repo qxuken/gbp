@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { DoubleInputLabeledSkeleton } from './double-input-labeled';
 
-export function WeaponsSkeleton({ compact = false }: { compact?: boolean }) {
+export function WeaponsSkeleton() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
@@ -10,26 +10,13 @@ export function WeaponsSkeleton({ compact = false }: { compact?: boolean }) {
         <Skeleton className="size-5 rounded-md" />
       </div>
       <div className="grid gap-2 w-full">
-        <WeaponSkeleton compact={compact} />
-        {compact && <WeaponSkeleton compact />}
+        <WeaponSkeleton />
       </div>
     </div>
   );
 }
 
-function WeaponSkeleton({ compact = false }: { compact?: boolean }) {
-  if (compact) {
-    return (
-      <div className="flex items-center gap-2 py-1">
-        <Skeleton className="size-5" />
-        <Skeleton className="size-8 rounded-md" />
-        <Skeleton className="h-4 w-28 rounded-md" />
-        <div className="flex-1" />
-        <Skeleton className="size-6 rounded-md" />
-      </div>
-    );
-  }
-
+function WeaponSkeleton() {
   return (
     <div className="w-full flex gap-2">
       <div className="pt-2 ps-0.5">
