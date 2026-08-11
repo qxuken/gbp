@@ -16,7 +16,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { WritableDraft } from 'immer';
-import { Fragment, PropsWithChildren, useMemo } from 'react';
+import { Fragment, PropsWithChildren } from 'react';
 
 import { useArtifactSetsItem } from '@/api/dictionaries/hooks';
 import { useArtifactSetsPlansMutation } from '@/api/plans/artifact-sets-plans';
@@ -39,10 +39,6 @@ import { removeByPredMut } from '@/lib/array-remove-mut';
 import { handleReorderImmer } from '@/lib/handle-reorder';
 import { cn } from '@/lib/utils';
 import { useSetFilters } from '@/store/plans/filters';
-import {
-  UiPlansMode,
-  useUiPlansConfigModeValue,
-} from '@/store/ui-plans-config';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
 
@@ -60,37 +56,6 @@ export function ArtifactSets(props: Props) {
     props.disabled,
   );
 
-  const mode = useUiPlansConfigModeValue();
-
-  const artifacts = useMemo(() => {
-    switch (mode) {
-      case UiPlansMode.Full:
-        return (
-          <ArtifactSetsFull
-            planId={props.planId}
-            mutation={mutation}
-            disabled={props.disabled}
-          />
-        );
-      case UiPlansMode.Short:
-        return (
-          <ArtifactSetsShort
-            planId={props.planId}
-            mutation={mutation}
-            disabled={props.disabled}
-          />
-        );
-      case UiPlansMode.V2:
-        return (
-          <ArtifactSetsV2
-            planId={props.planId}
-            mutation={mutation}
-            disabled={props.disabled}
-          />
-        );
-    }
-  }, [mode, props.planId, mutation, props.disabled]);
-
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-1">
@@ -101,11 +66,6 @@ export function ArtifactSets(props: Props) {
         >
           Artifacts
         </span>
-        {mode == UiPlansMode.Short && mutation.records.length > 1 && (
-          <span className="text-xs text-muted-foreground self-start">
-            +{mutation.records.length - 1}
-          </span>
-        )}
         {mutation.records.length < MAX_SETS && (
           <ArtifactSetPicker
             title="New artifact set"
@@ -121,20 +81,6 @@ export function ArtifactSets(props: Props) {
             </Button>
           </ArtifactSetPicker>
         )}
-        {mode == UiPlansMode.Short &&
-          mutation.records.length > 0 &&
-          mutation.records[0].artifactSets.length == 1 && (
-            <SplitButton
-              enabled
-              onSelect={(newArtifactSet) => {
-                const firstArtifactSet = mutation.records[0];
-                mutation.update(firstArtifactSet, (state) => {
-                  state.artifactSets.push(newArtifactSet);
-                });
-              }}
-              ignoreArtifacts={new Set(mutation.records?.[0]?.artifactSets)}
-            />
-          )}
         <div className="flex-1" />
         {mutation.isError && (
           <Button
@@ -148,13 +94,12 @@ export function ArtifactSets(props: Props) {
           </Button>
         )}
       </div>
-      <div
-        className={cn('grid w-full', {
-          'gap-2': mode == UiPlansMode.V2,
-          'gap-1': mode != UiPlansMode.V2,
-        })}
-      >
-        {artifacts}
+      <div className="grid w-full gap-1">
+        <ArtifactSetsFull
+          planId={props.planId}
+          mutation={mutation}
+          disabled={props.disabled}
+        />
       </div>
     </div>
   );
@@ -204,7 +149,6 @@ export function ArtifactSetsFull(
                 delete={() => props.mutation.delete(as.id)}
                 isLoading={as.isOptimistic}
                 disabled={as.isOptimisticBlocked || props.disabled}
-                isFullMode
               />
             </ArtifactSetDrag>
             {props.mutation.records.length - 1 !== i && (
@@ -217,89 +161,9 @@ export function ArtifactSetsFull(
   );
 }
 
-function ArtifactSetsV2(
-  props: Pick<Props, 'disabled' | 'planId'> & {
-    mutation: ReturnType<typeof useArtifactSetsPlansMutation>;
-  },
-) {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  function handleDragEnd(event: DragEndEvent) {
-    handleReorderImmer(event, props.mutation.records, props.mutation.update);
-  }
-
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext
-        items={props.mutation.records}
-        strategy={verticalListSortingStrategy}
-      >
-        {props.mutation.records.map((as) => (
-          <ArtifactSetDrag
-            key={as.id}
-            artifactSetPlan={as}
-            isLoading={as.isOptimistic}
-            disabled={
-              props.disabled ||
-              as.isOptimisticBlocked ||
-              props.mutation.records.length === 1
-            }
-            compact
-          >
-            <div className="w-full">
-              <ArtifactSetPlan
-                artifactSetPlan={as}
-                update={(cb) => props.mutation.update(as, cb)}
-                delete={() => props.mutation.delete(as.id)}
-                isLoading={as.isOptimistic}
-                disabled={as.isOptimisticBlocked || props.disabled}
-                isFullMode
-                compact
-              />
-            </div>
-          </ArtifactSetDrag>
-        ))}
-      </SortableContext>
-    </DndContext>
-  );
-}
-
-export function ArtifactSetsShort(
-  props: Pick<Props, 'disabled' | 'planId'> & {
-    mutation: ReturnType<typeof useArtifactSetsPlansMutation>;
-  },
-) {
-  const as = props.mutation.records[0];
-  if (!as) return null;
-
-  return (
-    <ArtifactSetNoDrag isLoading={as.isOptimistic}>
-      <ArtifactSetPlan
-        artifactSetPlan={as}
-        update={(cb) => props.mutation.update(as, cb)}
-        delete={() => props.mutation.delete(as.id)}
-        isLoading={as.isOptimistic}
-        disabled={as.isOptimisticBlocked || props.disabled}
-      />
-    </ArtifactSetNoDrag>
-  );
-}
-
 function ArtifactSetDrag(
   props: PropsWithChildren<
-    Pick<ArtifactSetPlanProps, 'artifactSetPlan' | 'isLoading' | 'disabled'> & {
-      compact?: boolean;
-    }
+    Pick<ArtifactSetPlanProps, 'artifactSetPlan' | 'isLoading' | 'disabled'>
   >,
 ) {
   const {
@@ -324,46 +188,22 @@ function ArtifactSetDrag(
       ref={setNodeRef}
       style={style}
       className={cn('w-full relative', {
-        ['animate-pulse']: props.isLoading,
+        'animate-pulse': props.isLoading,
         'opacity-50': isDragging,
       })}
     >
       <div className="flex">
-        <div className={cn({ 'pt-1': props.compact, 'pt-4': !props.compact })}>
-          {!props.disabled ? (
-            <Icons.Drag
-              className={cn('rotate-90 py-1', {
-                'size-5': props.compact,
-                'size-6': !props.compact,
-              })}
-              {...listeners}
-              {...attributes}
-            />
-          ) : (
-            <div
-              className={cn('py-1', {
-                'size-5': props.compact,
-                'size-6': !props.compact,
-              })}
-            />
-          )}
-        </div>
+        {!props.disabled ? (
+          <Icons.Drag
+            className="self-center rotate-90 py-1 size-6"
+            {...listeners}
+            {...attributes}
+          />
+        ) : (
+          <div className="py-1 size-6" />
+        )}
         {props.children}
       </div>
-    </div>
-  );
-}
-
-function ArtifactSetNoDrag(
-  props: PropsWithChildren<Pick<ArtifactSetPlanProps, 'isLoading'>>,
-) {
-  return (
-    <div
-      className={cn('w-full relative', {
-        ['animate-pulse']: props.isLoading,
-      })}
-    >
-      <div className="flex">{props.children}</div>
     </div>
   );
 }
@@ -374,8 +214,6 @@ type ArtifactSetPlanProps = {
   delete: () => void;
   isLoading?: boolean;
   disabled?: boolean;
-  isFullMode?: boolean;
-  compact?: boolean;
 };
 function ArtifactSetPlan(props: ArtifactSetPlanProps) {
   const artifactSets = props.artifactSetPlan.artifactSets;
@@ -399,31 +237,21 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
     }
   };
 
-  const Component = useMemo(() => {
-    if (props.isFullMode) {
-      return ArtifactSetFull;
-    } else {
-      return ArtifactSetShort;
-    }
-  }, [props.isFullMode]);
-
   return (
     <div
       className={cn('flex-1', {
         'animate-pulse': props.isLoading,
         'mb-1': artifactSets.length !== 1,
-        'flex gap-3': props.compact && artifactSets.length === 2,
       })}
     >
       {artifactSets.map((artifactSet, _, items) => (
-        <Component
+        <ArtifactSetFull
           key={artifactSet}
           artifactSet={artifactSet}
           add={addSet}
           ignoreArtifacts={artifactSetsSet}
           isSplit={items.length == 2}
           delete={() => deleteSet(artifactSet)}
-          compact={props.compact}
         />
       ))}
     </div>

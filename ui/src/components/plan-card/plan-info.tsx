@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { WritableDraft } from 'immer';
 import { motion } from 'motion/react';
-import { memo, ReactNode } from 'react';
+import { memo } from 'react';
 
 import { OptimisticPlans } from '@/api/plans/character-plans';
 import { useSharedPendingPlansStatusEntry } from '@/api/plans/plans';
@@ -15,7 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
 import {
   Tooltip,
   TooltipContent,
@@ -24,15 +23,11 @@ import {
 import { useIsDesktopQuery } from '@/hooks/use-is-desktop-query';
 import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
-import {
-  UiPlansMode,
-  useUiPlansConfigModeValue,
-} from '@/store/ui-plans-config';
 
 import { ArtifactSets } from './ui/artifact-sets';
 import { ArtifactSubstats } from './ui/artifact-substats';
 import { ArtifactTypes } from './ui/artifact-types';
-import { CharacterInfo, CharacterInlineInfo } from './ui/character-info';
+import { CharacterInfo } from './ui/character-info';
 import { MainStat } from './ui/main-stats';
 import { Note } from './ui/note';
 import { Teams } from './ui/teams';
@@ -54,7 +49,6 @@ export const PlanInfo = memo(
     const [plansInnerMutationsIsPending, plansInnerMutationsHasError] =
       useSharedPendingPlansStatusEntry(props.plan.id);
 
-    const mode = useUiPlansConfigModeValue();
     const isDesktop = useIsDesktopQuery();
 
     const isUpdating = props.isLoading || plansInnerMutationsIsPending;
@@ -80,11 +74,8 @@ export const PlanInfo = memo(
       <Card
         id={props.plan.id}
         ref={setNodeRef}
-        className={cn('w-full overflow-hidden relative', {
-          '2xl:max-w-lg': isDesktop && mode == UiPlansMode.Full,
-          'xl:max-w-lg': isDesktop && mode == UiPlansMode.Short,
-          '2xl:max-w-6xl': isDesktop && mode == UiPlansMode.V2,
-          'px-4': mode == UiPlansMode.Full,
+        className={cn('w-full overflow-hidden relative px-4', {
+          '2xl:max-w-lg': isDesktop,
           'opacity-50': isDragging,
           'border-rose-700': isError,
           'grayscale-100': props.plan.complete,
@@ -111,95 +102,70 @@ export const PlanInfo = memo(
             </TooltipContent>
           </Tooltip>
         </motion.div>
-        {mode == UiPlansMode.V2 ? (
-          <PlanCardV2
-            {...props}
-            isLoading={isUpdating}
-            isError={isError}
-            dragHandle={
+        <>
+          <motion.div
+            className="w-full flex justify-center pt-1"
+            initial={{
+              opacity: props.disabled ? 0 : 1,
+            }}
+            animate={{
+              opacity: props.disabled ? 0 : 1,
+            }}
+            transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
+            aria-hidden={!props.disabled}
+          >
+            {!props.disabled ? (
               <Icons.Drag
-                className={cn('size-5 shrink-0 py-1', {
-                  'cursor-grab': !props.disabled,
-                  'cursor-default opacity-25': props.disabled,
-                })}
+                className="py-1 cursor-grab"
+                {...listeners}
                 {...attributes}
-                {...(!props.disabled ? listeners : {})}
               />
-            }
-          />
-        ) : (
-          <>
-            <motion.div
-              className="w-full flex justify-center pt-1"
-              initial={{
-                opacity: props.disabled ? 0 : 1,
-              }}
-              animate={{
-                opacity: props.disabled ? 0 : 1,
-              }}
-              transition={{ duration: 0.2, type: 'spring', bounce: 0 }}
-              aria-hidden={!props.disabled}
-            >
-              {!props.disabled ? (
-                <Icons.Drag
-                  className="py-1 cursor-grab"
-                  {...listeners}
-                  {...attributes}
-                />
-              ) : (
-                <Icons.Drag
-                  className="opacity-25 py-1 cursor-default"
-                  {...attributes}
-                />
-              )}
-            </motion.div>
-            <PlanCardTitle {...props} isLoading={isUpdating} />
-            <PlanCardStats {...props} />
-            <CardContent
-              className={cn('w-full pt-4 flex flex-col', {
-                'gap-3': mode == UiPlansMode.Full,
-                'gap-1.5': mode == UiPlansMode.Short,
-              })}
-            >
-              <Weapons
+            ) : (
+              <Icons.Drag
+                className="opacity-25 py-1 cursor-default"
+                {...attributes}
+              />
+            )}
+          </motion.div>
+          <PlanCardTitle {...props} isLoading={isUpdating} />
+          <PlanCardStats {...props} />
+          <CardContent className="w-full pt-4 flex flex-col gap-3">
+            <Weapons
+              planId={props.plan.id}
+              weaponType={props.character.weaponType}
+              weaponPlansPlans={props.plan.weaponPlans}
+              disabled={props.disabled}
+            />
+            <ArtifactSets
+              planId={props.plan.id}
+              artifactSetsPlans={props.plan.artifactSetsPlans}
+              disabled={props.disabled}
+            />
+            <ArtifactTypes
+              planId={props.plan.id}
+              artfactTypesPlans={props.plan.artifactTypePlans}
+              disabled={props.disabled}
+            />
+            <ArtifactSubstats
+              substats={props.plan.substats}
+              mutate={props.update}
+              disabled={props.disabled}
+            />
+            <>
+              <Teams
                 planId={props.plan.id}
-                weaponType={props.character.weaponType}
-                weaponPlansPlans={props.plan.weaponPlans}
+                character={props.character}
+                teamPlans={props.plan.teamPlans}
                 disabled={props.disabled}
               />
-              <ArtifactSets
-                planId={props.plan.id}
-                artifactSetsPlans={props.plan.artifactSetsPlans}
+              <Note
+                note={props.plan.note}
+                mutate={mutateFieldImmer(props.update, 'note')}
                 disabled={props.disabled}
               />
-              <ArtifactTypes
-                planId={props.plan.id}
-                artfactTypesPlans={props.plan.artifactTypePlans}
-                disabled={props.disabled}
-              />
-              <ArtifactSubstats
-                substats={props.plan.substats}
-                mutate={props.update}
-                disabled={props.disabled}
-              />
-              {mode == UiPlansMode.Full && (
-                <>
-                  <Teams
-                    planId={props.plan.id}
-                    character={props.character}
-                    teamPlans={props.plan.teamPlans}
-                    disabled={props.disabled}
-                  />
-                  <Note
-                    note={props.plan.note}
-                    mutate={mutateFieldImmer(props.update, 'note')}
-                    disabled={props.disabled}
-                  />
-                </>
-              )}
-            </CardContent>
-          </>
-        )}
+            </>
+          </CardContent>
+        </>
       </Card>
     );
   },
@@ -216,11 +182,6 @@ export const PlanInfo = memo(
 );
 
 function PlanCardStats(props: Props) {
-  const mode = useUiPlansConfigModeValue();
-
-  if (mode != UiPlansMode.Full) {
-    return null;
-  }
   return (
     <div className="flex items-start justify-around">
       <MainStat
@@ -228,6 +189,7 @@ function PlanCardStats(props: Props) {
         mutate={props.update}
         disabled={props.disabled}
       />
+      <div />
       <CollectionAvatar
         className="size-35 rounded-2xl ml-6"
         record={props.character}
@@ -239,124 +201,13 @@ function PlanCardStats(props: Props) {
   );
 }
 
-function PlanCardV2(
-  props: Props & { dragHandle: ReactNode; isError?: boolean },
-) {
-  return (
-    <>
-      <CardTitle className="flex w-full items-center gap-2 px-4 py-3">
-        {props.dragHandle}
-        <CollectionAvatar
-          className="size-11 shrink-0 rounded-lg border border-border"
-          record={props.character}
-          fileName={props.character.icon}
-          name={props.character.name}
-        />
-        <div className="min-w-0 flex-1">
-          <span className="block truncate text-lg font-semibold">
-            {props.character.name}
-          </span>
-          <CharacterInlineInfo character={props.character} className="mt-0.5" />
-        </div>
-        <span
-          className={cn(
-            'hidden rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-flex',
-            { 'bg-primary/15 text-primary': props.plan.complete },
-          )}
-        >
-          {props.plan.complete ? 'Built' : 'Farming'}
-        </span>
-        <PlanCardCompleteToggle {...props} />
-        <PlanCardActions {...props} />
-      </CardTitle>
-      <CardContent className="p-0">
-        <div className="grid border-t lg:grid-cols-[12rem_minmax(14rem,0.85fr)_minmax(18rem,1.2fr)]">
-          <section className="min-w-0 p-4 lg:border-r">
-            <MainStat
-              plan={props.plan}
-              mutate={props.update}
-              disabled={props.disabled}
-              compact
-            />
-          </section>
-          <section className="min-w-0 border-t p-4 lg:border-t-0 lg:border-r">
-            <Weapons
-              planId={props.plan.id}
-              weaponType={props.character.weaponType}
-              weaponPlansPlans={props.plan.weaponPlans}
-              disabled={props.disabled}
-            />
-          </section>
-          <section className="min-w-0 border-t p-4 lg:border-t-0">
-            <ArtifactSets
-              planId={props.plan.id}
-              artifactSetsPlans={props.plan.artifactSetsPlans}
-              disabled={props.disabled}
-            />
-          </section>
-        </div>
-        <div className="grid border-t xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.52fr)]">
-          <div className="min-w-0 xl:border-r">
-            <section className="min-w-0 p-4">
-              <ArtifactTypes
-                title={null}
-                planId={props.plan.id}
-                artfactTypesPlans={props.plan.artifactTypePlans}
-                disabled={props.disabled}
-              />
-            </section>
-            <section className="min-w-0 border-t p-4">
-              <ArtifactSubstats
-                substats={props.plan.substats}
-                mutate={props.update}
-                disabled={props.disabled}
-              />
-            </section>
-          </div>
-          <section className="min-w-0 border-t p-4 xl:border-t-0">
-            <Teams
-              planId={props.plan.id}
-              character={props.character}
-              teamPlans={props.plan.teamPlans}
-              disabled={props.disabled}
-            />
-          </section>
-        </div>
-        <Separator />
-        <div className="p-4">
-          <Note
-            note={props.plan.note}
-            mutate={mutateFieldImmer(props.update, 'note')}
-            disabled={props.disabled}
-          />
-        </div>
-      </CardContent>
-    </>
-  );
-}
-
 const DEFAULT_VISIBLE = 'block group-hover/plan-complete:hidden';
 const DEFAULT_HIDDEN = 'hidden group-hover/plan-complete:block';
 
 function PlanCardTitle(props: Props) {
-  const mode = useUiPlansConfigModeValue();
-
   return (
     <CardTitle className="px-4 pb-2 w-full flex items-start gap-3">
-      {mode == UiPlansMode.Short && (
-        <CollectionAvatar
-          className="size-12 rounded-md"
-          record={props.character}
-          fileName={props.character.icon}
-          name={props.character.name}
-        />
-      )}
-      <div
-        className={cn('w-full flex gap-3', {
-          'items-start': mode == UiPlansMode.Short,
-          'items-center': mode == UiPlansMode.Full,
-        })}
-      >
+      <div className="w-full flex gap-3 items-center">
         <span className="font-semibold text-lg">{props.character.name}</span>
         <CharacterInfo character={props.character} />
         <PlanCardCompleteToggle {...props} />
@@ -398,8 +249,6 @@ function PlanCardCompleteToggle(props: Props) {
 }
 
 function PlanCardActions(props: Props) {
-  const mode = useUiPlansConfigModeValue();
-
   return (
     <>
       <motion.div
@@ -412,16 +261,9 @@ function PlanCardActions(props: Props) {
         transition={{ duration: 0.15 }}
         aria-hidden={!props.isError}
       >
-        <Button
-          size={mode == UiPlansMode.Full ? 'sm' : 'icon'}
-          className={cn({
-            'size-7': mode == UiPlansMode.Short,
-          })}
-          variant="destructive"
-          onClick={props.retry}
-        >
+        <Button size="sm" variant="destructive" onClick={props.retry}>
           <Icons.Retry className="size-4" />
-          {mode == UiPlansMode.Full ? 'Retry' : null}
+          Retry
         </Button>
       </motion.div>
       <Popover>

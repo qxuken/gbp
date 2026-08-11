@@ -14,10 +14,6 @@ import {
 } from '@/components/ui/popover';
 import { removeByPredMut } from '@/lib/array-remove-mut';
 import { cn } from '@/lib/utils';
-import {
-  UiPlansMode,
-  useUiPlansConfigModeValue,
-} from '@/store/ui-plans-config';
 
 import { CharacterPicker } from './character-picker';
 
@@ -174,7 +170,6 @@ type CharacterProps = {
 };
 function Character(props: CharacterProps) {
   const character = useCharactersItem(props.characterId);
-  const mode = useUiPlansConfigModeValue();
   const element = useElementsItem(character?.element ?? '', false);
   if (!character) {
     return null;
@@ -183,7 +178,7 @@ function Character(props: CharacterProps) {
   return (
     <div className="grid justify-items-center">
       <div className="group/team-avatar relative my-1 size-10">
-        {mode == UiPlansMode.V2 && element ? (
+        {element ? (
           <CollectionAvatar
             record={element}
             fileName={element.icon}

@@ -16,8 +16,6 @@ import PlanDomainsAnalysisSkeleton from '@/components/plan-card/plan-domains-ana
 import PlanFilters from '@/components/plan-card/plan-filters';
 import PlanFiltersSkeleton from '@/components/plan-card/plan-filters-skeleton';
 import PlanInfoSkeleton from '@/components/plan-card/plan-info-skeleton';
-import PlanMode from '@/components/plan-card/plan-mode';
-import PlansModeSkeleton from '@/components/plan-card/plan-mode-skeleton';
 import Plans from '@/components/plans';
 import { RouteError } from '@/components/route-error';
 import { Label } from '@/components/ui/label';
@@ -45,10 +43,6 @@ import {
   RenderingItemsProvider,
   useRenderingPlanTotal,
 } from '@/store/plans/rendering-items';
-import {
-  UiPlansMode,
-  useUiPlansConfigModeValue,
-} from '@/store/ui-plans-config';
 
 const PAGE_SIZE_OPTIONS = [30, 50, MAX_ITEMS] as const;
 
@@ -84,32 +78,20 @@ export const Route = createFileRoute('/_protected/builds')({
 });
 
 function RouteLoader() {
-  const mode = useUiPlansConfigModeValue();
-
   return (
     <>
       <section
         aria-label="Builds with controls"
-        className={cn('grid gap-2', {
-          '2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
-            mode != UiPlansMode.V2,
-          'xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
-            mode == UiPlansMode.V2,
-        })}
+        className="grid gap-2 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
       >
         <aside aria-label="Controls" className="p-2 flex flex-col gap-4">
-          <PlansModeSkeleton />
           <PlansCompletedSkeleton />
           <PlanFiltersSkeleton />
           <PlanDomainsAnalysisSkeleton />
         </aside>
         <section
           aria-label="Build cards"
-          className={cn('min-w-0 p-2', {
-            'grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-4 justify-center items-start':
-              mode != UiPlansMode.V2,
-            'flex flex-col gap-4': mode == UiPlansMode.V2,
-          })}
+          className="min-w-0 p-2 grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-4 justify-center items-start"
         >
           <PlanInfoSkeleton />
           <PlanInfoSkeleton />
@@ -193,49 +175,31 @@ function RouteComponent() {
   const deps = Route.useLoaderDeps();
   const [filters, setFilters] = useSearchFilters();
   const isDesktop = useIsDesktopQuery();
-  const mode = useUiPlansConfigModeValue();
 
   return (
     <FiltersProvider value={filters} setValue={setFilters}>
       <RenderingItemsProvider page={deps.page} perPage={deps.perPage}>
-        <RedirectOnBadPage>
+        <RedirectFromBadPage>
           <section
             aria-label="Builds with controls"
-            className={cn('grid gap-2', {
-              '2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
-                mode == UiPlansMode.Full,
-              'xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]':
-                mode == UiPlansMode.Short || mode == UiPlansMode.V2,
-            })}
+            className="grid gap-2 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
           >
             <div
               className={cn('min-h-fit min-w-0 p-2', {
-                '2xl:sticky 2xl:top-0 2xl:max-h-screen':
-                  isDesktop && mode == UiPlansMode.Full,
-                'xl:sticky xl:top-0 xl:max-h-screen':
-                  isDesktop &&
-                  (mode == UiPlansMode.Short || mode == UiPlansMode.V2),
+                '2xl:sticky 2xl:top-0 2xl:max-h-screen': isDesktop,
               })}
             >
               <div
                 className={cn('min-w-0', {
-                  '2xl:max-h-screen 2xl:overflow-y-auto':
-                    isDesktop && mode == UiPlansMode.Full,
-                  'xl:max-h-screen xl:overflow-y-auto':
-                    isDesktop &&
-                    (mode == UiPlansMode.Short || mode == UiPlansMode.V2),
+                  '2xl:max-h-screen 2xl:overflow-y-auto': isDesktop,
                 })}
               >
                 <aside
                   aria-label="Controls"
                   className={cn('h-fit min-w-0 flex flex-col gap-4', {
-                    '2xl:max-h-screen': isDesktop && mode == UiPlansMode.Full,
-                    'xl:max-h-screen':
-                      isDesktop &&
-                      (mode == UiPlansMode.Short || mode == UiPlansMode.V2),
+                    '2xl:max-h-screen': isDesktop,
                   })}
                 >
-                  <PlanMode />
                   <PlanCompleted />
                   <PlanFilters />
                   <PlanDomainsAnalysis />
@@ -244,13 +208,7 @@ function RouteComponent() {
             </div>
             <section
               aria-label="Build cards"
-              className={cn('min-w-0 p-2', {
-                'grid justify-center items-start grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4':
-                  mode == UiPlansMode.Full,
-                'grid justify-center items-start grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-2':
-                  mode == UiPlansMode.Short,
-                'flex flex-col gap-4': mode == UiPlansMode.V2,
-              })}
+              className="min-w-0 p-2 grid justify-center items-start grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4"
             >
               <Plans />
             </section>
@@ -263,13 +221,13 @@ function RouteComponent() {
             <Pagination />
           </nav>
           <Outlet />
-        </RedirectOnBadPage>
+        </RedirectFromBadPage>
       </RenderingItemsProvider>
     </FiltersProvider>
   );
 }
 
-function RedirectOnBadPage({ children }: PropsWithChildren) {
+function RedirectFromBadPage({ children }: PropsWithChildren) {
   const deps = Route.useLoaderDeps();
   const navigate = Route.useNavigate();
   const totalItems = useRenderingPlanTotal();

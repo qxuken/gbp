@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { clamp } from '@/lib/clamp';
 import { cn } from '@/lib/utils';
 
-type Props = Omit<
+export type ShortNumberInputProps = Omit<
   React.ComponentProps<'input'>,
   'value' | 'defaultValue' | 'onChange' | 'min' | 'max'
 > & {
@@ -13,7 +13,11 @@ type Props = Omit<
   max: number;
   onChange: (value: number) => void;
 };
-export function ShortNumberInput({ max = 99, min = 0, ...props }: Props) {
+export function ShortNumberInput({
+  max = 99,
+  min = 0,
+  ...props
+}: ShortNumberInputProps) {
   const [value, setValue] = useState(() => String(props.value));
   useEffect(() => {
     setValue(String(props.value));
