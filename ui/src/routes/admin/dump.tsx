@@ -35,7 +35,7 @@ import {
 import { notifyWithRetry } from '@/lib/notify-with-retry';
 import { cn } from '@/lib/utils';
 
-const authStore = new LocalAuthStore('__pb_superuser_auth__');
+const authStore = new LocalAuthStore('__pb_superusers__/_');
 const pbClient = new Pocketbase(import.meta.env.VITE_POCKETBASE_URL, authStore);
 
 interface Dump extends RecordModel {
