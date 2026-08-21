@@ -93,7 +93,13 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
   const artifactTypes = useArtifactTypes();
 
   return useMemo(() => {
-    if (!characters.length || !weapons.length || !artifactSets.length) {
+    if (
+      !characters.length ||
+      !weapons.length ||
+      !artifactSets.length ||
+      !artifactTypes.length ||
+      !specials.length
+    ) {
       return null;
     }
 
@@ -112,6 +118,9 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
       character7,
     ] = getRandomItems(pool, 7, random);
     const character1 = pinned ?? drawnCharacter;
+    if (!character1) {
+      return null;
+    }
     const [weapon1, weapon2] = getRandomItems(
       weapons,
       2,
@@ -131,31 +140,40 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
       2,
       random,
     );
+    /* A draw can come up short when the pool is small or fully filtered out,
+       so the card is built from whatever was actually drawn. */
+    if (!weapon1 || !artifactSet1 || !artifactType1) {
+      return null;
+    }
     const [special1] = getRandomItems(artifactType1.specials, 1, random);
-    const [special2] = getRandomItems(artifactType2.specials, 1, random);
-    const [substat1, substat2] = getRandomItems(
+    const [special2] = artifactType2
+      ? getRandomItems(artifactType2.specials, 1, random)
+      : [];
+    const substats = getRandomItems(
       specials,
       2,
       random,
       (s) => s.substat == 1,
-    );
+    ).map((s) => s.id);
 
-    const teamPlans: TeamPlans[] = [
-      {
-        id: 'team-1',
+    const teamMembers = [
+      character2,
+      character3,
+      character4,
+      character5,
+      character6,
+      character7,
+    ].filter((c) => c !== undefined);
+    const teamPlans: TeamPlans[] = [];
+    for (let i = 0; i < teamMembers.length; i += 3) {
+      teamPlans.push({
+        id: `team-${teamPlans.length + 1}`,
         characterPlan: 'plan-1',
-        characters: [character2.id, character3.id, character4.id],
+        characters: teamMembers.slice(i, i + 3).map((c) => c.id),
         created: new Date(),
         updated: new Date(),
-      },
-      {
-        id: 'team-2',
-        characterPlan: 'plan-1',
-        characters: [character5.id, character6.id, character7.id],
-        created: new Date(),
-        updated: new Date(),
-      },
-    ];
+      });
+    }
 
     const weaponPlans: WeaponPlans[] = [
       {
@@ -171,7 +189,9 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
         created: new Date(),
         updated: new Date(),
       },
-      {
+    ];
+    if (weapon2) {
+      weaponPlans.push({
         id: 'weapon-2',
         characterPlan: 'plan-1',
         weapon: weapon2.id,
@@ -183,8 +203,8 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
         order: 2,
         created: new Date(),
         updated: new Date(),
-      },
-    ];
+      });
+    }
 
     // Either a single 4-piece set or a 2+2 split, so both shapes get shown.
     const fourPieceSet = random() < 0.5;
@@ -192,33 +212,37 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
       {
         id: 'artifact-set-plan-1',
         characterPlan: 'plan-1',
-        artifactSets: fourPieceSet
-          ? [artifactSet1.id]
-          : [artifactSet1.id, artifactSet2.id],
+        artifactSets:
+          fourPieceSet || !artifactSet2
+            ? [artifactSet1.id]
+            : [artifactSet1.id, artifactSet2.id],
         order: 0,
         created: new Date(),
         updated: new Date(),
       },
     ];
 
-    const artifactTypePlans: ArtifactTypePlans[] = [
-      {
+    const artifactTypePlans: ArtifactTypePlans[] = [];
+    if (special1) {
+      artifactTypePlans.push({
         id: 'artifact-type-plan-1',
         characterPlan: 'plan-1',
         artifactType: artifactType1.id,
         special: special1,
         created: new Date(),
         updated: new Date(),
-      },
-      {
+      });
+    }
+    if (artifactType2 && special2) {
+      artifactTypePlans.push({
         id: 'artifact-type-plan-2',
         characterPlan: 'plan-1',
         artifactType: artifactType2.id,
         special: special2,
         created: new Date(),
         updated: new Date(),
-      },
-    ];
+      });
+    }
 
     const plans: Plans[] = [
       {
@@ -238,7 +262,7 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
         talentSkillTarget: 10,
         talentBurstCurrent: 6,
         talentBurstTarget: 10,
-        substats: [substat1.id, substat2.id],
+        substats,
         note: 'Demo build plan',
         created: new Date(),
         updated: new Date(),
@@ -454,11 +478,12 @@ function Roster({ selected, onSelect }: RosterProps) {
     if (step === 0) return;
     event.preventDefault();
     const current = characters.findIndex((c) => c.id === selected?.id);
-    /* Nothing picked yet reads as "before the first entry", so both
-       directions land on an end of the roster instead of skipping one. */
-    const index = current < 0 ? 0 : current;
+    /* Nothing picked yet: step onto the end the key points at, instead of
+       walking from an index that isn't there and skipping a character. */
     const next =
-      characters[(index + step + characters.length) % characters.length];
+      current < 0
+        ? characters[step > 0 ? 0 : characters.length - 1]
+        : characters[(current + step + characters.length) % characters.length];
     if (next) {
       focusOnSelectRef.current = true;
       onSelect(next);

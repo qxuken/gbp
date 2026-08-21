@@ -117,14 +117,16 @@ function Team(props: TeamProps) {
   };
 
   return (
-    <div className="group/team relative grid grid-cols-4 justify-items-center gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-2">
+    /* pr-9 keeps a gutter for the delete button, so it never covers the
+       fourth member's own remove overlay or the add button. */
+    <div className="group/team relative grid grid-cols-4 justify-items-center gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-2 pr-9">
       {!props.disabled && (
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-1 right-1 z-10 size-5 rounded-md bg-card/85 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive data-[state=open]:opacity-100 hoverable:opacity-0 hoverable:group-hover/team:opacity-100 hoverable:focus-visible:opacity-100"
+              className="absolute top-1.5 right-1.5 z-10 size-5 rounded-md bg-card/85 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive data-[state=open]:opacity-100 hoverable:opacity-0 hoverable:group-hover/team:opacity-100 hoverable:focus-visible:opacity-100"
               aria-label="Delete team"
               disabled={props.disabled}
             >

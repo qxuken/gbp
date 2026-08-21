@@ -1,8 +1,12 @@
 package api_test
 
 import (
+	"bytes"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -13,6 +17,7 @@ import (
 
 	"github.com/qxuken/gbp/internals/api"
 	"github.com/qxuken/gbp/internals/models"
+	"github.com/qxuken/gbp/internals/seed"
 	"github.com/qxuken/gbp/internals/testutil"
 )
 
@@ -214,4 +219,90 @@ func TestDumpRoutesRequireSuperuser(t *testing.T) {
 	for _, scenario := range scenarios {
 		scenario.Test(t)
 	}
+}
+
+// TestDumpUpload uploads a seed file through the superuser endpoint and checks
+// that it is both stored as a dump and applied to the app.
+func TestDumpUpload(t *testing.T) {
+	// build a valid seed file out of a throwaway app
+	source := testutil.NewTestApp(t)
+	testutil.SeedDictionaries(t, source)
+	dumpPath := filepath.Join(t.TempDir(), "seed.db")
+	if err := seed.Dump(source, dumpPath, "uploaded"); err != nil {
+		t.Fatal(err)
+	}
+	dumpContent, err := os.ReadFile(dumpPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body := new(bytes.Buffer)
+	form := multipart.NewWriter(body)
+	if err := form.WriteField("notes", "uploaded notes"); err != nil {
+		t.Fatal(err)
+	}
+	part, err := form.CreateFormFile("dump", "seed.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := part.Write(dumpContent); err != nil {
+		t.Fatal(err)
+	}
+	if err := form.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	// the superuser only exists once the factory built the app, so the request
+	// header is filled in just before the request is sent
+	headers := map[string]string{"Content-Type": form.FormDataContentType()}
+	scenario := tests.ApiScenario{
+		Name:            "upload a seed file",
+		Method:          http.MethodPost,
+		URL:             "/api/dump/upload",
+		Body:            body,
+		Headers:         headers,
+		ExpectedStatus:  http.StatusOK,
+		ExpectedContent: []string{`"status":"ok"`},
+		TestAppFactory: testApp(func(t testing.TB, app *tests.TestApp) {
+			t.Cleanup(app.Cleanup)
+			headers["Authorization"] = superuserToken(t, app)
+		}),
+		DisableTestAppCleanup: true,
+		AfterTestFunc: func(t testing.TB, app *tests.TestApp, res *http.Response) {
+			dump, err := models.FindLatestDbDump(app)
+			if err != nil {
+				t.Fatalf("stored dump: %v", err)
+			}
+			if dump.Notes() != "uploaded notes" {
+				t.Errorf("notes: expected %q, got %q", "uploaded notes", dump.Notes())
+			}
+			characters, err := app.FindAllRecords(models.CHARACTERS_COLLECTION_NAME)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(characters) != 1 {
+				t.Errorf("expected the upload to be applied, got %d characters", len(characters))
+			}
+		},
+	}
+	scenario.Test(t)
+}
+
+func superuserToken(t testing.TB, app *tests.TestApp) string {
+	t.Helper()
+	collection, err := app.FindCollectionByNameOrId(core.CollectionNameSuperusers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record := core.NewRecord(collection)
+	record.SetEmail("superuser@test.com")
+	record.SetPassword("testtest")
+	if err := app.Save(record); err != nil {
+		t.Fatal(err)
+	}
+	token, err := record.NewAuthToken()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return token
 }

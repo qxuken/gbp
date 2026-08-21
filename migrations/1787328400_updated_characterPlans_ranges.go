@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	m "github.com/pocketbase/pocketbase/migrations"
 	"github.com/qxuken/gbp/internals/models"
@@ -41,10 +42,29 @@ func setCharacterPlansMax(app core.App, maxByField map[string]float64) error {
 	return app.Save(collection)
 }
 
+// clampCharacterPlans pulls the stored values back into the given maxima,
+// otherwise plans recorded above them stop validating and their cards can no
+// longer be saved at all.
+func clampCharacterPlans(app core.App, maxByField map[string]float64) error {
+	for name, max := range maxByField {
+		query := fmt.Sprintf(
+			"UPDATE {{%s}} SET [[%s]] = {:max} WHERE [[%s]] > {:max}",
+			models.CHARACTER_PLANS_COLLECTION_NAME, name, name,
+		)
+		if _, err := app.DB().NewQuery(query).Bind(dbx.Params{"max": max}).Execute(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func init() {
 	m.Register(func(app core.App) error {
 		return setCharacterPlansMax(app, characterPlansMaxUp)
 	}, func(app core.App) error {
+		if err := clampCharacterPlans(app, characterPlansMaxDown); err != nil {
+			return err
+		}
 		return setCharacterPlansMax(app, characterPlansMaxDown)
 	})
 }

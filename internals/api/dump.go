@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"io"
 	"net/http"
 	"os"
 
@@ -48,24 +49,26 @@ func bindDumpRoutes(app core.App, g *router.RouterGroup[*core.RequestEvent], lat
 			return e.UnauthorizedError("", nil)
 		}
 		notes := e.Request.FormValue("notes")
-		mf, mh, err := e.Request.FormFile("dump")
+		mf, _, err := e.Request.FormFile("dump")
 		if err != nil {
 			return e.BadRequestError(err.Error(), nil)
 		}
-		buf := make([]byte, mh.Size)
-		if _, err = mf.Read(buf); err != nil {
-			return e.InternalServerError(err.Error(), nil)
-		}
+		defer mf.Close()
 		tmpFile, err := os.CreateTemp(app.DataDir(), "*-dump.db")
-		tmpPath := tmpFile.Name()
 		if err != nil {
 			return e.InternalServerError(err.Error(), nil)
 		}
-		if _, err = tmpFile.Write(buf); err != nil {
+		tmpPath := tmpFile.Name()
+		defer os.Remove(tmpPath)
+		// the upload is streamed to disk, a large dump doesn't fit in memory
+		// and a single Read is allowed to return less than the full file
+		if _, err = io.Copy(tmpFile, mf); err != nil {
+			tmpFile.Close()
 			return e.InternalServerError(err.Error(), nil)
 		}
-		tmpFile.Close()
-		defer os.Remove(tmpPath)
+		if err = tmpFile.Close(); err != nil {
+			return e.InternalServerError(err.Error(), nil)
+		}
 		err = seed.SaveDump(app, tmpPath, notes)
 		if err != nil {
 			return e.InternalServerError(err.Error(), nil)
