@@ -453,7 +453,10 @@ function Roster({ selected, onSelect }: RosterProps) {
       event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
     if (step === 0) return;
     event.preventDefault();
-    const index = characters.findIndex((c) => c.id === selected?.id);
+    const current = characters.findIndex((c) => c.id === selected?.id);
+    /* Nothing picked yet reads as "before the first entry", so both
+       directions land on an end of the roster instead of skipping one. */
+    const index = current < 0 ? 0 : current;
     const next =
       characters[(index + step + characters.length) % characters.length];
     if (next) {

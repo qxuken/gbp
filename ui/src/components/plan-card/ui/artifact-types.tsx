@@ -244,7 +244,9 @@ export function ArtifactTypesSpecialItem(props: ArtifactTypesSpecialItemProps) {
           </Button>
         </PopoverContent>
       </Popover>
-      {!props.isLast && <Icons.Divide className="text-gray-400 size-4" />}
+      {!props.isLast && (
+        <Icons.Divide className="size-4 text-muted-foreground/50" />
+      )}
     </div>
   );
 }
