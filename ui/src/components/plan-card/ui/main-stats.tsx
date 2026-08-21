@@ -57,7 +57,7 @@ export function MainStat({ plan, mutate, disabled }: Props) {
       <span className="mx-1 h-3.5 w-px bg-border/50" aria-hidden />
       <StatInput
         name="N/A"
-        title="Attack talent"
+        title="Normal Attack talent"
         min={1}
         max={13}
         options={TALENTS}
