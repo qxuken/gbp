@@ -38,7 +38,7 @@ export function Teams(props: Props) {
   );
 
   return (
-    <div className="group/teams flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5">
       <SectionHeader
         icon={Icons.Team}
         title="Teams"
@@ -168,7 +168,7 @@ function Character(props: CharacterProps) {
       className="element-scope grid justify-items-center gap-0.5"
       style={style}
     >
-      <div className="group/team-avatar relative size-12 overflow-hidden rounded-lg">
+      <div className="group/team-avatar relative size-12 rounded-lg">
         <CollectionAvatar
           record={character}
           fileName={character.icon}
@@ -180,7 +180,7 @@ function Character(props: CharacterProps) {
             record={element}
             fileName={element.icon}
             name={element.name}
-            className="absolute right-0 bottom-0 size-4 rounded-full bg-card/85 p-0.5 transition-opacity group-hover/team-avatar:opacity-0"
+            className="absolute right-0 bottom-0 size-4 rounded-full bg-card/85 p-0.5"
           />
         )}
         {props.delete && !props.disabled && (
@@ -189,7 +189,7 @@ function Character(props: CharacterProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute inset-0 size-full rounded-lg bg-destructive/90 p-2.5 text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive hover:text-destructive-foreground focus:opacity-100 group-hover/team-avatar:opacity-100 data-[state=open]:opacity-100"
+                className="absolute inset-0 size-full rounded-lg bg-destructive p-2.5 text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive hover:text-destructive-foreground focus:opacity-100 group-hover/team-avatar:opacity-100 data-[state=open]:opacity-100"
                 disabled={props.disabled}
               >
                 <Icons.Remove />

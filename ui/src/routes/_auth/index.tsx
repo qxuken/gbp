@@ -108,20 +108,12 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
       ? characters.filter((c) => c.id !== pinned.id)
       : characters;
 
-    const [
-      drawnCharacter,
-      character2,
-      character3,
-      character4,
-      character5,
-      character6,
-      character7,
-    ] = getRandomItems(pool, 7, random);
-    const character1 = pinned ?? drawnCharacter;
+    const drawnCharacters = getRandomItems(pool, 7, random);
+    const character1 = pinned ?? drawnCharacters[0];
     if (!character1) {
       return null;
     }
-    const [weapon1, weapon2] = getRandomItems(
+    const drawnWeapons = getRandomItems(
       weapons,
       2,
       random,
@@ -129,26 +121,37 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
         character1.weaponType == w.weaponType &&
         (w.rarity == 5 || w.rarity == 4),
     );
-    const [artifactSet1, artifactSet2] = getRandomItems(
+    const drawnArtifactSets = getRandomItems(
       artifactSets,
       2,
       random,
       (as) => as.rarity == 5 || as.rarity == 4,
     );
-    const [artifactType1, artifactType2] = getRandomItems(
-      artifactTypes,
-      2,
-      random,
-    );
-    /* A draw can come up short when the pool is small or fully filtered out,
-       so the card is built from whatever was actually drawn. */
-    if (!weapon1 || !artifactSet1 || !artifactType1) {
+    const drawnArtifactTypes = getRandomItems(artifactTypes, 2, random);
+    /* A filtered draw can come up short, and these two are part of what the
+       card is built to show, so there is nothing to render without them. */
+    const [weapon1] = drawnWeapons;
+    const [artifactSet1] = drawnArtifactSets;
+    if (!weapon1 || !artifactSet1) {
       return null;
     }
-    const [special1] = getRandomItems(artifactType1.specials, 1, random);
-    const [special2] = artifactType2
-      ? getRandomItems(artifactType2.specials, 1, random)
-      : [];
+
+    const artifactTypePlans: ArtifactTypePlans[] = [];
+    for (const [i, artifactType] of drawnArtifactTypes.entries()) {
+      const [special] = getRandomItems(artifactType.specials, 1, random);
+      if (!special) {
+        continue;
+      }
+      artifactTypePlans.push({
+        id: `artifact-type-plan-${i + 1}`,
+        characterPlan: 'plan-1',
+        artifactType: artifactType.id,
+        special,
+        created: new Date(),
+        updated: new Date(),
+      });
+    }
+
     const substats = getRandomItems(
       specials,
       2,
@@ -156,14 +159,7 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
       (s) => s.substat == 1,
     ).map((s) => s.id);
 
-    const teamMembers = [
-      character2,
-      character3,
-      character4,
-      character5,
-      character6,
-      character7,
-    ].filter((c) => c !== undefined);
+    const teamMembers = drawnCharacters.slice(1);
     const teamPlans: TeamPlans[] = [];
     for (let i = 0; i < teamMembers.length; i += 3) {
       teamPlans.push({
@@ -175,36 +171,25 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
       });
     }
 
-    const weaponPlans: WeaponPlans[] = [
-      {
-        id: 'weapon-1',
-        characterPlan: 'plan-1',
-        weapon: weapon1.id,
-        levelCurrent: 70,
-        levelTarget: 90,
-        refinementCurrent: 1,
-        refinementTarget: 5,
-        tag: 'none',
-        order: 1,
-        created: new Date(),
-        updated: new Date(),
-      },
+    // The second weapon is the one already owned, so both tags get shown.
+    const weaponPlanPresets: Pick<
+      WeaponPlans,
+      'levelCurrent' | 'refinementCurrent' | 'tag'
+    >[] = [
+      { levelCurrent: 70, refinementCurrent: 1, tag: 'none' },
+      { levelCurrent: 80, refinementCurrent: 2, tag: 'current' },
     ];
-    if (weapon2) {
-      weaponPlans.push({
-        id: 'weapon-2',
-        characterPlan: 'plan-1',
-        weapon: weapon2.id,
-        levelCurrent: 80,
-        levelTarget: 90,
-        refinementCurrent: 2,
-        refinementTarget: 5,
-        tag: 'current',
-        order: 2,
-        created: new Date(),
-        updated: new Date(),
-      });
-    }
+    const weaponPlans: WeaponPlans[] = drawnWeapons.map((weapon, i) => ({
+      id: `weapon-${i + 1}`,
+      characterPlan: 'plan-1',
+      weapon: weapon.id,
+      levelTarget: 90,
+      refinementTarget: 5,
+      order: i + 1,
+      created: new Date(),
+      updated: new Date(),
+      ...weaponPlanPresets[i],
+    }));
 
     // Either a single 4-piece set or a 2+2 split, so both shapes get shown.
     const fourPieceSet = random() < 0.5;
@@ -212,37 +197,15 @@ function useMockData(seed: number, pinned?: Characters): MockData | null {
       {
         id: 'artifact-set-plan-1',
         characterPlan: 'plan-1',
-        artifactSets:
-          fourPieceSet || !artifactSet2
-            ? [artifactSet1.id]
-            : [artifactSet1.id, artifactSet2.id],
+        artifactSets: (fourPieceSet
+          ? drawnArtifactSets.slice(0, 1)
+          : drawnArtifactSets
+        ).map((as) => as.id),
         order: 0,
         created: new Date(),
         updated: new Date(),
       },
     ];
-
-    const artifactTypePlans: ArtifactTypePlans[] = [];
-    if (special1) {
-      artifactTypePlans.push({
-        id: 'artifact-type-plan-1',
-        characterPlan: 'plan-1',
-        artifactType: artifactType1.id,
-        special: special1,
-        created: new Date(),
-        updated: new Date(),
-      });
-    }
-    if (artifactType2 && special2) {
-      artifactTypePlans.push({
-        id: 'artifact-type-plan-2',
-        characterPlan: 'plan-1',
-        artifactType: artifactType2.id,
-        special: special2,
-        created: new Date(),
-        updated: new Date(),
-      });
-    }
 
     const plans: Plans[] = [
       {
