@@ -116,8 +116,12 @@ export default function Plans() {
       >
         <SortableContext items={plans} strategy={rectSortingStrategy}>
           {renderingItems.length === 0 && (
-            <Card className="w-full border-2 border-dashed border-muted bg-muted/5">
-              <div className="w-full h-full flex items-center justify-center p-12">
+            <Card className="col-span-full w-full max-w-none border-2 border-dashed border-border bg-transparent shadow-none">
+              <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-12 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Nothing here yet — start a build and it will show up on this
+                  board.
+                </p>
                 <CreatePlan create={handleCreate} />
               </div>
             </Card>

@@ -9,8 +9,6 @@ import { z } from 'zod/v4-mini';
 
 import { PLANS_QUERY } from '@/api/plans/plans';
 import { queryClient } from '@/api/queryClient';
-import PlanCompleted from '@/components/plan-card/plan-completed';
-import PlansCompletedSkeleton from '@/components/plan-card/plan-completed-skeleton';
 import PlanDomainsAnalysis from '@/components/plan-card/plan-domains-analysis';
 import PlanDomainsAnalysisSkeleton from '@/components/plan-card/plan-domains-analysis-skeleton';
 import PlanFilters from '@/components/plan-card/plan-filters';
@@ -82,20 +80,21 @@ function RouteLoader() {
     <>
       <section
         aria-label="Builds with controls"
-        className="grid gap-2 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
+        className="grid gap-2 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]"
       >
-        <aside aria-label="Controls" className="p-2 flex flex-col gap-4">
-          <PlansCompletedSkeleton />
+        <aside aria-label="Controls" className="p-2 grid gap-4 items-start">
           <PlanFiltersSkeleton />
           <PlanDomainsAnalysisSkeleton />
         </aside>
-        <section
-          aria-label="Build cards"
-          className="min-w-0 p-2 grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-4 justify-center items-start"
-        >
-          <PlanInfoSkeleton />
-          <PlanInfoSkeleton />
-        </section>
+        <div className="@container/cards min-w-0">
+          <section
+            aria-label="Build cards"
+            className="min-w-0 p-2 grid grid-cols-1 gap-4 items-start justify-items-center @[66rem]/cards:grid-cols-2 @[110rem]/cards:grid-cols-3"
+          >
+            <PlanInfoSkeleton />
+            <PlanInfoSkeleton />
+          </section>
+        </div>
       </section>
       <Outlet />
     </>
@@ -182,36 +181,37 @@ function RouteComponent() {
         <RedirectFromBadPage>
           <section
             aria-label="Builds with controls"
-            className="grid gap-2 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
+            className="grid gap-2 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]"
           >
             <div
               className={cn('min-h-fit min-w-0 p-2', {
-                '2xl:sticky 2xl:top-0 2xl:max-h-screen': isDesktop,
+                'lg:sticky lg:top-0 lg:max-h-screen': isDesktop,
               })}
             >
               <div
                 className={cn('min-w-0', {
-                  '2xl:max-h-screen 2xl:overflow-y-auto': isDesktop,
+                  'lg:max-h-screen lg:overflow-y-auto': isDesktop,
                 })}
               >
                 <aside
                   aria-label="Controls"
-                  className={cn('h-fit min-w-0 flex flex-col gap-4', {
-                    '2xl:max-h-screen': isDesktop,
+                  className={cn('h-fit min-w-0 grid gap-4 items-start', {
+                    'lg:max-h-screen': isDesktop,
                   })}
                 >
-                  <PlanCompleted />
                   <PlanFilters />
                   <PlanDomainsAnalysis />
                 </aside>
               </div>
             </div>
-            <section
-              aria-label="Build cards"
-              className="min-w-0 p-2 grid justify-center items-start grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4"
-            >
-              <Plans />
-            </section>
+            <div className="@container/cards min-w-0">
+              <section
+                aria-label="Build cards"
+                className="min-w-0 p-2 grid grid-cols-1 gap-4 items-start justify-items-center @[66rem]/cards:grid-cols-2 @[110rem]/cards:grid-cols-3"
+              >
+                <Plans />
+              </section>
+            </div>
           </section>
           <nav
             aria-label="Page navigation"

@@ -5,7 +5,7 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 var (
@@ -13,7 +13,7 @@ var (
 	assets embed.FS
 )
 
-func GetAssetsFileSystem(app *pocketbase.PocketBase) fs.FS {
+func GetAssetsFileSystem(app core.App) fs.FS {
 	l := app.Logger().WithGroup("ui")
 	if app.IsDev() {
 		l.Debug("ui: using live mode")

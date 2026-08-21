@@ -1,16 +1,20 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
+/** Mirrors the panel in `plan-filters.tsx`, so the layout doesn't jump. */
 export default function PlanFiltersSkeleton() {
   return (
     <section
       aria-label="Filters Loading"
-      className="min-w-xs rounded-xl border border-border border-dashed p-4 sm:p-5 grid gap-4"
+      className="grid min-w-0 gap-3 rounded-xl border border-border bg-card p-3 shadow-sm"
     >
       <FilterHeaderSkeleton />
-      <div className="grid gap-4 pt-1">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] items-start gap-x-6 gap-y-3.5">
         <FilterNameSkeleton />
-        <FilterElementsSkeleton />
-        <FilterWeaponTypesSkeleton />
+        <PlanCompletedSkeleton />
+        <FilterGroupSkeleton />
+        <FilterGroupSkeleton />
+        <FilterArtifactSetsSkeleton />
+        <FilterArtifactTypesSkeleton />
       </div>
     </section>
   );
@@ -18,37 +22,57 @@ export default function PlanFiltersSkeleton() {
 
 function FilterHeaderSkeleton() {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="flex flex-wrap items-center gap-2.5">
-        <Skeleton className="h-6 w-12 rounded-md" />
-      </div>
-      <div className="w-10 flex justify-center">
-        <Skeleton className="size-5 rounded-md" />
-      </div>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <Skeleton className="h-5 w-12 rounded-md" />
+      <Skeleton className="size-6 rounded-md" />
     </div>
   );
 }
 
 function FilterNameSkeleton() {
-  return <Skeleton className="h-9 w-full rounded-md" />;
+  return <Skeleton className="h-8 w-full rounded-md" />;
 }
 
-function FilterElementsSkeleton() {
+function PlanCompletedSkeleton() {
   return (
-    <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
-      <Skeleton className="h-8 w-16 rounded-md" />
-      <Skeleton className="h-8 w-16 rounded-md" />
-      <Skeleton className="h-8 w-16 rounded-md" />
+    <div className="flex w-full items-center gap-3">
+      <Skeleton className="h-3 w-16 rounded-sm" />
+      <Skeleton className="h-7 flex-1 rounded-md" />
     </div>
   );
 }
 
-function FilterWeaponTypesSkeleton() {
+/** The element and weapon chip rows share this shape. */
+function FilterGroupSkeleton() {
   return (
-    <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
-      <Skeleton className="h-8 w-16 rounded-md" />
-      <Skeleton className="h-8 w-16 rounded-md" />
-      <Skeleton className="h-8 w-16 rounded-md" />
+    <div className="grid gap-1.5">
+      <Skeleton className="h-3 w-14 rounded-sm" />
+      <div className="flex flex-wrap gap-1.5">
+        <Skeleton className="h-7 w-20 rounded-md" />
+        <Skeleton className="h-7 w-20 rounded-md" />
+        <Skeleton className="h-7 w-20 rounded-md" />
+      </div>
+    </div>
+  );
+}
+
+function FilterArtifactSetsSkeleton() {
+  return (
+    <div className="flex items-center gap-1">
+      <Skeleton className="h-3 w-20 rounded-sm" />
+      <Skeleton className="size-5 rounded-md" />
+    </div>
+  );
+}
+
+function FilterArtifactTypesSkeleton() {
+  return (
+    <div className="grid gap-1.5">
+      <Skeleton className="h-3 w-16 rounded-sm" />
+      <div className="grid w-full gap-1.5">
+        <Skeleton className="h-9 w-full rounded-lg" />
+        <Skeleton className="h-9 w-full rounded-lg" />
+      </div>
     </div>
   );
 }

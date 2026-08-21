@@ -22,6 +22,8 @@ import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
 import { cn } from '@/lib/utils';
 
+import { RemovableChip, SectionHeader } from './section';
+
 type Props = {
   planId: string;
   artfactTypesPlans?: ArtifactTypePlans[];
@@ -63,29 +65,15 @@ export function ArtifactTypes(props: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-2">
-        <span
-          className={cn('text-xs text-muted-foreground', {
-            'text-rose-700': mutation.isError,
-          })}
-        >
-          Stats
-        </span>
-        <div className="flex-1" />
-        {mutation.isError && (
-          <Button
-            variant="ghost"
-            className="h-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
-            onClick={mutation.retry}
-            disabled={props.disabled}
-          >
-            <Icons.Retry className="text-rose-700" />
-            Retry
-          </Button>
-        )}
-      </div>
-      <div className="grid gap-2 w-full">
+    <div className="flex flex-col gap-1.5">
+      <SectionHeader
+        icon={Icons.MainStat}
+        title="Main stats"
+        isError={mutation.isError}
+        retry={mutation.retry}
+        disabled={props.disabled}
+      />
+      <div className="grid w-full gap-2 @[26rem]/plan:grid-cols-3">
         {artifactTypes.map((at) => {
           return (
             <ArtifactTypesItem
@@ -125,18 +113,31 @@ export function ArtifactTypesItem(props: ArtifactTypesItemProps) {
       ),
     [props.artifactTypesItem, props.selectedSpecials],
   );
+  const isEmpty = !props.selected || props.selected.length === 0;
 
   return (
-    <div className="w-full flex gap-2">
-      <CollectionAvatar
-        record={props.artifactTypesItem}
-        fileName={props.artifactTypesItem.icon}
-        name={props.artifactTypesItem.name}
-        className={cn('size-8', {
-          'opacity-50': props.selected?.length === 0 || props.disabled,
-        })}
-      />
-      <div className="flex flex-wrap gap-1 items-center">
+    <div
+      className={cn(
+        'flex w-full items-start gap-2 rounded-lg border px-2 py-1.5 transition-colors @[26rem]/plan:h-full @[26rem]/plan:flex-col @[26rem]/plan:gap-1.5',
+        isEmpty
+          ? 'border-dashed border-border/60 bg-transparent'
+          : 'border-border/70 bg-muted/35',
+      )}
+    >
+      <div className="flex shrink-0 items-center gap-1.5">
+        <CollectionAvatar
+          record={props.artifactTypesItem}
+          fileName={props.artifactTypesItem.icon}
+          name={props.artifactTypesItem.name}
+          className={cn('size-6', {
+            'opacity-40': isEmpty || props.disabled,
+          })}
+        />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
+          {props.artifactTypesItem.name}
+        </span>
+      </div>
+      <div className="flex min-w-0 flex-wrap items-center gap-1">
         {props.selected?.map((s, i) => (
           <ArtifactTypesSpecialItem
             key={s.id}
@@ -147,7 +148,7 @@ export function ArtifactTypesItem(props: ArtifactTypesItemProps) {
             disabled={s.isOptimisticBlocked || props.disabled}
           />
         ))}
-        {options.length > 0 && (
+        {options.length > 0 && !props.disabled && (
           <Select
             onValueChange={(special) => props.create(special)}
             value=""
@@ -157,10 +158,11 @@ export function ArtifactTypesItem(props: ArtifactTypesItemProps) {
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
+                className="size-5 rounded-md text-muted-foreground hover:bg-element/15 hover:text-element-fg focus-visible:bg-element/15"
                 disabled={props.disabled}
+                aria-label={`Add ${props.artifactTypesItem.name} main stat`}
               >
-                <Icons.Add />
+                <Icons.Add className="size-3.5" />
               </Button>
             </SelectTrigger>
             <SelectContent>
@@ -206,23 +208,30 @@ export function ArtifactTypesSpecialItem(props: ArtifactTypesSpecialItemProps) {
   if (!special) {
     return null;
   }
+  if (props.disabled) {
+    return (
+      <div className="flex min-w-0 items-center gap-1">
+        <span className="px-1.5 py-0.5 text-sm leading-tight font-medium">
+          {special.name}
+        </span>
+        {!props.isLast && (
+          <Icons.Divide className="size-4 text-muted-foreground/50" />
+        )}
+      </div>
+    );
+  }
   return (
-    <div className="flex gap-1 items-center">
+    <div className="flex min-w-0 gap-1 items-center">
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            size="default"
-            variant="destructive"
-            className={cn(
-              'leading-none not-hover:text-primary not-hover:bg-transparent text-md py-0 px-2',
-              {
-                'opacity-75 animate-pulse': props.isLoading,
-              },
-            )}
+          <RemovableChip
+            className={cn('text-left', {
+              'opacity-75 animate-pulse': props.isLoading,
+            })}
             disabled={props.disabled}
           >
             {special.name}
-          </Button>
+          </RemovableChip>
         </PopoverTrigger>
         <PopoverContent className="p-0" side="top">
           <Button
@@ -235,7 +244,9 @@ export function ArtifactTypesSpecialItem(props: ArtifactTypesSpecialItemProps) {
           </Button>
         </PopoverContent>
       </Popover>
-      {!props.isLast && <Icons.Divide className="text-gray-400 size-4" />}
+      {!props.isLast && (
+        <Icons.Divide className="size-4 text-muted-foreground/50" />
+      )}
     </div>
   );
 }

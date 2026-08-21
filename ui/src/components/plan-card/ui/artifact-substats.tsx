@@ -14,6 +14,8 @@ import {
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { removeByPredMut } from '@/lib/array-remove-mut';
 
+import { RemovableChip, SectionHeader } from './section';
+
 type Props = {
   substats: string[];
   mutate(cb: (v: WritableDraft<CharacterPlans>) => void): void;
@@ -41,9 +43,10 @@ export function ArtifactSubstats({ substats, mutate, disabled }: Props) {
   );
 
   return (
-    <div>
-      <span className="text-xs text-muted-foreground">Substats</span>
-      <div className="flex flex-wrap gap-1 items-center">
+    <div className="flex flex-col gap-1.5">
+      <SectionHeader icon={Icons.Substat} title="Substats" />
+      {/* Chip padding pulls text left; the indent lines it back up with the title. */}
+      <div className="flex flex-wrap items-center gap-1 pl-3.5">
         {substats.map((s, i) => (
           <ArtifactSubstatsItem
             key={s}
@@ -53,7 +56,7 @@ export function ArtifactSubstats({ substats, mutate, disabled }: Props) {
             disabled={disabled}
           />
         ))}
-        {options.length > 0 && (
+        {options.length > 0 && !disabled && (
           <Select
             onValueChange={(special) => addSpecial(special)}
             value=""
@@ -63,10 +66,11 @@ export function ArtifactSubstats({ substats, mutate, disabled }: Props) {
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-6 opacity-50 hover:opacity-100 focus:opacity-100"
+                className="size-5 rounded-md text-muted-foreground hover:bg-element/15 hover:text-element-fg focus-visible:bg-element/15"
                 disabled={disabled}
+                aria-label="Add substat"
               >
-                <Icons.Add />
+                <Icons.Add className="size-3.5" />
               </Button>
             </SelectTrigger>
             <SelectContent>
@@ -100,18 +104,24 @@ export function ArtifactSubstatsItem({
     return null;
   }
 
+  if (disabled) {
+    return (
+      <div className="flex items-center gap-1">
+        <span className="px-1.5 py-0.5 text-sm leading-tight font-medium">
+          {special.name}
+        </span>
+        {!isLast && (
+          <Icons.Divide className="size-3 text-muted-foreground/50" />
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex gap-1 items-center">
+    <div className="flex items-center gap-1">
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            size="default"
-            variant="destructive"
-            className="leading-none not-hover:text-primary not-hover:bg-transparent text-md py-0 px-2"
-            disabled={disabled}
-          >
-            {special.name}
-          </Button>
+          <RemovableChip disabled={disabled}>{special.name}</RemovableChip>
         </PopoverTrigger>
         <PopoverContent className="p-0" side="top">
           <Button
@@ -124,7 +134,7 @@ export function ArtifactSubstatsItem({
           </Button>
         </PopoverContent>
       </Popover>
-      {!isLast && <Icons.Divide className="text-gray-400 size-4" />}
+      {!isLast && <Icons.Divide className="size-3 text-muted-foreground/50" />}
     </div>
   );
 }

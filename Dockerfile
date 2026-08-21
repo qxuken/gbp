@@ -33,7 +33,7 @@ WORKDIR /app
 
 COPY --from=frontend-builder /app/dist /app/ui/dist
 
-RUN go build -o /app/gbp .
+RUN go build -o /app/gbp ./cmd/gbp
 
 # --- Backend seed
 

@@ -7,7 +7,6 @@ import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 
 const DEF_FILTER = {
   name: '',
@@ -53,25 +52,20 @@ function Picker({ onSelect, ignoreArtifacts }: PickerProps) {
         <div className="min-h-32 max-h-[calc(80svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] grid-rows-[auto_auto] gap-2">
           {filteredArtifactSets.map((w) => (
             <Button
-              variant="secondary"
+              variant="ghost"
               key={w.id}
-              className="grid row-span-2 grid-rows-subgrid justify-items-center items-center h-full p-2 relative"
+              className="relative row-span-2 grid h-full grid-rows-subgrid items-center justify-items-center gap-1 rounded-lg border border-border/70 bg-muted/35 p-2 transition-colors hover:border-border hover:bg-muted/70"
               onClick={() => onSelect(w.id)}
             >
               <CollectionAvatar
                 record={w}
                 fileName={w.icon}
                 name={w.name}
-                className="size-26"
+                className="size-24 rounded-lg"
               />
-              <span className="text-xs text-wrap">{w.name}</span>
-              <div
-                className={cn('absolute top-1 right-1 size-4 rounded-lg', {
-                  'bg-amber-400': w.rarity === 5,
-                  'bg-indigo-300': w.rarity === 4,
-                  'bg-gray-400': w.rarity <= 3,
-                })}
-              />
+              <span className="text-xs leading-tight text-balance">
+                {w.name}
+              </span>
             </Button>
           ))}
         </div>
