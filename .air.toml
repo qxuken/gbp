@@ -7,7 +7,7 @@ tmp_dir = "tmp"
 [build]
 args_bin = ["serve", "--dev"]
 entrypoint = ["./tmp/main.exe"]
-cmd = "go build -o ./tmp/main.exe ."
+cmd = "go build -o ./tmp/main.exe ./cmd/gbp"
 delay = 1000
 exclude_dir = [
   "dist",

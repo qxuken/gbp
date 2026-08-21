@@ -25,7 +25,7 @@ If you prefer not to use Docker, you can build the application manually.
 1.  Ensure you have Go and Node.js/npm installed.
 2.  Run the build command from the root of the project directory:
     ```bash
-    cd ./ui && npm run build && cd .. && go build .
+    cd ./ui && npm run build && cd .. && go build ./cmd/gbp
     ```
 
 ### Step 2: Run the Application & Create Admin Account

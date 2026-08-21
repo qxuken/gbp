@@ -22,3 +22,13 @@ const (
 	PLANS_VIEW_COLLECTION_NAME          = "plans"
 	PATCH_COLLECTION_NAME               = "patch"
 )
+
+// PLANS_COLLECTIONS lists the collections backing the plans view, i.e. the ones
+// the frontend mutation layer writes to.
+var PLANS_COLLECTIONS = []string{
+	CHARACTER_PLANS_COLLECTION_NAME,
+	WEAPON_PLANS_COLLECTION_NAME,
+	ARTIFACT_SETS_PLANS_COLLECTION_NAME,
+	ARTIFACT_TYPE_PLANS_COLLECTION_NAME,
+	TEAM_PLANS_COLLECTION_NAME,
+}

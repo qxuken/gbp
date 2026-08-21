@@ -13,7 +13,8 @@ Backend (repo root):
 ```bash
 nu build.nu ui       # build the frontend once (required before `air` — embed.go needs ui/dist to exist)
 air                  # live-reload backend on :8090 (runs `serve --dev` from ./tmp/main.exe)
-go build .           # plain build
+go build ./cmd/gbp   # plain build
+go test ./...        # backend tests
 nu build.nu          # frontend + binary into ./dist
 nu scripts/clean_tmp.nu   # wipe tmp/pb_data and tmp/migrations (air's dev data + automigrations)
 ```
@@ -28,7 +29,7 @@ npm run check      # eslint
 npm run fix        # eslint --fix
 ```
 
-There is no test suite (no `*_test.go`, no frontend tests). Verification is typecheck + eslint + running the app.
+Backend tests use the PocketBase [testing helpers](https://pocketbase.io/docs/go-testing/). `internals/testutil` bootstraps an empty data dir, applies every migration to it once per test binary (the data dir bundled with `pocketbase/tests` collides with our `users` collection) and hands out clones of it — so a package with tests needs `func TestMain(m *testing.M) { testutil.Main(m) }`. Route tests build on `tests.ApiScenario` with a `TestAppFactory` that calls `api.Bind`. There are no frontend tests; verification there is typecheck + eslint + running the app.
 
 Dev login is `test@test.com` / `testtest` — seeded by `1732466001_test_superuser.go` (superuser) and `1732467000_setup_users.go` (regular verified user "Qest Testovich"), both gated on `app.IsDev()`. The same pair works for the app, the PocketBase admin UI at `/_/`, and `/admin/dump`. Wiping `tmp/pb_data` re-creates them on next `air` run.
 
@@ -36,14 +37,16 @@ CLI subcommands on the binary: `seed <file>`, `dump <file> [notes]`, `hash <file
 
 ## Architecture
 
-### Backend (`main.go`, `internals/`, `migrations/`)
+### Backend (`cmd/gbp/`, `internals/`, `migrations/`)
 
-PocketBase provides auth, CRUD, admin UI, and the REST API; `main.go` only adds:
+`cmd/gbp/main.go` is wiring only: it builds the PocketBase app, registers the CLI subcommands, creates the `models.LatestDbDumpCache`, binds the preloaded-seed check and calls `api.Bind`. PocketBase provides auth, CRUD, admin UI, and the REST API; on top of that:
 
-- Static SPA serving from `ui.GetAssetsFileSystem` — in dev mode it reads `ui/dist` from disk, in prod from the embedded FS.
-- `/api/plansCollections`, `/api/dictionaryVersion` — used by the frontend cache layer.
-- `/api/dump/*` (generate, upload, restore, latest_seed.db) — superuser-gated seed management.
-- On `OnServe`, `updateSeed` compares `seed.hash` against the `dictionaryVersion` app setting and the newest `_dbDumps` record; if it differs, the bundled `seed.db` is saved as a dump and applied.
+- `internals/api` — `Bind(app, latestDumpCache)` registers everything served next to the PocketBase routes:
+  - static SPA serving from `ui.GetAssetsFileSystem` (dev mode reads `ui/dist` from disk, prod from the embedded FS);
+  - `/api/plansCollections`, `/api/dictionaryVersion` — used by the frontend cache layer;
+  - `/api/dump/*` (generate, upload, restore, latest, latest_seed.db) — seed management, superuser-gated except the two read endpoints.
+- `internals/models` — collection name constants, the `AppSetting` and `DbDump` record proxies, and `LatestDbDumpCache`, which keeps the newest `_dbDumps` record in memory and drops it through `OnRecordAfter{Create,Update,Delete}Success` hooks so the dump read endpoints don't query per request.
+- `seed.UpdateFromPreload` (`internals/seed/preload.go`), bound on `OnServe`, compares `seed.hash` against the `dictionaryVersion` app setting and the latest dump; if it differs, the bundled `seed.db` is saved as a dump and applied.
 
 `migrations/` are Go migrations with `Automigrate: true`. Collection names live **only** in `internals/models/collections.go` and that list is append-only — always reference the constants, never string literals.
 
@@ -73,7 +76,7 @@ Three distinct state layers, and picking the wrong one is the main way to get th
 - `serverPatches` strip client-only fields before sending (e.g. `PLAN_TO_CHARACTER_PLAN_PATCHES` removes the view's nested arrays so `characterPlans` gets a clean payload).
 - Per-plan pending/error state from nested collections is aggregated in the `useSharedPendingPlansStatus` zustand store so `PlanInfo` can show one spinner for the whole card.
 
-New plan sub-collection ⇒ new `api/plans/<name>.ts` calling `useCollectionMutation` with `usePlanCollectionAccessor`, and it must be listed in `PLANS_COLLECTIONS` in `main.go`.
+New plan sub-collection ⇒ new `api/plans/<name>.ts` calling `useCollectionMutation` with `usePlanCollectionAccessor`, and it must be listed in `models.PLANS_COLLECTIONS` (`internals/models/collections.go`).
 
 #### Components
 

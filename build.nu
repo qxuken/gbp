@@ -15,7 +15,7 @@ export def 'main binary' [
 	}
 	mkdir $dist_dir
 	let out = $dist_dir | path join $out_file
-	go build -o $out .
+	go build -o $out ./cmd/gbp
 }
 alias binary = main binary
 
