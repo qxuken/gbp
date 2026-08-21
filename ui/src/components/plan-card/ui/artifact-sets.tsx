@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import { useSetFilters } from '@/store/plans/filters';
 
 import { ArtifactSetPicker } from './artifact-set-picker';
+import { SectionAddButton, SectionEmpty, SectionHeader } from './section';
 
 const MAX_SETS = 10;
 
@@ -57,50 +58,38 @@ export function ArtifactSets(props: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1">
-        <span
-          className={cn('text-sm', {
-            'text-rose-700': mutation.isError,
-          })}
-        >
-          Artifacts
-        </span>
-        {mutation.records.length < MAX_SETS && (
-          <ArtifactSetPicker
-            title="New artifact set"
-            onSelect={(as) => mutation.create([as])}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
-              disabled={props.disabled}
+    <div className="flex flex-col gap-1.5">
+      <SectionHeader
+        icon={Icons.Artifact}
+        title="Artifacts"
+        isError={mutation.isError}
+        retry={mutation.retry}
+        disabled={props.disabled}
+        action={
+          mutation.records.length < MAX_SETS && (
+            <ArtifactSetPicker
+              title="New artifact set"
+              onSelect={(as) => mutation.create([as])}
             >
-              <Icons.Add />
-            </Button>
-          </ArtifactSetPicker>
-        )}
-        <div className="flex-1" />
-        {mutation.isError && (
-          <Button
-            variant="ghost"
-            className="h-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
-            onClick={mutation.retry}
+              <SectionAddButton
+                disabled={props.disabled}
+                aria-label="Add artifact set"
+              />
+            </ArtifactSetPicker>
+          )
+        }
+      />
+      {mutation.records.length === 0 ? (
+        <SectionEmpty>No artifact set picked yet</SectionEmpty>
+      ) : (
+        <div className="grid w-full gap-0.5">
+          <ArtifactSetsFull
+            planId={props.planId}
+            mutation={mutation}
             disabled={props.disabled}
-          >
-            <Icons.Retry className="text-rose-700" />
-            Retry
-          </Button>
-        )}
-      </div>
-      <div className="grid w-full gap-1">
-        <ArtifactSetsFull
-          planId={props.planId}
-          mutation={mutation}
-          disabled={props.disabled}
-        />
-      </div>
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -152,7 +141,7 @@ export function ArtifactSetsFull(
               />
             </ArtifactSetDrag>
             {props.mutation.records.length - 1 !== i && (
-              <Separator className="bg-muted-foreground rounded-lg mb-1 opacity-50" />
+              <Separator className="my-1 bg-border/70" />
             )}
           </Fragment>
         ))}
@@ -192,15 +181,15 @@ function ArtifactSetDrag(
         'opacity-50': isDragging,
       })}
     >
-      <div className="flex">
+      <div className="group/item flex items-center">
         {!props.disabled ? (
-          <Icons.Drag
-            className="self-center rotate-90 py-1 size-6"
+          <Icons.DragVertical
+            className="size-4 shrink-0 cursor-grab self-center text-muted-foreground/70 transition-opacity hoverable:opacity-0 hoverable:group-hover/item:opacity-100 hoverable:focus:opacity-100"
             {...listeners}
             {...attributes}
           />
         ) : (
-          <div className="py-1 size-6" />
+          <div className="size-4 shrink-0" />
         )}
         {props.children}
       </div>
@@ -252,6 +241,7 @@ function ArtifactSetPlan(props: ArtifactSetPlanProps) {
           ignoreArtifacts={artifactSetsSet}
           isSplit={items.length == 2}
           delete={() => deleteSet(artifactSet)}
+          disabled={props.disabled}
         />
       ))}
     </div>
@@ -308,7 +298,7 @@ function ArtifactSetFull(props: ArtifactSetProps) {
     return null;
   }
   return (
-    <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 py-1">
+    <div className="grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-foreground/4">
       <div
         className="cursor-pointer"
         onClick={() =>
@@ -323,47 +313,55 @@ function ArtifactSetFull(props: ArtifactSetProps) {
           record={artifactSet}
           fileName={artifactSet.icon}
           name={artifactSet.name}
-          className="shrink-0 size-12"
+          className={cn(
+            'size-12 shrink-0 rounded-lg bg-gradient-to-br',
+            artifactSet.rarity === 5
+              ? 'from-rarity-5/30 to-rarity-5/5'
+              : 'from-rarity-4/28 to-rarity-4/5',
+          )}
         />
       </div>
       <div className="min-w-0">
         <div className="min-w-0">
-          <span className="min-w-0 text-balance">{artifactSet.name}</span>
+          <span className="block truncate text-sm font-medium">
+            {artifactSet.name}
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 mt-1">
-          <span className="text-xs text-muted-foreground">
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <span className="rounded bg-foreground/6 px-1 text-[10px] font-semibold tracking-wide text-muted-foreground tabular-nums">
             {props.isSplit ? '2 pcs' : '4 pcs'}
           </span>
           <SplitButton
-            enabled={!props.isSplit}
+            enabled={!props.isSplit && !props.disabled}
             onSelect={props.add}
             ignoreArtifacts={props.ignoreArtifacts}
             isFullMode
           />
         </div>
       </div>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-6 self-center p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-            disabled={props.disabled}
-          >
-            <Icons.Remove />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="p-0" side="top">
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={props.delete}
-            disabled={props.disabled}
-          >
-            Yes, I really want to delete
-          </Button>
-        </PopoverContent>
-      </Popover>
+      {!props.disabled && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6 self-center p-1 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive data-[state=open]:opacity-100 hoverable:opacity-0 hoverable:group-hover/item:opacity-100 hoverable:focus-visible:opacity-100"
+              aria-label={`Remove ${artifactSet.name}`}
+            >
+              <Icons.Remove />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" side="top">
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={props.delete}
+            >
+              Yes, I really want to delete
+            </Button>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Package, Download, Star } from 'lucide-react';
-import { useMemo } from 'react';
+import { Download, Package, Star } from 'lucide-react';
+import { ComponentType, CSSProperties, useMemo, useState } from 'react';
 
 import {
   useCharacters,
@@ -22,6 +22,7 @@ import {
 import { Icons } from '@/components/icons';
 import { PlanInfo } from '@/components/plan-card/plan-info';
 import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
+import { Button } from '@/components/ui/button';
 import { FiltersProvider } from '@/store/plans/filters';
 
 interface MockData {
@@ -35,16 +36,34 @@ interface MockData {
   artifactSet1: ArtifactSets;
 }
 
+/**
+ * Seeded PRNG (mulberry32). The seed has to genuinely feed the draw — with
+ * `Math.random()` the memo has no real input and React Compiler caches the
+ * sample forever, so rerolling does nothing.
+ */
+function createRandom(seed: number) {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 function getRandomItems<T>(
   array: T[],
   count: number,
-  filter?: (item: T) => void,
+  random: () => number,
+  filter?: (item: T) => boolean,
 ): T[] {
   const result: T[] = [];
   const picked = new Set<number>();
+  let guard = array.length * 20;
 
-  while (result.length < count && picked.size < array.length) {
-    const randomIndex = Math.floor(Math.random() * array.length);
+  while (result.length < count && picked.size < array.length && guard-- > 0) {
+    const randomIndex = Math.floor(random() * array.length);
     const item = array[randomIndex];
     if (!picked.has(randomIndex) && (!filter || filter(item))) {
       picked.add(randomIndex);
@@ -55,7 +74,7 @@ function getRandomItems<T>(
   return result;
 }
 
-function useMockData(): MockData | null {
+function useMockData(seed: number): MockData | null {
   const characters = useCharacters();
   const weapons = useWeapons();
   const specials = useSpecials();
@@ -67,13 +86,21 @@ function useMockData(): MockData | null {
       return null;
     }
 
-    const [character1, character2, character3, character4] = getRandomItems(
-      characters,
-      4,
-    );
+    const random = createRandom(seed);
+
+    const [
+      character1,
+      character2,
+      character3,
+      character4,
+      character5,
+      character6,
+      character7,
+    ] = getRandomItems(characters, 7, random);
     const [weapon1, weapon2] = getRandomItems(
       weapons,
       2,
+      random,
       (w) =>
         character1.weaponType == w.weaponType &&
         (w.rarity == 5 || w.rarity == 4),
@@ -81,13 +108,20 @@ function useMockData(): MockData | null {
     const [artifactSet1, artifactSet2] = getRandomItems(
       artifactSets,
       2,
+      random,
       (as) => as.rarity == 5 || as.rarity == 4,
     );
-    const [artifactType1] = getRandomItems(artifactTypes, 1);
-    const [special1] = getRandomItems(artifactType1.specials, 1);
+    const [artifactType1, artifactType2] = getRandomItems(
+      artifactTypes,
+      2,
+      random,
+    );
+    const [special1] = getRandomItems(artifactType1.specials, 1, random);
+    const [special2] = getRandomItems(artifactType2.specials, 1, random);
     const [substat1, substat2] = getRandomItems(
       specials,
       2,
+      random,
       (s) => s.substat == 1,
     );
 
@@ -96,6 +130,13 @@ function useMockData(): MockData | null {
         id: 'team-1',
         characterPlan: 'plan-1',
         characters: [character2.id, character3.id, character4.id],
+        created: new Date(),
+        updated: new Date(),
+      },
+      {
+        id: 'team-2',
+        characterPlan: 'plan-1',
+        characters: [character5.id, character6.id, character7.id],
         created: new Date(),
         updated: new Date(),
       },
@@ -130,11 +171,15 @@ function useMockData(): MockData | null {
       },
     ];
 
+    // Either a single 4-piece set or a 2+2 split, so both shapes get shown.
+    const fourPieceSet = random() < 0.5;
     const artifactSetsPlans: ArtifactSetsPlans[] = [
       {
         id: 'artifact-set-plan-1',
         characterPlan: 'plan-1',
-        artifactSets: [artifactSet1.id, artifactSet2.id],
+        artifactSets: fourPieceSet
+          ? [artifactSet1.id]
+          : [artifactSet1.id, artifactSet2.id],
         order: 0,
         created: new Date(),
         updated: new Date(),
@@ -147,6 +192,14 @@ function useMockData(): MockData | null {
         characterPlan: 'plan-1',
         artifactType: artifactType1.id,
         special: special1,
+        created: new Date(),
+        updated: new Date(),
+      },
+      {
+        id: 'artifact-type-plan-2',
+        characterPlan: 'plan-1',
+        artifactType: artifactType2.id,
+        special: special2,
         created: new Date(),
         updated: new Date(),
       },
@@ -191,15 +244,40 @@ function useMockData(): MockData | null {
       weapon1,
       artifactSet1,
     };
-  }, [characters, weapons, specials, artifactSets, artifactTypes]);
+  }, [seed, characters, weapons, specials, artifactSets, artifactTypes]);
 }
 
 export const Route = createFileRoute('/_auth/')({
   component: RouteComponent,
 });
 
+const FEATURES = [
+  {
+    title: 'Set the target',
+    description:
+      'Level, constellation and talents, plus every weapon and artifact set you would be happy to land.',
+    icon: Icons.Artifact,
+    element: '#2E8BC0',
+  },
+  {
+    title: 'Know what to farm',
+    description:
+      'Mark a build as done, and see which domains cover the most of what is still missing.',
+    icon: Icons.Complete,
+    element: '#D4AF37',
+  },
+  {
+    title: 'Plan around teams',
+    description:
+      'Try comps for each character and keep the reasoning in a note beside the build.',
+    icon: Icons.Team,
+    element: '#5F9E3D',
+  },
+];
+
 function RouteComponent() {
-  const mockData = useMockData();
+  const [seed, setSeed] = useState(() => (Math.random() * 2 ** 32) >>> 0);
+  const mockData = useMockData(seed);
   return (
     <FiltersProvider
       value={{
@@ -213,137 +291,181 @@ function RouteComponent() {
       }}
       setValue={() => {}}
     >
-      <div className="container mx-auto px-4 py-20">
-        <div className="text-center">
-          <h2 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-            Genshin Build Planner
-          </h2>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Plan builds, manage teams, and track farming progress in one place.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 rounded-lg transition-colors duration-200"
-              to="/signup"
-            >
-              Sign up
-            </Link>
-          </div>
-        </div>
-      </div>
+      <div className="relative isolate -mx-4 -mt-4 px-4">
+        <HeroWash />
 
-      <div className="container mx-auto px-4 pt-8 pb-16 space-y-16 flex gap-8 justify-around flex-wrap">
-        <div className="pt-9 flex flex-col gap-8 items-center">
-          <div className="w-full border rounded-xl p-4 text-center">
-            <h3 className="text-2xl font-semibold mb-2">Character Builds</h3>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Create detailed character builds with artifacts, weapons, and
-              stats.
+        <div className="mx-auto w-full max-w-5xl">
+          <section className="pt-16 pb-12 text-center sm:pt-24">
+            <h1 className="bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-6xl">
+              Genshin Build Planner
+            </h1>
+            <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
+              Plan builds, manage teams, and track farming progress in one
+              place.
             </p>
-          </div>
-
-          <div className="w-full flex flex-col items-center">
-            <div className="w-full border rounded-xl p-4 text-center">
-              <h3 className="text-2xl font-semibold mb-2">Farming Tracker</h3>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Track farming progress and get tips for efficient resource
-                planning.
-              </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Button asChild size="lg">
+                <Link to="/signup">Get started</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/login">I already have an account</Link>
+              </Button>
             </div>
-          </div>
+          </section>
 
-          <div className="w-full flex flex-col items-center">
-            <div className="w-full border rounded-xl p-4 text-center">
-              <h3 className="text-2xl font-semibold mb-2">Open Source</h3>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Open source under MIT license. Feel free to use and modify.
-              </p>
+          <section className="grid gap-4 pb-16 sm:grid-cols-3">
+            {FEATURES.map((feature) => (
+              <Feature key={feature.title} {...feature} />
+            ))}
+          </section>
+
+          <section className="pb-16 text-center">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              One card per character
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+              Everything for a build lives in a single card, tinted by the
+              character&apos;s element so you can find it at a glance. Edit it
+              in place — nothing to save, nothing to open.
+            </p>
+            <div className="mx-auto mt-8 w-full max-w-2xl text-left">
+              {mockData ? (
+                <PlanInfo
+                  plan={mockData.plans[0]}
+                  character={mockData.character1}
+                  disabled={true}
+                  isLoading={false}
+                  isError={false}
+                  update={() => {}}
+                  retry={() => {}}
+                  delete={() => {}}
+                />
+              ) : (
+                <PlanInfoSkeleton />
+              )}
             </div>
-          </div>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground/80">
+              <span>A real card, built from a random character.</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1.5 px-2 text-xs"
+                onClick={() => setSeed((v) => (v + 0x9e3779b9) >>> 0)}
+              >
+                <Icons.Retry className="size-3.5" />
+                Reroll
+              </Button>
+            </div>
+          </section>
 
-          <div className="w-full bg-card p-6 rounded-lg border">
-            <div className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <Icons.Github className="size-5" />
-                  <a
-                    href="https://github.com/qxuken/gbp"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    View on GitHub
-                  </a>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Package className="size-5" />
-                  <code className="text-sm bg-muted px-2 py-1 rounded">
-                    docker pull qxuken/gbp
-                  </code>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Download className="size-5" />
-                  <span className="text-sm">
-                    Build binary for your platform using
-                  </span>
-                  <code className="text-sm bg-muted px-2 py-1 rounded">
-                    nu build.nu
-                  </code>
-                </div>
-              </div>
+          <section className="mb-20 grid gap-5 rounded-xl border border-border bg-card p-5 shadow-sm sm:grid-cols-3">
+            <div className="grid gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-semibold">
+                <Icons.Github className="size-4 text-muted-foreground" />
+                Open source
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                MIT licensed — use it, fork it, change it.
+              </p>
               <a
-                className="p-2 flex gap-2 justify-center items-center border rounded-lg hover:border-accent-foreground transition-colors"
+                className="inline-flex w-fit items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent"
                 href="https://github.com/qxuken/gbp"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Star className="size-4" />
+                <Star className="size-3.5" />
                 Star on GitHub
               </a>
             </div>
-          </div>
 
-          <div className="w-full flex flex-col items-center">
-            <div className="w-full border rounded-xl p-4 text-center">
-              <h3 className="text-2xl font-semibold mb-2">Database</h3>
-              <p className="text-muted-foreground max-w-2xl mx-auto mb-4">
-                Use to build your own application using data.
+            <div className="grid gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-semibold">
+                <Package className="size-4 text-muted-foreground" />
+                Self-host
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                One binary, or pull the image.
+              </p>
+              <code className="w-fit rounded bg-muted px-2 py-1 text-xs">
+                docker pull qxuken/gbp
+              </code>
+              <code className="w-fit rounded bg-muted px-2 py-1 text-xs">
+                nu build.nu
+              </code>
+            </div>
+
+            <div className="grid gap-2">
+              <h3 className="flex items-center gap-2 text-sm font-semibold">
+                <Download className="size-4 text-muted-foreground" />
+                Game data
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                The dictionary ships as a SQLite file — build your own thing
+                with it.
               </p>
               <a
-                className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                className="inline-flex w-fit items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent"
                 href="/api/dump/latest_seed.db"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Download className="size-4" />
-                Download SQlite Seed
+                <Download className="size-3.5" />
+                Download SQLite seed
               </a>
             </div>
-          </div>
-        </div>
-
-        <div className="hidden sm:flex flex-col items-center">
-          <h4 className="text-xl text-muted-foreground font-semibold mb-2">
-            Example build card (random)
-          </h4>
-          <div className="w-96">
-            {mockData ? (
-              <PlanInfo
-                plan={mockData.plans[0]}
-                character={mockData.character1}
-                disabled={true}
-                isLoading={false}
-                isError={false}
-                update={() => {}}
-                retry={() => {}}
-                delete={() => {}}
-              />
-            ) : (
-              <PlanInfoSkeleton />
-            )}
-          </div>
+          </section>
         </div>
       </div>
     </FiltersProvider>
+  );
+}
+
+type FeatureProps = {
+  title: string;
+  description: string;
+  icon: ComponentType<{ className?: string }>;
+  element: string;
+};
+function Feature({ title, description, icon: Icon, element }: FeatureProps) {
+  return (
+    <div
+      className="element-scope rounded-xl border border-border bg-card/70 p-4 shadow-sm backdrop-blur-sm"
+      style={{ '--element': element } as CSSProperties}
+    >
+      <span className="mb-3 inline-flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-element/35 to-element/8 text-element-fg">
+        <Icon className="size-4.5" />
+      </span>
+      <h3 className="text-base font-semibold tracking-tight">{title}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+/**
+ * Element-coloured wash that starts flush against the header and fades out,
+ * echoing the band on a build card.
+ */
+const MASK = [
+  'linear-gradient(to bottom, transparent 0%, black 22%, black 55%, transparent 95%)',
+  'linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%)',
+].join(',');
+
+function HeroWash() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] opacity-25 dark:opacity-40"
+      style={{
+        background: [
+          'radial-gradient(65% 55% at 24% 8%, #D4AF37, transparent 70%)',
+          'radial-gradient(60% 50% at 70% 6%, #8C44FF, transparent 70%)',
+          'radial-gradient(55% 45% at 48% 14%, #2E8BC0, transparent 70%)',
+        ].join(','),
+        maskImage: MASK,
+        WebkitMaskImage: MASK,
+        maskComposite: 'intersect',
+        WebkitMaskComposite: 'source-in',
+      }}
+    />
   );
 }

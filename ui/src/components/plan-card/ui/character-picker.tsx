@@ -4,8 +4,10 @@ import { PropsWithChildren, useMemo, useState } from 'react';
 import {
   useCharacters,
   useElements,
+  useElementsMap,
   useWeaponTypes,
 } from '@/api/dictionaries/hooks';
+import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
@@ -28,6 +30,7 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
   const elements = useElements();
+  const elementsMap = useElementsMap();
   const weaponTypes = useWeaponTypes();
   const characters = useCharacters();
 
@@ -135,9 +138,14 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
         <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] grid-rows-[auto_auto] gap-2">
           {filteredCharacters.map((ch) => (
             <Button
-              variant="secondary"
+              variant="ghost"
               key={ch.id}
-              className="grid row-span-2 grid-rows-subgrid justify-items-center items-center h-full p-2 relative"
+              style={
+                {
+                  '--element': elementsMap.get(ch.element ?? '')?.color,
+                } as React.CSSProperties
+              }
+              className="element-scope relative row-span-2 grid h-full grid-rows-subgrid items-center justify-items-center gap-1 rounded-xl border border-element/35 bg-element/8 p-2 hover:bg-element/18"
               onClick={() => onSelect(ch.id)}
               disabled={disabled}
             >
@@ -145,15 +153,20 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
                 record={ch}
                 fileName={ch.icon}
                 name={ch.name}
-                className="size-26"
+                className="size-24 rounded-lg"
               />
-              <span className="text-xs text-wrap">{ch.name}</span>
-              <div
-                className={cn('absolute top-1 right-1 size-4 rounded-lg', {
-                  'bg-amber-400': ch.rarity === 5,
-                  'bg-indigo-300': ch.rarity !== 5,
-                })}
-              />
+              <span className="text-xs leading-tight text-balance">
+                {ch.name}
+              </span>
+              <span
+                className={cn(
+                  'absolute top-1 right-1 inline-flex items-center gap-0.5 rounded-full px-1 text-[10px] font-bold tabular-nums',
+                  ch.rarity === 5 ? 'text-rarity-5' : 'text-rarity-4',
+                )}
+              >
+                <Icons.Star className="size-2.5 fill-current" />
+                {ch.rarity}
+              </span>
             </Button>
           ))}
         </div>

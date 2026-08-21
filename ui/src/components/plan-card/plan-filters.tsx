@@ -1,5 +1,5 @@
 import { SelectTrigger } from '@radix-ui/react-select';
-import { useMemo } from 'react';
+import { CSSProperties, useMemo } from 'react';
 
 import {
   useArtifactSetsMap,
@@ -28,6 +28,7 @@ import {
   useSetFilters,
 } from '@/store/plans/filters';
 
+import PlanCompleted from './plan-completed';
 import { ArtifactSetPicker } from './ui/artifact-set-picker';
 import { ArtifactSetShort } from './ui/artifact-sets';
 
@@ -36,18 +37,42 @@ export default function PlanFilters() {
     <Collapsible defaultOpen asChild>
       <section
         aria-label="Filters"
-        className="min-w-xs rounded-xl border border-border border-dashed bg-background p-4 sm:p-5 grid gap-4"
+        className="@container/filters grid min-w-0 gap-3 rounded-xl border border-border bg-card p-3 shadow-sm"
       >
         <FilterHeader />
-        <CollapsibleContent className="grid gap-4 pt-1">
+        <CollapsibleContent className="grid items-start gap-x-6 gap-y-3.5 @[34rem]/filters:grid-cols-2 @[56rem]/filters:grid-cols-3">
           <FilterName />
-          <FilterElements />
-          <FilterWeaponTypes />
+          <PlanCompleted />
+          <FilterGroup label="Element">
+            <FilterElements />
+          </FilterGroup>
+          <FilterGroup label="Weapon">
+            <FilterWeaponTypes />
+          </FilterGroup>
           <FilterArtifactSets />
-          <FilterArtifactTypes />
+          <FilterGroup label="Main stats">
+            <FilterArtifactTypes />
+          </FilterGroup>
         </CollapsibleContent>
       </section>
     </Collapsible>
+  );
+}
+
+function FilterGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
+        {label}
+      </span>
+      {children}
+    </div>
   );
 }
 
@@ -55,10 +80,8 @@ function FilterHeader() {
   const filtersEnabled = useFiltersEnabled();
   const setFilters = useSetFilters();
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="flex flex-wrap items-center gap-4">
-        <h3 className="text-md font-semibold">Filter</h3>
-      </div>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h3 className="text-sm font-semibold tracking-tight">Filter</h3>
       <div className="flex items-center gap-2">
         {filtersEnabled && (
           <Button
@@ -97,7 +120,8 @@ function FilterName() {
     <Input
       id="name"
       type="text"
-      placeholder="Search"
+      placeholder="Search characters"
+      className="h-8"
       value={value}
       onChange={(e) =>
         setFilters((filters) => {
@@ -114,33 +138,43 @@ function FilterElements() {
   const available = useAvailableFiltersSelector('elements');
   const setFilters = useSetFilters();
   return (
-    <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
-      {elements.map((element) => (
-        <Button
-          key={element.id}
-          variant={filter.has(element.id) ? 'default' : 'outline'}
-          size="sm"
-          disabled={!available.has(element.id)}
-          onClick={() => {
-            setFilters((filters) => {
-              const elements = filters.elements;
-              if (elements.has(element.id)) {
-                elements.delete(element.id);
-              } else {
-                elements.add(element.id);
-              }
-            });
-          }}
-        >
-          <CollectionAvatar
-            record={element}
-            fileName={element.icon}
-            name={element.name}
-            className="size-4"
-          />
-          {element.name}
-        </Button>
-      ))}
+    <div className="flex flex-wrap gap-1.5">
+      {elements.map((element) => {
+        const active = filter.has(element.id);
+        return (
+          <button
+            key={element.id}
+            type="button"
+            style={{ '--element': element.color } as CSSProperties}
+            className={cn(
+              'element-scope inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-30',
+              active
+                ? 'border-element/50 bg-element/20 text-element-fg'
+                : 'border-border text-muted-foreground hover:border-element/40 hover:bg-element/10 hover:text-element-fg',
+            )}
+            disabled={!available.has(element.id)}
+            aria-pressed={active}
+            onClick={() => {
+              setFilters((filters) => {
+                const elements = filters.elements;
+                if (elements.has(element.id)) {
+                  elements.delete(element.id);
+                } else {
+                  elements.add(element.id);
+                }
+              });
+            }}
+          >
+            <CollectionAvatar
+              record={element}
+              fileName={element.icon}
+              name={element.name}
+              className="size-3.5"
+            />
+            {element.name}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -151,12 +185,13 @@ function FilterWeaponTypes() {
   const available = useAvailableFiltersSelector('weaponTypes');
   const setFilters = useSetFilters();
   return (
-    <div className="flex flex-wrap gap-x-2.5 gap-y-2.5">
+    <div className="flex flex-wrap gap-1.5">
       {weaponTypes.map((weaponType) => (
         <Button
           key={weaponType.id}
           variant={value.has(weaponType.id) ? 'default' : 'outline'}
           size="sm"
+          className="h-7 rounded-full px-2 text-xs"
           disabled={!available.has(weaponType.id)}
           onClick={() => {
             setFilters((filters) => {
@@ -199,14 +234,10 @@ function FilterArtifactSets() {
     return res;
   }, [available, value]);
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <span
-          className={cn('text-sm', {
-            'text-muted-foreground': value.size == 0,
-          })}
-        >
-          Artifacts
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
+          Artifact sets
         </span>
         <ArtifactSetPicker
           title="New artifact set"
@@ -218,10 +249,11 @@ function FilterArtifactSets() {
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
+            className="size-5 rounded-md text-muted-foreground hover:bg-accent disabled:opacity-25"
             disabled={artifactSets.size - ignored.size == 0}
+            aria-label="Filter by artifact set"
           >
-            <Icons.Add />
+            <Icons.Add className="size-3.5" />
           </Button>
         </ArtifactSetPicker>
         <div className="flex-1" />
@@ -264,16 +296,16 @@ function FilterArtifactTypes() {
           return null;
         }
         return (
-          <div key={at.id} className="flex w-full gap-3">
+          <div key={at.id} className="flex w-full items-center gap-2">
             <CollectionAvatar
               record={at}
               fileName={at.icon}
               name={at.name}
-              className={cn('size-8', {
-                ['opacity-50']: selectedArr.length === 0,
+              className={cn('size-6 shrink-0', {
+                ['opacity-40']: selectedArr.length === 0,
               })}
             />
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1">
               {selectedArr.map((s, i) => {
                 const special = specialsMap?.get(s);
                 if (!special) {
@@ -283,7 +315,7 @@ function FilterArtifactTypes() {
                   <div key={special.id} className="flex items-center gap-1.5">
                     <Button
                       variant="destructive"
-                      className="text-md leading-none py-0 px-2 not-hover:text-primary not-hover:bg-transparent"
+                      className="h-auto rounded-md px-1.5 py-0.5 text-xs leading-tight font-medium not-hover:bg-accent not-hover:text-foreground"
                       onClick={() => {
                         setFilters((filters) => {
                           const artifactTypeSpecials =
@@ -300,7 +332,7 @@ function FilterArtifactTypes() {
                       {special.name}
                     </Button>
                     {selectedArr.length - 1 !== i && (
-                      <Icons.Divide className="text-gray-400 size-4" />
+                      <Icons.Divide className="size-3 text-muted-foreground/50" />
                     )}
                   </div>
                 );

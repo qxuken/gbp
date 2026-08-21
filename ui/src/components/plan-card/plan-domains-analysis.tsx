@@ -31,11 +31,11 @@ export default function PlanDomainsAnalysis() {
   return (
     <Collapsible defaultOpen asChild>
       <section
-        aria-label="Filters"
-        className="p-3 grid gap-2 min-w-xs bg-background border border-border border-dashed rounded-xl"
+        aria-label="Farm tips"
+        className="grid min-w-0 gap-2 rounded-xl border border-border bg-card p-3 shadow-sm"
       >
         <div className="flex items-center justify-between gap-4">
-          <h3 className="text-md font-semibold">Farm tips</h3>
+          <h3 className="text-sm font-semibold tracking-tight">Farm tips</h3>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="h-6 w-6">
               <Icons.Dropdown className="h-3 w-3" />
@@ -75,7 +75,7 @@ function PlanDomainsAnalysisItem({ item }: { item: DomainsByArtifactSets }) {
     return null;
   }
   return (
-    <div className="pt-1 pb-2 px-2 bg-accent rounded-lg">
+    <div className="rounded-lg border border-border/60 bg-muted/40 px-2 pt-1 pb-2 transition-colors hover:bg-muted/70">
       <div className="flex gap-1">
         {item.artifactSets.map((it) => (
           <PlanDomainsAnalysisItemArtifactSets

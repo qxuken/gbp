@@ -29,6 +29,7 @@ import { PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { handleReorderImmer } from '@/lib/handle-reorder';
 import { cn } from '@/lib/utils';
 
+import { SectionAddButton, SectionEmpty, SectionHeader } from './section';
 import { WeaponPicker } from './weapon-picker';
 
 const MAX_WEAPONS = 10;
@@ -52,52 +53,40 @@ export function Weapons(props: Props) {
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1">
-        <span
-          className={cn('text-sm', {
-            'text-rose-700': mutation.isError,
-          })}
-        >
-          Weapons
-        </span>
-        {mutation.records.length < MAX_WEAPONS && (
-          <WeaponPicker
-            title="New weapon"
-            onSelect={mutation.create}
-            weaponTypeId={props.weaponType}
-            ignoreWeapons={ignoreWeapons}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
-              disabled={props.disabled}
+    <div className="flex flex-col gap-1.5">
+      <SectionHeader
+        icon={Icons.Weapon}
+        title="Weapons"
+        isError={mutation.isError}
+        retry={mutation.retry}
+        disabled={props.disabled}
+        action={
+          mutation.records.length < MAX_WEAPONS && (
+            <WeaponPicker
+              title="New weapon"
+              onSelect={mutation.create}
+              weaponTypeId={props.weaponType}
+              ignoreWeapons={ignoreWeapons}
             >
-              <Icons.Add />
-            </Button>
-          </WeaponPicker>
-        )}
-        <div className="flex-1" />
-        {mutation.isError && (
-          <Button
-            variant="ghost"
-            className="h-6 opacity-50 transition-opacity focus:opacity-100 hover:opacity-100 disabled:opacity-25"
-            onClick={mutation.retry}
+              <SectionAddButton
+                disabled={props.disabled}
+                aria-label="Add weapon"
+              />
+            </WeaponPicker>
+          )
+        }
+      />
+      {mutation.records.length === 0 ? (
+        <SectionEmpty>No weapon picked yet</SectionEmpty>
+      ) : (
+        <div className="grid w-full gap-0.5">
+          <WeaponsFull
+            planId={props.planId}
+            mutation={mutation}
             disabled={props.disabled}
-          >
-            <Icons.Retry className="text-rose-700" />
-            Retry
-          </Button>
-        )}
-      </div>
-      <div className="grid w-full gap-2">
-        <WeaponsFull
-          planId={props.planId}
-          mutation={mutation}
-          disabled={props.disabled}
-        />
-      </div>
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -185,15 +174,15 @@ function WeaponDrag(
         'opacity-50': isDragging,
       })}
     >
-      <div className="flex">
+      <div className="group/item flex items-center">
         {!props.disabled ? (
-          <Icons.Drag
-            className="rotate-90 py-1 size-6 self-center"
+          <Icons.DragVertical
+            className="size-4 shrink-0 cursor-grab self-center text-muted-foreground/70 transition-opacity hoverable:opacity-0 hoverable:group-hover/item:opacity-100 hoverable:focus:opacity-100"
             {...listeners}
             {...attributes}
           />
         ) : (
-          <div className="py-1 size-6" />
+          <div className="size-4 shrink-0" />
         )}
         {props.children}
       </div>
@@ -216,38 +205,48 @@ function Weapon(props: WeaponProps) {
   if (!weapon) return null;
 
   return (
-    <div className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+    <div className="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-foreground/4">
       <CollectionAvatar
         record={weapon}
         fileName={weapon.icon}
         name={weapon.name}
-        className="size-12 shrink-0"
+        className={cn(
+          'size-12 shrink-0 rounded-lg bg-gradient-to-br',
+          weapon.rarity === 5
+            ? 'from-rarity-5/30 to-rarity-5/5'
+            : weapon.rarity === 4
+              ? 'from-rarity-4/28 to-rarity-4/5'
+              : 'from-muted to-muted/30',
+        )}
       />
       <div className="min-w-0">
-        <span className="min-w-0 text-balance text-base">{weapon.name}</span>
+        <span className="block truncate text-sm font-medium">
+          {weapon.name}
+        </span>
       </div>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
-            disabled={props.disabled}
-          >
-            <Icons.Remove />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="p-0" side="top">
-          <Button
-            variant="destructive"
-            className="w-full"
-            disabled={props.disabled}
-            onClick={props.delete}
-          >
-            Yes, I really want to delete
-          </Button>
-        </PopoverContent>
-      </Popover>
+      {!props.disabled && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6 p-1 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive data-[state=open]:opacity-100 hoverable:opacity-0 hoverable:group-hover/item:opacity-100 hoverable:focus-visible:opacity-100"
+              aria-label={`Remove ${weapon.name}`}
+            >
+              <Icons.Remove />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0" side="top">
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={props.delete}
+            >
+              Yes, I really want to delete
+            </Button>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 }

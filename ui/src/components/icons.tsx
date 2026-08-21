@@ -29,4 +29,12 @@ export const Icons = {
   NotComplete: lucideReact.Circle,
   Complete: lucideReact.CircleCheck,
   Github: lucideReact.GitBranch,
+  Weapon: lucideReact.Swords,
+  Artifact: lucideReact.Gem,
+  Team: lucideReact.Users,
+  Substat: lucideReact.Sparkles,
+  MainStat: lucideReact.CircleDot,
+  Star: lucideReact.Star,
+  DragVertical: lucideReact.GripVertical,
+  Caret: lucideReact.ChevronDown,
 };

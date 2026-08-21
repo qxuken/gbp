@@ -2,12 +2,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function ArtifactSetsSkeleton() {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1">
-        <Skeleton className="h-5 w-15 rounded-md" />
-        <Skeleton className="size-5 rounded-md" />
+    <div className="flex flex-col gap-1.5">
+      <div className="flex min-h-6 items-center gap-1.5">
+        <Skeleton className="size-3.5 rounded-sm" />
+        <Skeleton className="h-3 w-16 rounded-md" />
+        <Skeleton className="size-4 rounded-md" />
       </div>
-      <div className="grid gap-1 w-full">
+      <div className="grid w-full gap-0.5">
+        <ArtifactSetSkeleton />
         <ArtifactSetSkeleton />
       </div>
     </div>
@@ -16,18 +18,12 @@ export function ArtifactSetsSkeleton() {
 
 function ArtifactSetSkeleton() {
   return (
-    <div className="w-full flex gap-2">
-      <div className="px-1.5 w-12 h-9">
-        <Skeleton className="size-full rounded-4xl" />
-      </div>
-      <div className="flex-1 grid">
-        <div className="mb-1 flex items-center justify-between gap-2">
-          <Skeleton className="h-4 w-24 rounded-md" />
-          <Skeleton className="size-6 rounded-md" />
-        </div>
-        <div className="flex items-center justify-between gap-1">
-          <Skeleton className="h-4 w-8 rounded-md" />
-        </div>
+    <div className="flex items-center gap-2 px-1 py-0.5">
+      <Skeleton className="size-4 shrink-0 rounded-sm opacity-50" />
+      <Skeleton className="size-9 shrink-0 rounded-lg" />
+      <div className="grid flex-1 gap-1">
+        <Skeleton className="h-4 w-36 rounded-md" />
+        <Skeleton className="h-3 w-10 rounded" />
       </div>
     </div>
   );

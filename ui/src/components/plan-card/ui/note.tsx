@@ -12,11 +12,11 @@ export function Note(props: Props) {
       <Button
         variant="ghost"
         size="sm"
-        className="opacity-50 transition-opacity focus:opacity-100 hover:opacity-100"
+        className="h-7 w-fit gap-1.5 px-2 text-xs text-muted-foreground hover:bg-element/10 hover:text-element-fg"
         onClick={() => setCollapsed(false)}
         disabled={props.disabled}
       >
-        <Icons.Note /> Add note
+        <Icons.Note className="size-3.5" /> Add note
       </Button>
     );
   }
@@ -25,7 +25,7 @@ export function Note(props: Props) {
 
 function NoteField(props: Props) {
   return (
-    <div className="mt-1 w-full">
+    <div className="w-full">
       <AutoTextarea
         aria-label="Notes"
         placeholder="Additional build notes"

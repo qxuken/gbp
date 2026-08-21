@@ -6,28 +6,29 @@ export function PlanCompleted() {
   const setFilters = useSetFilters();
 
   return (
-    <section
-      aria-label="Completed Flag"
-      className="p-3 grid gap-2 min-w-xs bg-background border border-border border-dashed rounded-xl"
-    >
-      <div className="flex w-full items-center gap-4">
-        <span>Completed</span>
-        <Tabs
-          value={isComplete ? 'show' : 'hide'}
-          onValueChange={(value) => {
-            setFilters((filters) => {
-              filters.complete = value == 'show';
-            });
-          }}
-          className="flex-1"
-        >
-          <TabsList className="w-full">
-            <TabsTrigger value={'hide'}>Hide</TabsTrigger>
-            <TabsTrigger value={'show'}>Show</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-    </section>
+    <div className="flex w-full items-center gap-3">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground">
+        Built
+      </span>
+      <Tabs
+        value={isComplete ? 'show' : 'hide'}
+        onValueChange={(value) => {
+          setFilters((filters) => {
+            filters.complete = value == 'show';
+          });
+        }}
+        className="flex-1"
+      >
+        <TabsList className="h-7 w-full p-0.5">
+          <TabsTrigger value={'hide'} className="text-xs">
+            Hide
+          </TabsTrigger>
+          <TabsTrigger value={'show'} className="text-xs">
+            Show
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </div>
   );
 }
 

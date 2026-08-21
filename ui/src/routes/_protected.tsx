@@ -16,7 +16,7 @@ export const Route = createFileRoute('/_protected')({
 
 function RouteComponent() {
   return (
-    <Layout showUserManagement>
+    <Layout showUserManagement wide>
       <Outlet />
     </Layout>
   );

@@ -16,7 +16,8 @@ export function CreatePlan(props: Props) {
       <Button
         disabled={props.disabled}
         className={cn('gap-2', props.className, {
-          'size-16 rounded-full p-0 [&_span]:hidden': props.round,
+          'size-14 rounded-full p-0 shadow-lg ring-1 ring-border [&_span]:hidden':
+            props.round,
         })}
       >
         {props.round ? <Icons.Add /> : <Icons.New />}

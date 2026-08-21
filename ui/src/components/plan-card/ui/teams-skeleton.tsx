@@ -2,15 +2,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function TeamsSkeleton() {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1">
-        <Skeleton className="h-5 w-12 rounded-md" />
-        <Skeleton className="size-5 rounded-md" />
+    <div className="flex flex-col gap-1.5">
+      <div className="flex min-h-6 items-center gap-1.5">
+        <Skeleton className="size-3.5 rounded-sm" />
+        <Skeleton className="h-3 w-16 rounded-md" />
+        <Skeleton className="size-4 rounded-md" />
       </div>
-      <div className="grid gap-2 grid-cols-4">
-        <TeamSkeleton />
-        <TeamSkeleton />
-        <TeamSkeleton />
+      <div className="grid w-full gap-2 @[38rem]/plan:grid-cols-2">
         <TeamSkeleton />
       </div>
     </div>
@@ -19,11 +17,20 @@ export function TeamsSkeleton() {
 
 function TeamSkeleton() {
   return (
-    <div className="grid justify-items-center relative">
-      <div className="size-10 my-1">
-        <Skeleton className="size-full rounded-4xl" />
-      </div>
-      <Skeleton className="h-4 w-14 rounded-md" />
+    <div className="grid grid-cols-4 gap-1 rounded-lg border border-border/60 bg-muted/25 p-1.5">
+      <MemberSkeleton />
+      <MemberSkeleton />
+      <MemberSkeleton />
+      <MemberSkeleton />
+    </div>
+  );
+}
+
+function MemberSkeleton() {
+  return (
+    <div className="grid justify-items-center gap-0.5">
+      <Skeleton className="size-10 rounded-lg" />
+      <Skeleton className="h-2.5 w-12 rounded" />
     </div>
   );
 }

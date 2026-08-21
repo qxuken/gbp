@@ -4,60 +4,76 @@
 @import '@fontsource-variable/figtree';
 
 @custom-variant dark (&:is(.dark *));
+/* Only reveal hover-only chrome on devices that actually have a pointer. */
+@custom-variant hoverable {
+  @media (hover: hover) {
+    @slot;
+  }
+}
 
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(0 0% 3.9%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(0 0% 3.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(0 0% 3.9%);
-  --primary: hsl(0 0% 9%);
-  --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(0 0% 96.1%);
-  --secondary-foreground: hsl(0 0% 9%);
-  --muted: hsl(0 0% 96.1%);
-  --muted-foreground: hsl(0 0% 45.1%);
-  --accent: hsl(0 0% 96.1%);
-  --accent-foreground: hsl(0 0% 9%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(0 0% 89.8%);
-  --input: hsl(0 0% 89.8%);
-  --ring: hsl(0 0% 3.9%);
+  /* Paper — warm, slightly off-white so element colours read warm, not clinical */
+  --background: hsl(36 33% 97%);
+  --foreground: hsl(30 12% 12%);
+  --card: hsl(40 40% 99.5%);
+  --card-foreground: hsl(30 12% 12%);
+  --popover: hsl(40 40% 99.5%);
+  --popover-foreground: hsl(30 12% 12%);
+  --primary: hsl(28 14% 16%);
+  --primary-foreground: hsl(40 33% 98%);
+  --secondary: hsl(36 22% 93%);
+  --secondary-foreground: hsl(28 14% 16%);
+  --muted: hsl(36 22% 94%);
+  --muted-foreground: hsl(30 8% 42%);
+  --accent: hsl(36 24% 92%);
+  --accent-foreground: hsl(28 14% 16%);
+  --destructive: hsl(2 72% 48%);
+  --destructive-foreground: hsl(40 33% 98%);
+  --border: hsl(34 18% 88%);
+  --input: hsl(34 18% 86%);
+  --ring: hsl(32 26% 52%);
   --chart-1: hsl(12 76% 61%);
   --chart-2: hsl(173 58% 39%);
   --chart-3: hsl(197 37% 24%);
   --chart-4: hsl(43 74% 66%);
   --chart-5: hsl(27 87% 67%);
-  --radius: 0.6rem;
+
+  /* Rarity — how players already read weapons and artifact sets */
+  --rarity-5: hsl(38 78% 46%);
+  --rarity-4: hsl(265 55% 55%);
+
+  --radius: 0.7rem;
 }
 
 .dark {
-  --background: hsl(0 0% 3.9%);
-  --foreground: hsl(0 0% 98%);
-  --card: hsl(0 0% 3.9%);
-  --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(0 0% 3.9%);
-  --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(0 0% 98%);
-  --primary-foreground: hsl(0 0% 9%);
-  --secondary: hsl(0 0% 14.9%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(0 0% 14.9%);
-  --muted-foreground: hsl(0 0% 63.9%);
-  --accent: hsl(0 0% 14.9%);
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(0 0% 14.9%);
-  --input: hsl(0 0% 14.9%);
-  --ring: hsl(0 0% 83.1%);
+  /* Warm charcoal — a hint of brown keeps element gold rich instead of muddy */
+  --background: hsl(36 12% 7%);
+  --foreground: hsl(40 18% 95%);
+  --card: hsl(40 11% 10%);
+  --card-foreground: hsl(40 18% 95%);
+  --popover: hsl(40 11% 12%);
+  --popover-foreground: hsl(40 18% 95%);
+  --primary: hsl(40 18% 95%);
+  --primary-foreground: hsl(36 12% 9%);
+  --secondary: hsl(38 9% 16%);
+  --secondary-foreground: hsl(40 18% 95%);
+  --muted: hsl(38 9% 15%);
+  --muted-foreground: hsl(38 8% 62%);
+  --accent: hsl(38 9% 18%);
+  --accent-foreground: hsl(40 18% 95%);
+  --destructive: hsl(2 62% 46%);
+  --destructive-foreground: hsl(40 18% 96%);
+  --border: hsl(38 9% 18%);
+  --input: hsl(38 9% 22%);
+  --ring: hsl(36 16% 58%);
   --chart-1: hsl(220 70% 50%);
   --chart-2: hsl(160 60% 45%);
   --chart-3: hsl(30 80% 55%);
   --chart-4: hsl(280 65% 60%);
   --chart-5: hsl(340 75% 55%);
+
+  --rarity-5: hsl(40 82% 62%);
+  --rarity-4: hsl(265 70% 72%);
 }
 
 @theme inline {
@@ -85,6 +101,10 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-element: var(--element);
+  --color-element-fg: var(--element-fg);
+  --color-rarity-4: var(--rarity-4);
+  --color-rarity-5: var(--rarity-5);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -107,5 +127,50 @@
   button:disabled,
   [role='button']:disabled {
     cursor: default;
+  }
+}
+
+@layer components {
+  /*
+   * Element tinting. A card sets `--element` inline from the seed
+   * (`elements.color`); everything below it derives from that single value, so
+   * `bg-element/10`, `text-element-fg` and `border-element/30` just work.
+   */
+  .element-scope {
+    --element: var(--muted-foreground);
+    --element-fg: color-mix(in oklab, var(--element) 62%, black 38%);
+  }
+
+  .dark .element-scope {
+    --element-fg: color-mix(in oklab, var(--element) 66%, white 34%);
+  }
+
+  /* The banner wash behind a card header. */
+  .element-band {
+    background:
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--element) 16%, transparent),
+        transparent
+      ),
+      radial-gradient(
+        90% 130% at 12% 0%,
+        color-mix(in oklab, var(--element) 22%, transparent),
+        transparent 70%
+      );
+  }
+
+  .dark .element-band {
+    background:
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--element) 18%, transparent),
+        transparent
+      ),
+      radial-gradient(
+        90% 130% at 12% 0%,
+        color-mix(in oklab, var(--element) 26%, transparent),
+        transparent 70%
+      );
   }
 }
