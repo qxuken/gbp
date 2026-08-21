@@ -4,16 +4,13 @@ import { PropsWithChildren, useMemo, useState } from 'react';
 import {
   useCharacters,
   useElements,
-  useElementsMap,
   useWeaponTypes,
 } from '@/api/dictionaries/hooks';
-import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 
 const DEF_FILTER = {
   name: '',
@@ -30,7 +27,6 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
   const [filter, setFilter] = useState(() => DEF_FILTER);
 
   const elements = useElements();
-  const elementsMap = useElementsMap();
   const weaponTypes = useWeaponTypes();
   const characters = useCharacters();
 
@@ -129,7 +125,7 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
                 record={weaponType}
                 fileName={weaponType.icon}
                 name={weaponType.name}
-                className="size-4 not-dark:bg-black"
+                className="size-4 not-dark:invert"
               />
               {weaponType.name}
             </Button>
@@ -140,12 +136,7 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
             <Button
               variant="ghost"
               key={ch.id}
-              style={
-                {
-                  '--element': elementsMap.get(ch.element ?? '')?.color,
-                } as React.CSSProperties
-              }
-              className="element-scope relative row-span-2 grid h-full grid-rows-subgrid items-center justify-items-center gap-1 rounded-xl border border-element/35 bg-element/8 p-2 hover:bg-element/18"
+              className="relative row-span-2 grid h-full grid-rows-subgrid items-center justify-items-center gap-1 rounded-lg border border-border/70 bg-muted/35 p-2 transition-colors hover:border-border hover:bg-muted/70"
               onClick={() => onSelect(ch.id)}
               disabled={disabled}
             >
@@ -157,15 +148,6 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
               />
               <span className="text-xs leading-tight text-balance">
                 {ch.name}
-              </span>
-              <span
-                className={cn(
-                  'absolute top-1 right-1 inline-flex items-center gap-0.5 rounded-full px-1 text-[10px] font-bold tabular-nums',
-                  ch.rarity === 5 ? 'text-rarity-5' : 'text-rarity-4',
-                )}
-              >
-                <Icons.Star className="size-2.5 fill-current" />
-                {ch.rarity}
               </span>
             </Button>
           ))}

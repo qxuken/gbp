@@ -38,7 +38,7 @@ export function MainStat({ plan, mutate, disabled }: Props) {
         disabled={disabled}
       />
       <StatInput
-        name="C"
+        name="Const"
         title="Constellation"
         value={plan.constellationTarget}
         onChange={mutateFieldImmer(mutate, 'constellationTarget')}
@@ -50,7 +50,7 @@ export function MainStat({ plan, mutate, disabled }: Props) {
       />
       <span className="mx-1 h-3.5 w-px bg-border/50" aria-hidden />
       <StatInput
-        name="Atk"
+        name="N/A"
         title="Attack talent"
         min={1}
         max={10}

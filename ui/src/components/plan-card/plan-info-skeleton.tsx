@@ -24,9 +24,9 @@ export function PlanInfoSkeleton({
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <Skeleton className="h-5 w-32 rounded-md" />
             <div className="flex gap-1.5">
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-md" />
+              <Skeleton className="h-5 w-16 rounded-md" />
+              <Skeleton className="h-5 w-20 rounded-md" />
             </div>
             <div className="flex gap-1">
               <Skeleton className="h-6 w-12 rounded-md" />

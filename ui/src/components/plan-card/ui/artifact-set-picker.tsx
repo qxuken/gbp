@@ -2,13 +2,11 @@ import fuzzysearch from 'fuzzysearch';
 import { PropsWithChildren, useMemo, useState } from 'react';
 
 import { useArtifactSets } from '@/api/dictionaries/hooks';
-import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { CollectionAvatar } from '@/components/ui/collection-avatar';
 import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 
 const DEF_FILTER = {
   name: '',
@@ -56,14 +54,7 @@ function Picker({ onSelect, ignoreArtifacts }: PickerProps) {
             <Button
               variant="ghost"
               key={w.id}
-              className={cn(
-                'relative row-span-2 grid h-full grid-rows-subgrid items-center justify-items-center gap-1 rounded-xl border p-2',
-                w.rarity === 5
-                  ? 'border-rarity-5/40 bg-rarity-5/8 hover:bg-rarity-5/16'
-                  : w.rarity === 4
-                    ? 'border-rarity-4/35 bg-rarity-4/8 hover:bg-rarity-4/16'
-                    : 'border-border bg-muted/40 hover:bg-muted',
-              )}
+              className="relative row-span-2 grid h-full grid-rows-subgrid items-center justify-items-center gap-1 rounded-lg border border-border/70 bg-muted/35 p-2 transition-colors hover:border-border hover:bg-muted/70"
               onClick={() => onSelect(w.id)}
             >
               <CollectionAvatar
@@ -74,19 +65,6 @@ function Picker({ onSelect, ignoreArtifacts }: PickerProps) {
               />
               <span className="text-xs leading-tight text-balance">
                 {w.name}
-              </span>
-              <span
-                className={cn(
-                  'absolute top-1 right-1 inline-flex items-center gap-0.5 rounded-full px-1 text-[10px] font-bold tabular-nums',
-                  w.rarity === 5
-                    ? 'text-rarity-5'
-                    : w.rarity === 4
-                      ? 'text-rarity-4'
-                      : 'text-muted-foreground',
-                )}
-              >
-                <Icons.Star className="size-2.5 fill-current" />
-                {w.rarity}
               </span>
             </Button>
           ))}

@@ -12,26 +12,28 @@
 }
 
 :root {
-  /* Paper — warm, slightly off-white so element colours read warm, not clinical */
-  --background: hsl(36 33% 97%);
-  --foreground: hsl(30 12% 12%);
-  --card: hsl(40 40% 99.5%);
-  --card-foreground: hsl(30 12% 12%);
-  --popover: hsl(40 40% 99.5%);
-  --popover-foreground: hsl(30 12% 12%);
-  --primary: hsl(28 14% 16%);
-  --primary-foreground: hsl(40 33% 98%);
-  --secondary: hsl(36 22% 93%);
-  --secondary-foreground: hsl(28 14% 16%);
-  --muted: hsl(36 22% 94%);
-  --muted-foreground: hsl(30 8% 42%);
-  --accent: hsl(36 24% 92%);
-  --accent-foreground: hsl(28 14% 16%);
+  /* Near-neutral greys — just enough warmth left that element colours don't go cold */
+  --background: hsl(36 6% 97%);
+  --foreground: hsl(30 4% 12%);
+  --card: hsl(40 8% 99.5%);
+  --card-foreground: hsl(30 4% 12%);
+  --popover: hsl(40 8% 99.5%);
+  --popover-foreground: hsl(30 4% 12%);
+  --primary: hsl(28 5% 16%);
+  --primary-foreground: hsl(40 8% 98%);
+  --secondary: hsl(36 5% 93%);
+  --secondary-foreground: hsl(28 5% 16%);
+  --muted: hsl(36 5% 94%);
+  --muted-foreground: hsl(30 3% 42%);
+  --accent: hsl(36 5% 92%);
+  --accent-foreground: hsl(28 5% 16%);
   --destructive: hsl(2 72% 48%);
-  --destructive-foreground: hsl(40 33% 98%);
-  --border: hsl(34 18% 88%);
-  --input: hsl(34 18% 86%);
-  --ring: hsl(32 26% 52%);
+  --destructive-foreground: hsl(40 8% 98%);
+  --border: hsl(34 5% 88%);
+  --input: hsl(34 5% 86%);
+  /* Text fields carry a stronger edge than outline buttons do. */
+  --input-border: hsl(32 5% 72%);
+  --ring: hsl(30 4% 52%);
   --chart-1: hsl(12 76% 61%);
   --chart-2: hsl(173 58% 39%);
   --chart-3: hsl(197 37% 24%);
@@ -46,26 +48,27 @@
 }
 
 .dark {
-  /* Warm charcoal — a hint of brown keeps element gold rich instead of muddy */
-  --background: hsl(36 12% 7%);
-  --foreground: hsl(40 18% 95%);
-  --card: hsl(40 11% 10%);
-  --card-foreground: hsl(40 18% 95%);
-  --popover: hsl(40 11% 12%);
-  --popover-foreground: hsl(40 18% 95%);
-  --primary: hsl(40 18% 95%);
-  --primary-foreground: hsl(36 12% 9%);
-  --secondary: hsl(38 9% 16%);
-  --secondary-foreground: hsl(40 18% 95%);
-  --muted: hsl(38 9% 15%);
-  --muted-foreground: hsl(38 8% 62%);
-  --accent: hsl(38 9% 18%);
-  --accent-foreground: hsl(40 18% 95%);
+  /* Near-neutral charcoal — a trace of warmth, not the brown cast */
+  --background: hsl(36 4% 7%);
+  --foreground: hsl(40 5% 95%);
+  --card: hsl(40 4% 10%);
+  --card-foreground: hsl(40 5% 95%);
+  --popover: hsl(40 4% 12%);
+  --popover-foreground: hsl(40 5% 95%);
+  --primary: hsl(40 5% 95%);
+  --primary-foreground: hsl(36 4% 9%);
+  --secondary: hsl(38 4% 16%);
+  --secondary-foreground: hsl(40 5% 95%);
+  --muted: hsl(38 4% 15%);
+  --muted-foreground: hsl(38 4% 62%);
+  --accent: hsl(38 4% 18%);
+  --accent-foreground: hsl(40 5% 95%);
   --destructive: hsl(2 62% 46%);
-  --destructive-foreground: hsl(40 18% 96%);
-  --border: hsl(38 9% 18%);
-  --input: hsl(38 9% 22%);
-  --ring: hsl(36 16% 58%);
+  --destructive-foreground: hsl(40 8% 96%);
+  --border: hsl(38 4% 18%);
+  --input: hsl(38 4% 22%);
+  --input-border: hsl(38 4% 30%);
+  --ring: hsl(38 5% 48%);
   --chart-1: hsl(220 70% 50%);
   --chart-2: hsl(160 60% 45%);
   --chart-3: hsl(30 80% 55%);
@@ -95,6 +98,7 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-input-border: var(--input-border);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);

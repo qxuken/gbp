@@ -170,8 +170,8 @@ function PlanCardHeader(props: HeaderProps) {
               {props.character.name}
             </h3>
             <PlanCardInfo character={props.character} />
-            <div className="flex-1" />
             <PlanCardCompleteToggle {...props} />
+            <div className="flex-1" />
             <PlanCardActions {...props} />
           </div>
           <MainStat
@@ -250,7 +250,7 @@ function PlanCardCompleteToggle(props: Props) {
         <button
           type="button"
           className={cn(
-            'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 transition-colors',
+            'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 transition-colors',
             complete
               ? 'bg-element/20 text-element-fg ring-element/30 hover:bg-element/30'
               : 'bg-foreground/6 text-muted-foreground ring-border/60 hover:bg-foreground/10',

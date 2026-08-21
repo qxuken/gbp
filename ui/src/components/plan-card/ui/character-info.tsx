@@ -46,7 +46,7 @@ export function CharacterInfoContent({ character }: CharacterInfoContentProps) {
           record={weaponType}
           fileName={weaponType.icon}
           name={weaponType.name}
-          className="size-4 not-dark:bg-black"
+          className="size-4 not-dark:invert"
         />
         {weaponType.name}
       </Badge>

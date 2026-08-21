@@ -373,7 +373,7 @@ export function ArtifactSetShort(props: ArtifactSetProps) {
     return null;
   }
   return (
-    <div className="flex gap-2 w-full">
+    <div className="flex w-full min-w-0 items-center gap-2">
       <div
         className="cursor-pointer"
         onClick={() =>
@@ -388,17 +388,19 @@ export function ArtifactSetShort(props: ArtifactSetProps) {
           record={artifactSet}
           fileName={artifactSet.icon}
           name={artifactSet.name}
-          className="size-8"
+          className="size-7 shrink-0 rounded-md"
         />
       </div>
-      <div className="flex-1">
-        <div className="flex justify-between">
-          <span className="flex-1">{artifactSet.name}</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center justify-between gap-1">
+          <span className="min-w-0 flex-1 truncate text-xs leading-tight font-medium">
+            {artifactSet.name}
+          </span>
           {props.skipConfirmation ? (
             <Button
               variant="ghost"
               size="icon"
-              className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+              className="size-5 shrink-0 p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive"
               onClick={props.delete}
               disabled={props.disabled}
             >
@@ -410,7 +412,7 @@ export function ArtifactSetShort(props: ArtifactSetProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-6 p-1 opacity-50 hover:opacity-75 hover:outline data-[state=open]:outline data-[state=open]:animate-pulse"
+                  className="size-5 shrink-0 p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive"
                   disabled={props.disabled}
                 >
                   <Icons.Remove />
