@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
 import { cn } from '@/lib/utils';
 
-import { SectionHeader } from './section';
+import { RemovableChip, SectionHeader } from './section';
 
 type Props = {
   planId: string;
@@ -224,19 +224,14 @@ export function ArtifactTypesSpecialItem(props: ArtifactTypesSpecialItemProps) {
     <div className="flex min-w-0 gap-1 items-center">
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            size="default"
-            variant="destructive"
-            className={cn(
-              'h-auto max-w-full rounded-md px-1.5 py-0.5 text-sm leading-tight font-medium whitespace-normal text-left not-hover:bg-transparent not-hover:text-foreground',
-              {
-                'opacity-75 animate-pulse': props.isLoading,
-              },
-            )}
+          <RemovableChip
+            className={cn('text-left', {
+              'opacity-75 animate-pulse': props.isLoading,
+            })}
             disabled={props.disabled}
           >
             {special.name}
-          </Button>
+          </RemovableChip>
         </PopoverTrigger>
         <PopoverContent className="p-0" side="top">
           <Button

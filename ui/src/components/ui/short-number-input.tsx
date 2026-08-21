@@ -22,6 +22,12 @@ export type ShortNumberInputProps = Omit<
   options?: number[];
   /** Accessible name for the picker, e.g. "Constellation". */
   optionsLabel?: string;
+  /**
+   * Snaps a typed value onto the nearest legal one — character levels above 90
+   * only exist in steps of five, for instance. Values it doesn't map to
+   * themselves are treated as invalid while typing.
+   */
+  normalize?: (value: number) => number;
 };
 export function ShortNumberInput({
   max = 99,
@@ -29,32 +35,37 @@ export function ShortNumberInput({
   className,
   options,
   optionsLabel,
+  normalize,
   ...props
 }: ShortNumberInputProps) {
   const [value, setValue] = useState(() => String(props.value));
   useEffect(() => {
     setValue(String(props.value));
   }, [props.value]);
-  const isValid = (v: number) => min <= v && v <= max;
-  const dec = () => {
-    if (!isValid(props.value - 1)) {
-      return;
+  const maxLength = String(max).length;
+  const isValid = (v: number) =>
+    min <= v && v <= max && (!normalize || normalize(v) === v);
+  /** Walks to the next legal value, skipping the gaps `normalize` leaves. */
+  const step = (direction: 1 | -1) => {
+    for (
+      let v = props.value + direction;
+      min <= v && v <= max;
+      v += direction
+    ) {
+      if (isValid(v)) {
+        return props.onChange(v);
+      }
     }
-    props.onChange(props.value - 1);
   };
-  const inc = () => {
-    if (!isValid(props.value + 1)) {
-      return;
-    }
-    props.onChange(props.value + 1);
-  };
+  const dec = () => step(-1);
+  const inc = () => step(1);
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const evVal = e.target.value;
     const val = Number(evVal);
     if (evVal === '') {
       return setValue(evVal);
     }
-    if (isNaN(val) || evVal.length > 2) {
+    if (isNaN(val) || evVal.length > maxLength) {
       return;
     }
     if (val != props.value && isValid(val)) {
@@ -69,7 +80,8 @@ export function ShortNumberInput({
     }
     const val = Number(value);
     if (!isValid(val)) {
-      props.onChange(clamp(min, val, max));
+      const clamped = clamp(min, val, max);
+      props.onChange(normalize ? clamp(min, normalize(clamped), max) : clamped);
     }
   };
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {

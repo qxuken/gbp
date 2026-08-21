@@ -8,7 +8,7 @@ export function ArtifactSubstatsSkeleton() {
         <Skeleton className="h-3 w-16 rounded-md" />
         <Skeleton className="size-4 rounded-md" />
       </div>
-      <div className="flex flex-wrap items-center gap-1">
+      <div className="flex flex-wrap items-center gap-1 pl-3.5">
         <Skeleton className="h-6 w-24 rounded-md" />
         <Skeleton className="h-6 w-20 rounded-md" />
         <Skeleton className="size-5 rounded-md" />

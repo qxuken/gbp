@@ -1,5 +1,5 @@
 import { SelectTrigger } from '@radix-ui/react-select';
-import { CSSProperties, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import {
   useArtifactSetsMap,
@@ -31,6 +31,8 @@ import {
 import PlanCompleted from './plan-completed';
 import { ArtifactSetPicker } from './ui/artifact-set-picker';
 import { ArtifactSetShort } from './ui/artifact-sets';
+import { ElementChip, WeaponTypeChip } from './ui/filter-chip';
+import { RemovableChip } from './ui/section';
 
 export default function PlanFilters() {
   return (
@@ -40,7 +42,7 @@ export default function PlanFilters() {
         className="@container/filters grid min-w-0 gap-3 rounded-xl border border-border bg-card p-3 shadow-sm"
       >
         <FilterHeader />
-        <CollapsibleContent className="grid items-start gap-x-6 gap-y-3.5 @[34rem]/filters:grid-cols-2 @[56rem]/filters:grid-cols-3">
+        <CollapsibleContent className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] items-start gap-x-6 gap-y-3.5">
           <FilterName />
           <PlanCompleted />
           <FilterGroup label="Element">
@@ -58,10 +60,6 @@ export default function PlanFilters() {
     </Collapsible>
   );
 }
-
-/* Filter chips all share one shape; only the active fill differs. */
-const CHIP =
-  'inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-30';
 
 function FilterGroup({
   label,
@@ -143,43 +141,24 @@ function FilterElements() {
   const setFilters = useSetFilters();
   return (
     <div className="flex flex-wrap gap-1.5">
-      {elements.map((element) => {
-        const active = filter.has(element.id);
-        return (
-          <button
-            key={element.id}
-            type="button"
-            style={{ '--element': element.color } as CSSProperties}
-            className={cn(
-              CHIP,
-              'element-scope',
-              active
-                ? 'border-element/50 bg-element/20 text-element-fg'
-                : 'border-border text-muted-foreground hover:border-element/40 hover:bg-element/10 hover:text-element-fg',
-            )}
-            disabled={!available.has(element.id)}
-            aria-pressed={active}
-            onClick={() => {
-              setFilters((filters) => {
-                const elements = filters.elements;
-                if (elements.has(element.id)) {
-                  elements.delete(element.id);
-                } else {
-                  elements.add(element.id);
-                }
-              });
-            }}
-          >
-            <CollectionAvatar
-              record={element}
-              fileName={element.icon}
-              name={element.name}
-              className="size-3.5"
-            />
-            {element.name}
-          </button>
-        );
-      })}
+      {elements.map((element) => (
+        <ElementChip
+          key={element.id}
+          element={element}
+          active={filter.has(element.id)}
+          disabled={!available.has(element.id)}
+          onClick={() =>
+            setFilters((filters) => {
+              const elements = filters.elements;
+              if (elements.has(element.id)) {
+                elements.delete(element.id);
+              } else {
+                elements.add(element.id);
+              }
+            })
+          }
+        />
+      ))}
     </div>
   );
 }
@@ -191,41 +170,24 @@ function FilterWeaponTypes() {
   const setFilters = useSetFilters();
   return (
     <div className="flex flex-wrap gap-1.5">
-      {weaponTypes.map((weaponType) => {
-        const active = value.has(weaponType.id);
-        return (
-          <button
-            key={weaponType.id}
-            type="button"
-            className={cn(
-              CHIP,
-              active
-                ? 'border-foreground/25 bg-foreground/8 text-foreground'
-                : 'border-border text-muted-foreground hover:border-foreground/20 hover:bg-foreground/5 hover:text-foreground',
-            )}
-            disabled={!available.has(weaponType.id)}
-            aria-pressed={active}
-            onClick={() => {
-              setFilters((filters) => {
-                const weaponTypes = filters.weaponTypes;
-                if (weaponTypes.has(weaponType.id)) {
-                  weaponTypes.delete(weaponType.id);
-                } else {
-                  weaponTypes.add(weaponType.id);
-                }
-              });
-            }}
-          >
-            <CollectionAvatar
-              record={weaponType}
-              fileName={weaponType.icon}
-              name={weaponType.name}
-              className="size-3.5 not-dark:invert"
-            />
-            {weaponType.name}
-          </button>
-        );
-      })}
+      {weaponTypes.map((weaponType) => (
+        <WeaponTypeChip
+          key={weaponType.id}
+          weaponType={weaponType}
+          active={value.has(weaponType.id)}
+          disabled={!available.has(weaponType.id)}
+          onClick={() =>
+            setFilters((filters) => {
+              const weaponTypes = filters.weaponTypes;
+              if (weaponTypes.has(weaponType.id)) {
+                weaponTypes.delete(weaponType.id);
+              } else {
+                weaponTypes.add(weaponType.id);
+              }
+            })
+          }
+        />
+      ))}
     </div>
   );
 }
@@ -334,10 +296,9 @@ function FilterArtifactTypes() {
                   return null;
                 }
                 return (
-                  <button
+                  <RemovableChip
                     key={special.id}
-                    type="button"
-                    className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-foreground/5 px-1.5 py-0.5 text-xs leading-tight font-medium transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                    className="text-xs"
                     aria-label={`Remove ${special.name}`}
                     onClick={() => {
                       setFilters((filters) => {
@@ -353,8 +314,7 @@ function FilterArtifactTypes() {
                     }}
                   >
                     {special.name}
-                    <Icons.Remove className="size-3 opacity-60" />
-                  </button>
+                  </RemovableChip>
                 );
               })}
               {options.length > 0 && (

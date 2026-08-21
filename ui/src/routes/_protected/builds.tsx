@@ -80,7 +80,7 @@ function RouteLoader() {
     <>
       <section
         aria-label="Builds with controls"
-        className="grid gap-2 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
+        className="grid gap-2 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]"
       >
         <aside aria-label="Controls" className="p-2 grid gap-4 items-start">
           <PlanFiltersSkeleton />
@@ -181,22 +181,22 @@ function RouteComponent() {
         <RedirectFromBadPage>
           <section
             aria-label="Builds with controls"
-            className="grid gap-2 2xl:grid-cols-[minmax(20rem,24rem)_minmax(0,1fr)]"
+            className="grid gap-2 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]"
           >
             <div
               className={cn('min-h-fit min-w-0 p-2', {
-                '2xl:sticky 2xl:top-0 2xl:max-h-screen': isDesktop,
+                'lg:sticky lg:top-0 lg:max-h-screen': isDesktop,
               })}
             >
               <div
                 className={cn('min-w-0', {
-                  '2xl:max-h-screen 2xl:overflow-y-auto': isDesktop,
+                  'lg:max-h-screen lg:overflow-y-auto': isDesktop,
                 })}
               >
                 <aside
                   aria-label="Controls"
                   className={cn('h-fit min-w-0 grid gap-4 items-start', {
-                    '2xl:max-h-screen': isDesktop,
+                    'lg:max-h-screen': isDesktop,
                   })}
                 >
                   <PlanFilters />

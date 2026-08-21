@@ -13,9 +13,8 @@ import {
 } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { removeByPredMut } from '@/lib/array-remove-mut';
-import { cn } from '@/lib/utils';
 
-import { SectionHeader } from './section';
+import { RemovableChip, SectionHeader } from './section';
 
 type Props = {
   substats: string[];
@@ -46,7 +45,8 @@ export function ArtifactSubstats({ substats, mutate, disabled }: Props) {
   return (
     <div className="flex flex-col gap-1.5">
       <SectionHeader icon={Icons.Substat} title="Substats" />
-      <div className="flex flex-wrap items-center gap-1">
+      {/* Chip padding pulls text left; the indent lines it back up with the title. */}
+      <div className="flex flex-wrap items-center gap-1 pl-3.5">
         {substats.map((s, i) => (
           <ArtifactSubstatsItem
             key={s}
@@ -121,16 +121,7 @@ export function ArtifactSubstatsItem({
     <div className="flex items-center gap-1">
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            size="default"
-            variant="destructive"
-            className={cn(
-              'h-auto rounded-md px-1.5 py-0.5 text-sm leading-tight font-medium not-hover:bg-transparent not-hover:text-foreground',
-            )}
-            disabled={disabled}
-          >
-            {special.name}
-          </Button>
+          <RemovableChip disabled={disabled}>{special.name}</RemovableChip>
         </PopoverTrigger>
         <PopoverContent className="p-0" side="top">
           <Button

@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
+import { WeaponTypeChip } from './filter-chip';
+
 const DEF_FILTER = {
   name: '',
   weaponTypes: new Set(),
@@ -57,40 +59,25 @@ function Picker({ weaponTypeId, ignoreWeapons, onSelect }: PickerProps) {
           />
         </div>
         {weaponTypeId === undefined && (
-          <div className="flex flex-wrap gap-y-1 gap-x-2">
+          <div className="flex flex-wrap gap-x-2 gap-y-1.5">
             {weaponTypes?.map((weaponType) => (
-              <Button
+              <WeaponTypeChip
                 key={weaponType.id}
-                variant={
-                  filter.weaponTypes.has(weaponType.id)
-                    ? 'secondary'
-                    : 'outline'
-                }
-                size="sm"
-                onClick={() => {
-                  if (filter.weaponTypes.has(weaponType.id)) {
-                    setFilter((f) => {
-                      const weaponTypes = new Set(f.weaponTypes);
+                weaponType={weaponType}
+                size="md"
+                active={filter.weaponTypes.has(weaponType.id)}
+                onClick={() =>
+                  setFilter((f) => {
+                    const weaponTypes = new Set(f.weaponTypes);
+                    if (weaponTypes.has(weaponType.id)) {
                       weaponTypes.delete(weaponType.id);
-                      return { ...f, weaponTypes };
-                    });
-                  } else {
-                    setFilter((f) => {
-                      const weaponTypes = new Set(f.weaponTypes);
+                    } else {
                       weaponTypes.add(weaponType.id);
-                      return { ...f, weaponTypes };
-                    });
-                  }
-                }}
-              >
-                <CollectionAvatar
-                  record={weaponType}
-                  fileName={weaponType.icon}
-                  name={weaponType.name}
-                  className="size-4"
-                />
-                {weaponType.name}
-              </Button>
+                    }
+                    return { ...f, weaponTypes };
+                  })
+                }
+              />
             ))}
           </div>
         )}

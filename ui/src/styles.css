@@ -2,6 +2,7 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/figtree';
+@import '@fontsource-variable/bricolage-grotesque';
 
 @custom-variant dark (&:is(.dark *));
 /* Only reveal hover-only chrome on devices that actually have a pointer. */
@@ -31,9 +32,8 @@
   --destructive-foreground: hsl(40 8% 98%);
   --border: hsl(34 5% 88%);
   --input: hsl(34 5% 86%);
-  /* Text fields carry a stronger edge than outline buttons do. */
-  --input-border: hsl(32 5% 72%);
-  --ring: hsl(30 4% 52%);
+  --input-border: hsl(34 5% 84%);
+  --ring: hsl(30 4% 66%);
   --chart-1: hsl(12 76% 61%);
   --chart-2: hsl(173 58% 39%);
   --chart-3: hsl(197 37% 24%);
@@ -67,6 +67,7 @@
   --destructive-foreground: hsl(40 8% 96%);
   --border: hsl(38 4% 18%);
   --input: hsl(38 4% 22%);
+  /* Text fields carry a slightly stronger edge than the panels around them. */
   --input-border: hsl(38 4% 30%);
   --ring: hsl(38 5% 48%);
   --chart-1: hsl(220 70% 50%);
@@ -80,6 +81,7 @@
 }
 
 @theme inline {
+  --font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

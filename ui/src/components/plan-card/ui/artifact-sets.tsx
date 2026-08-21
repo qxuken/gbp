@@ -373,7 +373,7 @@ export function ArtifactSetShort(props: ArtifactSetProps) {
     return null;
   }
   return (
-    <div className="flex w-full min-w-0 items-center gap-2">
+    <div className="group/set-row flex w-full min-w-0 items-center gap-2">
       <div
         className="cursor-pointer"
         onClick={() =>
@@ -388,7 +388,7 @@ export function ArtifactSetShort(props: ArtifactSetProps) {
           record={artifactSet}
           fileName={artifactSet.icon}
           name={artifactSet.name}
-          className="size-7 shrink-0 rounded-md"
+          className="size-9 shrink-0 rounded-md"
         />
       </div>
       <div className="min-w-0 flex-1">
@@ -400,7 +400,7 @@ export function ArtifactSetShort(props: ArtifactSetProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-5 shrink-0 p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive"
+              className="size-5 shrink-0 p-1 text-muted-foreground transition-[color,background-color,opacity] hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive data-[state=open]:opacity-100 hoverable:opacity-0 hoverable:group-hover/set-row:opacity-100 hoverable:focus-visible:opacity-100"
               onClick={props.delete}
               disabled={props.disabled}
             >
@@ -412,7 +412,7 @@ export function ArtifactSetShort(props: ArtifactSetProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-5 shrink-0 p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive"
+                  className="size-5 shrink-0 p-1 text-muted-foreground transition-[color,background-color,opacity] hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive data-[state=open]:opacity-100 hoverable:opacity-0 hoverable:group-hover/set-row:opacity-100 hoverable:focus-visible:opacity-100"
                   disabled={props.disabled}
                 >
                   <Icons.Remove />

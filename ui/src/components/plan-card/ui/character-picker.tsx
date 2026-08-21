@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
+import { ElementChip, WeaponTypeChip } from './filter-chip';
+
 const DEF_FILTER = {
   name: '',
   elements: new Set(),
@@ -63,72 +65,46 @@ function Picker({ onSelect, ignoreCharacters, disabled }: PickerProps) {
             }}
           />
         </div>
-        <div className="flex flex-wrap gap-y-1 gap-x-2">
+        <div className="flex flex-wrap gap-x-2 gap-y-1.5">
           {elements.map((element) => (
-            <Button
+            <ElementChip
               key={element.id}
-              variant={
-                filter.elements.has(element.id) ? 'secondary' : 'outline'
-              }
-              size="sm"
-              onClick={() => {
-                if (filter.elements.has(element.id)) {
-                  setFilter((f) => {
-                    const elements = new Set(f.elements);
+              element={element}
+              size="md"
+              active={filter.elements.has(element.id)}
+              onClick={() =>
+                setFilter((f) => {
+                  const elements = new Set(f.elements);
+                  if (elements.has(element.id)) {
                     elements.delete(element.id);
-                    return { ...f, elements };
-                  });
-                } else {
-                  setFilter((f) => {
-                    const elements = new Set(f.elements);
+                  } else {
                     elements.add(element.id);
-                    return { ...f, elements };
-                  });
-                }
-              }}
-            >
-              <CollectionAvatar
-                record={element}
-                fileName={element.icon}
-                name={element.name}
-                className="size-4"
-              />
-              {element.name}
-            </Button>
+                  }
+                  return { ...f, elements };
+                })
+              }
+            />
           ))}
         </div>
-        <div className="flex flex-wrap gap-y-1 gap-x-2">
+        <div className="flex flex-wrap gap-x-2 gap-y-1.5">
           {weaponTypes?.map((weaponType) => (
-            <Button
+            <WeaponTypeChip
               key={weaponType.id}
-              variant={
-                filter.weaponTypes.has(weaponType.id) ? 'secondary' : 'outline'
-              }
-              size="sm"
-              onClick={() => {
-                if (filter.weaponTypes.has(weaponType.id)) {
-                  setFilter((f) => {
-                    const weaponTypes = new Set(f.weaponTypes);
+              weaponType={weaponType}
+              size="md"
+              active={filter.weaponTypes.has(weaponType.id)}
+              onClick={() =>
+                setFilter((f) => {
+                  const weaponTypes = new Set(f.weaponTypes);
+                  if (weaponTypes.has(weaponType.id)) {
                     weaponTypes.delete(weaponType.id);
-                    return { ...f, weaponTypes };
-                  });
-                } else {
-                  setFilter((f) => {
-                    const weaponTypes = new Set(f.weaponTypes);
+                  } else {
                     weaponTypes.add(weaponType.id);
-                    return { ...f, weaponTypes };
-                  });
-                }
-              }}
-            >
-              <CollectionAvatar
-                record={weaponType}
-                fileName={weaponType.icon}
-                name={weaponType.name}
-                className="size-4 not-dark:invert"
-              />
-              {weaponType.name}
-            </Button>
+                  }
+                  return { ...f, weaponTypes };
+                })
+              }
+            />
           ))}
         </div>
         <div className="min-h-32 max-h-[calc(70svh-12rem)] w-full grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] grid-rows-[auto_auto] gap-2">

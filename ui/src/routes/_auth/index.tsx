@@ -1,8 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Download, Package, Star } from 'lucide-react';
-import { ComponentType, CSSProperties, useMemo, useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
+import {
+  CSSProperties,
+  KeyboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import {
+  useElementsMap,
   useCharacters,
   useWeapons,
   useSpecials,
@@ -23,6 +31,9 @@ import { Icons } from '@/components/icons';
 import { PlanInfo } from '@/components/plan-card/plan-info';
 import { PlanInfoSkeleton } from '@/components/plan-card/plan-info-skeleton';
 import { Button } from '@/components/ui/button';
+import { CollectionAvatar } from '@/components/ui/collection-avatar';
+import { useElementScope } from '@/hooks/use-element-scope';
+import { cn } from '@/lib/utils';
 import { FiltersProvider } from '@/store/plans/filters';
 
 interface MockData {
@@ -74,7 +85,7 @@ function getRandomItems<T>(
   return result;
 }
 
-function useMockData(seed: number): MockData | null {
+function useMockData(seed: number, pinned?: Characters): MockData | null {
   const characters = useCharacters();
   const weapons = useWeapons();
   const specials = useSpecials();
@@ -87,16 +98,20 @@ function useMockData(seed: number): MockData | null {
     }
 
     const random = createRandom(seed);
+    const pool = pinned
+      ? characters.filter((c) => c.id !== pinned.id)
+      : characters;
 
     const [
-      character1,
+      drawnCharacter,
       character2,
       character3,
       character4,
       character5,
       character6,
       character7,
-    ] = getRandomItems(characters, 7, random);
+    ] = getRandomItems(pool, 7, random);
+    const character1 = pinned ?? drawnCharacter;
     const [weapon1, weapon2] = getRandomItems(
       weapons,
       2,
@@ -244,40 +259,28 @@ function useMockData(seed: number): MockData | null {
       weapon1,
       artifactSet1,
     };
-  }, [seed, characters, weapons, specials, artifactSets, artifactTypes]);
+  }, [
+    seed,
+    pinned,
+    characters,
+    weapons,
+    specials,
+    artifactSets,
+    artifactTypes,
+  ]);
 }
 
 export const Route = createFileRoute('/_auth/')({
   component: RouteComponent,
 });
 
-const FEATURES = [
-  {
-    title: 'Set the target',
-    description:
-      'Level, constellation and talents, plus every weapon and artifact set you would be happy to land.',
-    icon: Icons.Artifact,
-    element: '#2E8BC0',
-  },
-  {
-    title: 'Know what to farm',
-    description:
-      'Mark a build as done, and see which domains cover the most of what is still missing.',
-    icon: Icons.Complete,
-    element: '#D4AF37',
-  },
-  {
-    title: 'Plan around teams',
-    description:
-      'Try comps for each character and keep the reasoning in a note beside the build.',
-    icon: Icons.Team,
-    element: '#5F9E3D',
-  },
-];
-
 function RouteComponent() {
   const [seed, setSeed] = useState(() => (Math.random() * 2 ** 32) >>> 0);
-  const mockData = useMockData(seed);
+  const [pinned, setPinned] = useState<Characters | undefined>(undefined);
+  const mockData = useMockData(seed, pinned);
+  const character = mockData?.character1;
+  const { style: elementStyle } = useElementScope(character?.element);
+
   return (
     <FiltersProvider
       value={{
@@ -291,117 +294,117 @@ function RouteComponent() {
       }}
       setValue={() => {}}
     >
-      <div className="relative isolate -mx-4 -mt-4 px-4">
-        <HeroWash />
-
-        <div className="mx-auto w-full max-w-5xl">
-          <section className="pt-16 pb-12 text-center sm:pt-24">
-            <h1 className="bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-6xl">
+      {/* The page wears the element of whoever is on the card right now. */}
+      <div
+        className="element-scope mx-auto w-full max-w-6xl"
+        style={elementStyle}
+      >
+        <section className="relative grid gap-4 py-10 pl-5 sm:pl-7">
+          <span
+            aria-hidden
+            className="absolute inset-y-4 left-0 w-[3px] rounded-full bg-gradient-to-b from-element via-element/70 to-transparent"
+          />
+          <h1 className="font-display text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-6xl">
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  'linear-gradient(105deg, var(--element), color-mix(in oklab, var(--element) 20%, var(--foreground)) 70%)',
+              }}
+            >
               Genshin Build Planner
-            </h1>
-            <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
-              Plan builds, manage teams, and track farming progress in one
-              place.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button asChild size="lg">
-                <Link to="/signup">Get started</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/login">I already have an account</Link>
-              </Button>
-            </div>
-          </section>
+            </span>
+          </h1>
+          <p className="max-w-xl text-base text-muted-foreground sm:text-lg">
+            One card per character: level, constellation and talent targets, the
+            weapons and artifact sets you want, the teams you run them in, and
+            what is still left to farm.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Button asChild size="lg">
+              <Link to="/signup">Sign up</Link>
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link
+                to="/login"
+                className="text-foreground underline underline-offset-4 hover:text-muted-foreground"
+              >
+                Log in
+              </Link>
+            </span>
+          </div>
+        </section>
 
-          <section className="grid gap-4 pb-16 sm:grid-cols-3">
-            {FEATURES.map((feature) => (
-              <Feature key={feature.title} {...feature} />
-            ))}
-          </section>
+        <Roster selected={character} onSelect={setPinned} />
 
-          <section className="pb-16 text-center">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              One card per character
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              Everything for a build lives in a single card, tinted by the
-              character&apos;s element so you can find it at a glance. Edit it
-              in place — nothing to save, nothing to open.
-            </p>
-            <div className="mx-auto mt-8 w-full max-w-2xl text-left">
-              {mockData ? (
-                <PlanInfo
-                  plan={mockData.plans[0]}
-                  character={mockData.character1}
-                  disabled={true}
-                  isLoading={false}
-                  isError={false}
-                  update={() => {}}
-                  retry={() => {}}
-                  delete={() => {}}
-                />
-              ) : (
-                <PlanInfoSkeleton />
-              )}
-            </div>
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground/80">
-              <span>A real card, built from a random character.</span>
+        <section className="grid items-start gap-8 py-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)]">
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                {character ? `${character.name}'s card` : 'Example card'}
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 gap-1.5 px-2 text-xs"
+                className="h-7 gap-1.5 px-2 text-xs text-muted-foreground"
                 onClick={() => setSeed((v) => (v + 0x9e3779b9) >>> 0)}
               >
                 <Icons.Retry className="size-3.5" />
-                Reroll
+                Reroll gear
               </Button>
             </div>
-          </section>
+            {mockData ? (
+              <PlanInfo
+                plan={mockData.plans[0]}
+                character={mockData.character1}
+                disabled={true}
+                isLoading={false}
+                isError={false}
+                update={() => {}}
+                retry={() => {}}
+                delete={() => {}}
+              />
+            ) : (
+              <PlanInfoSkeleton />
+            )}
+          </div>
 
-          <section className="mb-20 grid gap-5 rounded-xl border border-border bg-card p-5 shadow-sm sm:grid-cols-3">
-            <div className="grid gap-2">
-              <h3 className="flex items-center gap-2 text-sm font-semibold">
-                <Icons.Github className="size-4 text-muted-foreground" />
-                Open source
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                MIT licensed — use it, fork it, change it.
-              </p>
-              <a
-                className="inline-flex w-fit items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent"
-                href="https://github.com/qxuken/gbp"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Star className="size-3.5" />
-                Star on GitHub
-              </a>
-            </div>
+          <div className="grid gap-5">
+            <dl className="grid gap-x-4 gap-y-2 rounded-xl border border-border bg-card/70 p-4 text-sm shadow-sm sm:grid-cols-[auto_minmax(0,1fr)]">
+              <dt className="text-muted-foreground">Source</dt>
+              <dd className="mb-1.5 sm:mb-0">
+                <a
+                  className="underline underline-offset-4 hover:text-muted-foreground"
+                  href="https://github.com/qxuken/gbp"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  github.com/qxuken/gbp
+                </a>
+                <span className="text-muted-foreground"> - MIT</span>
+              </dd>
 
-            <div className="grid gap-2">
-              <h3 className="flex items-center gap-2 text-sm font-semibold">
-                <Package className="size-4 text-muted-foreground" />
-                Self-host
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                One binary, or pull the image.
-              </p>
-              <code className="w-fit rounded bg-muted px-2 py-1 text-xs">
-                docker pull qxuken/gbp
-              </code>
-              <code className="w-fit rounded bg-muted px-2 py-1 text-xs">
-                nu build.nu
-              </code>
-            </div>
+              <dt className="text-muted-foreground">Self-host</dt>
+              <dd className="flex flex-wrap gap-1.5">
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+                  docker pull qxuken/gbp
+                </code>
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+                  nu build.nu
+                </code>
+              </dd>
+            </dl>
 
-            <div className="grid gap-2">
-              <h3 className="flex items-center gap-2 text-sm font-semibold">
-                <Download className="size-4 text-muted-foreground" />
-                Game data
-              </h3>
+            <div className="grid gap-2 rounded-xl border border-border bg-card/70 p-4 shadow-sm">
+              <h2 className="font-display text-sm font-bold tracking-tight">
+                Game data as SQLite
+              </h2>
               <p className="text-sm text-muted-foreground">
-                The dictionary ships as a SQLite file — build your own thing
-                with it.
+                Everything the planner knows about the game - characters,
+                weapons, artifact sets, main and sub stats, domains and patches
+                - ships as one SQLite file. Take it and build your own thing on
+                top of it.
               </p>
               <a
                 className="inline-flex w-fit items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm transition-colors hover:bg-accent"
@@ -409,63 +412,128 @@ function RouteComponent() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Download className="size-3.5" />
-                Download SQLite seed
+                <Icons.Download className="size-3.5" />
+                Download seed.db
               </a>
+              <p className="text-xs leading-relaxed text-muted-foreground/80">
+                Offered as-is, with no warranty. Genshin Impact names, artwork
+                and stats belong to HoYoverse; GBP is a fan tool, not affiliated
+                with or endorsed by them, and whatever you build with the file
+                stays your responsibility.
+              </p>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </FiltersProvider>
   );
 }
 
-type FeatureProps = {
-  title: string;
-  description: string;
-  icon: ComponentType<{ className?: string }>;
-  element: string;
+type RosterProps = {
+  selected?: Characters;
+  onSelect(character: Characters): void;
 };
-function Feature({ title, description, icon: Icon, element }: FeatureProps) {
-  return (
-    <div
-      className="element-scope rounded-xl border border-border bg-card/70 p-4 shadow-sm backdrop-blur-sm"
-      style={{ '--element': element } as CSSProperties}
-    >
-      <span className="mb-3 inline-flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-element/35 to-element/8 text-element-fg">
-        <Icon className="size-4.5" />
-      </span>
-      <h3 className="text-base font-semibold tracking-tight">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-    </div>
-  );
-}
 
 /**
- * Element-coloured wash that starts flush against the header and fades out,
- * echoing the band on a build card.
+ * The roster is the page's argument: every character in the game is a card
+ * waiting to be filled in. Picking one rebuilds the card below and re-tints
+ * the page, which is exactly what the app does once you are inside it.
  */
-const MASK = [
-  'linear-gradient(to bottom, transparent 0%, black 22%, black 55%, transparent 95%)',
-  'linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%)',
-].join(',');
+function Roster({ selected, onSelect }: RosterProps) {
+  const characters = useCharacters();
+  const elementsMap = useElementsMap();
+  const reducedMotion = useReducedMotion();
+  const stripRef = useRef<HTMLDivElement | null>(null);
+  /* Set when the keyboard moved the selection, so focus follows it there. */
+  const focusOnSelectRef = useRef(false);
 
-function HeroWash() {
+  /* Arrow keys walk the roster; only the current entry is a tab stop. */
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const step =
+      event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (step === 0) return;
+    event.preventDefault();
+    const index = characters.findIndex((c) => c.id === selected?.id);
+    const next =
+      characters[(index + step + characters.length) % characters.length];
+    if (next) {
+      focusOnSelectRef.current = true;
+      onSelect(next);
+    }
+  };
+
+  /* Centre the current character without dragging the page along with it. */
+  useEffect(() => {
+    const strip = stripRef.current;
+    const item = strip?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!strip || !item) return;
+    strip.scrollTo({
+      left: item.offsetLeft - strip.clientWidth / 2 + item.clientWidth / 2,
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+    if (focusOnSelectRef.current) {
+      focusOnSelectRef.current = false;
+      item.focus({ preventScroll: true });
+    }
+  }, [selected?.id, reducedMotion]);
+
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] opacity-25 dark:opacity-40"
-      style={{
-        background: [
-          'radial-gradient(65% 55% at 24% 8%, #D4AF37, transparent 70%)',
-          'radial-gradient(60% 50% at 70% 6%, #8C44FF, transparent 70%)',
-          'radial-gradient(55% 45% at 48% 14%, #2E8BC0, transparent 70%)',
-        ].join(','),
-        maskImage: MASK,
-        WebkitMaskImage: MASK,
-        maskComposite: 'intersect',
-        WebkitMaskComposite: 'source-in',
-      }}
-    />
+    <section className="grid min-w-0 gap-2.5">
+      <div className="flex items-baseline gap-2">
+        <span className="font-display text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+          Pick anyone
+        </span>
+        <span className="font-mono text-[11px] text-muted-foreground/70">
+          {characters.length || '...'} characters
+        </span>
+      </div>
+      <div
+        ref={stripRef}
+        role="listbox"
+        aria-label="Characters"
+        onKeyDown={onKeyDown}
+        className="-mx-1 flex gap-1.5 overflow-x-auto px-1 py-1 [mask-image:linear-gradient(to_right,transparent,black_1.5rem,black_calc(100%-1.5rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {characters.map((character, i) => {
+          const isSelected = selected?.id === character.id;
+          return (
+            <motion.button
+              key={character.id}
+              type="button"
+              initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.25,
+                delay: reducedMotion ? 0 : Math.min(i, 24) * 0.012,
+              }}
+              style={
+                {
+                  '--element': elementsMap.get(character.element ?? '')?.color,
+                } as CSSProperties
+              }
+              className={cn(
+                'element-scope shrink-0 rounded-lg p-0.5 ring-1 transition-colors',
+                isSelected
+                  ? 'bg-element/20 ring-element/60'
+                  : 'ring-transparent hover:bg-element/10 hover:ring-element/40 focus-visible:ring-element/60 focus-visible:outline-none',
+              )}
+              onClick={() => onSelect(character)}
+              role="option"
+              aria-selected={isSelected}
+              aria-label={character.name}
+              tabIndex={isSelected ? 0 : -1}
+              title={character.name}
+            >
+              <CollectionAvatar
+                record={character}
+                fileName={character.icon}
+                name={character.name}
+                className="size-11 rounded-md"
+              />
+            </motion.button>
+          );
+        })}
+      </div>
+    </section>
   );
 }

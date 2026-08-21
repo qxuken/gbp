@@ -12,8 +12,13 @@ import { mutateFieldImmer } from '@/lib/mutate-field';
 import { cn } from '@/lib/utils';
 
 const CONSTELLATIONS = numberRange(0, 6);
-const ATK_TALENTS = numberRange(1, 10);
 const TALENTS = numberRange(1, 13);
+const MAX_LEVEL = 100;
+
+/** Levels run 1-90, then only the five-step breakpoints: 95 and 100. */
+function normalizeLevel(level: number) {
+  return level <= 90 ? level : Math.min(MAX_LEVEL, Math.round(level / 5) * 5);
+}
 
 type Props = {
   plan: CharacterPlans;
@@ -29,12 +34,13 @@ export function MainStat({ plan, mutate, disabled }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-1">
       <StatInput
-        name="Lv"
+        name="Lvl"
         title="Level"
         value={plan.levelTarget}
         onChange={mutateFieldImmer(mutate, 'levelTarget')}
         min={1}
-        max={90}
+        max={MAX_LEVEL}
+        normalize={normalizeLevel}
         disabled={disabled}
       />
       <StatInput
@@ -53,8 +59,8 @@ export function MainStat({ plan, mutate, disabled }: Props) {
         name="N/A"
         title="Attack talent"
         min={1}
-        max={10}
-        options={ATK_TALENTS}
+        max={13}
+        options={TALENTS}
         optionsLabel="attack talent"
         value={plan.talentAtkTarget}
         onChange={mutateFieldImmer(mutate, 'talentAtkTarget')}
@@ -103,7 +109,11 @@ function StatInput({ name, title, className, ...props }: StatInputProps) {
       >
         {name}
       </Label>
-      <ShortNumberInput id={id} {...props} className="w-6 tabular-nums" />
+      <ShortNumberInput
+        id={id}
+        {...props}
+        className={cn('tabular-nums', props.max > 99 ? 'w-7' : 'w-6')}
+      />
     </div>
   );
 }

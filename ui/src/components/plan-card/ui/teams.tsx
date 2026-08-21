@@ -117,7 +117,32 @@ function Team(props: TeamProps) {
   };
 
   return (
-    <div className="grid grid-cols-4 justify-items-center gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-2">
+    <div className="group/team relative grid grid-cols-4 justify-items-center gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-2">
+      {!props.disabled && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-1 right-1 z-10 size-5 rounded-md bg-card/85 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive data-[state=open]:opacity-100 hoverable:opacity-0 hoverable:group-hover/team:opacity-100 hoverable:focus-visible:opacity-100"
+              aria-label="Delete team"
+              disabled={props.disabled}
+            >
+              <Icons.Remove className="size-3.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" side="top" align="end">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={props.delete}
+              disabled={props.disabled}
+            >
+              Yes, delete the whole team
+            </Button>
+          </PopoverContent>
+        </Popover>
+      )}
       <Character characterId={props.character.id} disabled={props.disabled} />
       {props.teamPlan.characters.map((tm) => (
         <Character
@@ -189,7 +214,7 @@ function Character(props: CharacterProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute inset-0 size-full rounded-lg bg-destructive/90 p-2.5 text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive focus:opacity-100 group-hover/team-avatar:opacity-100 data-[state=open]:opacity-100"
+                className="absolute inset-0 size-full rounded-lg bg-destructive/90 p-2.5 text-destructive-foreground opacity-0 transition-opacity hover:bg-destructive hover:text-destructive-foreground focus:opacity-100 group-hover/team-avatar:opacity-100 data-[state=open]:opacity-100"
                 disabled={props.disabled}
               >
                 <Icons.Remove />

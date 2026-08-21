@@ -88,6 +88,34 @@ export function SectionAddButton({
   );
 }
 
+/**
+ * A value that can be taken back out — a substat, a main stat, a filter. It
+ * reads as plain text until hovered, then turns red to say it is about to go,
+ * so removal never needs its own permanent chrome or any reserved space.
+ */
+export function RemovableChip({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<'button'>) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'inline-flex max-w-full items-center rounded-md border border-transparent px-1.5 py-0.5 text-sm leading-tight font-medium whitespace-normal transition-colors',
+        'hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive',
+        'focus-visible:border-destructive/40 focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:outline-none',
+        'data-[state=open]:border-destructive/40 data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive',
+        'disabled:pointer-events-none disabled:opacity-50',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
 /** Dashed placeholder shown where a section has nothing in it yet. */
 export function SectionEmpty({ children }: PropsWithChildren) {
   return (
