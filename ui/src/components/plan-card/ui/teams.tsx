@@ -117,34 +117,7 @@ function Team(props: TeamProps) {
   };
 
   return (
-    /* pr-6 is exactly the delete button's width plus its offset, so it clears
-       the fourth member's remove overlay without a wide empty margin. */
-    <div className="group/team relative grid grid-cols-4 justify-items-center gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-2 pr-6">
-      {!props.disabled && (
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-1 right-1 z-10 size-5 rounded-md bg-card/85 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive data-[state=open]:bg-destructive/10 data-[state=open]:text-destructive data-[state=open]:opacity-100 hoverable:opacity-0 hoverable:group-hover/team:opacity-100 hoverable:focus-visible:opacity-100"
-              aria-label="Delete team"
-              disabled={props.disabled}
-            >
-              <Icons.Remove className="size-3.5" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" side="top" align="end">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={props.delete}
-              disabled={props.disabled}
-            >
-              Yes, delete the whole team
-            </Button>
-          </PopoverContent>
-        </Popover>
-      )}
+    <div className="grid grid-cols-4 justify-items-center gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-2">
       <Character characterId={props.character.id} disabled={props.disabled} />
       {props.teamPlan.characters.map((tm) => (
         <Character
