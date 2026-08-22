@@ -43,6 +43,7 @@
   /* Rarity — how players already read weapons and artifact sets */
   --rarity-5: hsl(38 78% 46%);
   --rarity-4: hsl(265 55% 55%);
+  --rarity-3: hsl(205 62% 46%);
 
   --radius: 0.7rem;
 }
@@ -78,6 +79,7 @@
 
   --rarity-5: hsl(40 82% 62%);
   --rarity-4: hsl(265 70% 72%);
+  --rarity-3: hsl(203 72% 66%);
 }
 
 @theme inline {
@@ -109,6 +111,7 @@
   --color-chart-5: var(--chart-5);
   --color-element: var(--element);
   --color-element-fg: var(--element-fg);
+  --color-rarity-3: var(--rarity-3);
   --color-rarity-4: var(--rarity-4);
   --color-rarity-5: var(--rarity-5);
   --radius-sm: calc(var(--radius) - 4px);

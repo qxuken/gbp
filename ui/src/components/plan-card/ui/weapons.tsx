@@ -216,7 +216,9 @@ function Weapon(props: WeaponProps) {
             ? 'from-rarity-5/30 to-rarity-5/5'
             : weapon.rarity === 4
               ? 'from-rarity-4/28 to-rarity-4/5'
-              : 'from-muted to-muted/30',
+              : weapon.rarity === 3
+                ? 'from-rarity-3/28 to-rarity-3/5'
+                : 'from-muted to-muted/30',
         )}
       />
       <div className="min-w-0">

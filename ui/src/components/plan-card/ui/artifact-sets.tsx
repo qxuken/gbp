@@ -317,7 +317,9 @@ function ArtifactSetFull(props: ArtifactSetProps) {
             'size-12 shrink-0 rounded-lg bg-gradient-to-br',
             artifactSet.rarity === 5
               ? 'from-rarity-5/30 to-rarity-5/5'
-              : 'from-rarity-4/28 to-rarity-4/5',
+              : artifactSet.rarity === 4
+                ? 'from-rarity-4/28 to-rarity-4/5'
+                : 'from-rarity-3/28 to-rarity-3/5',
           )}
         />
       </div>
