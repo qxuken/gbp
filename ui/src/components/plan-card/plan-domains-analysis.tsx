@@ -147,7 +147,7 @@ function PlanDomainsAnalysisItemCharacter({ item }: { item: string }) {
         <TooltipTrigger asChild>
           <span>{character.name}</span>
         </TooltipTrigger>
-        <TooltipContent className="flex items-center gap-2">
+        <TooltipContent className="flex items-center gap-3 p-3">
           <CollectionAvatar
             className="size-16 rounded-xl"
             record={character}
