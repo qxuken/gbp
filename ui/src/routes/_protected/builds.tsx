@@ -184,25 +184,18 @@ function RouteComponent() {
             className="grid gap-2 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]"
           >
             <div
-              className={cn('min-h-fit min-w-0 p-2', {
-                'lg:sticky lg:top-0 lg:max-h-screen': isDesktop,
+              className={cn('min-h-fit min-w-0', {
+                'scrollbar-subtle lg:sticky lg:top-12 lg:max-h-[calc(100svh-3rem)] lg:overflow-y-auto lg:overscroll-contain':
+                  isDesktop,
               })}
             >
-              <div
-                className={cn('min-w-0', {
-                  'lg:max-h-screen lg:overflow-y-auto': isDesktop,
-                })}
+              <aside
+                aria-label="Controls"
+                className="h-fit min-w-0 grid gap-4 items-start p-2 lg:pb-6"
               >
-                <aside
-                  aria-label="Controls"
-                  className={cn('h-fit min-w-0 grid gap-4 items-start', {
-                    'lg:max-h-screen': isDesktop,
-                  })}
-                >
-                  <PlanFilters />
-                  <PlanDomainsAnalysis />
-                </aside>
-              </div>
+                <PlanFilters />
+                <PlanDomainsAnalysis />
+              </aside>
             </div>
             <div className="@container/cards min-w-0">
               <section

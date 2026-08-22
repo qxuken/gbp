@@ -83,7 +83,8 @@
 }
 
 @theme inline {
-  --font-display: 'Bricolage Grotesque Variable', 'Figtree Variable', sans-serif;
+  --font-display:
+    'Bricolage Grotesque Variable', 'Figtree Variable', sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -181,5 +182,56 @@
         color-mix(in oklab, var(--element) 26%, transparent),
         transparent 70%
       );
+  }
+}
+
+@layer components {
+  /*
+   * Thin, self-effacing scrollbar for the panes that scroll inside the page
+   * (the builds sidebar). The default macOS/Chromium bar is opaque and eats a
+   * visible gutter next to the cards.
+   */
+  .scrollbar-subtle {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(
+        in oklab,
+        var(--muted-foreground) 28%,
+        transparent
+      )
+      transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: color-mix(
+      in oklab,
+      var(--muted-foreground) 22%,
+      transparent
+    );
+  }
+
+  .scrollbar-subtle:hover::-webkit-scrollbar-thumb {
+    background-color: color-mix(
+      in oklab,
+      var(--muted-foreground) 38%,
+      transparent
+    );
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(
+      in oklab,
+      var(--muted-foreground) 55%,
+      transparent
+    );
   }
 }

@@ -29,7 +29,7 @@ export function Layout({
 
   return (
     <div className="min-h-svh flex flex-col">
-      <header className="border-b">
+      <header className="sticky top-0 z-30 border-b bg-background">
         <div
           className={cn(
             container,
