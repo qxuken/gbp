@@ -143,14 +143,12 @@ export function FiltersProvider({ children, value, setValue }: Props) {
           res.artifactSets.add(as);
         }
       }
-      if (filter(character, plan)) {
-        for (const atp of plan.artifactTypePlans ?? []) {
-          mapGetOrSetDefault(
-            res.specialsByArtifactTypePlans,
-            atp.artifactType,
-            () => new Set<string>(),
-          ).add(atp.special);
-        }
+      for (const atp of plan.artifactTypePlans ?? []) {
+        mapGetOrSetDefault(
+          res.specialsByArtifactTypePlans,
+          atp.artifactType,
+          () => new Set<string>(),
+        ).add(atp.special);
       }
     }
     return res;
