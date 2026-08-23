@@ -118,12 +118,34 @@ The project includes Nushell scripts for building and publishing.
 * **`build.nu`**: Builds the application.
 * **`publish.nu`**: Builds and publishes multi-arch Docker images (arm64 & amd64). This is primarily for project maintainers.
 
-> Important: there should be latest seed.db and seed.note for the images
+The image is baked with a dictionary seed, which is not tracked in git. Fetch it
+from a running deployment before building:
+
+  ```bash
+  scripts/fetch_seed.sh
+  ```
+
+It writes `backup/seed.db` and `backup/seed.note`, trying each origin in
+`SEED_HOSTS` (whitespace separated, `https://gbp.qxuken.dev https://genshinbuild.app`
+by default) until one serves a dump matching the sha256 it advertises.
 
   ```bash
   # Example: Build and publish a new version
   nu publish.nu
   ```
+
+### CI
+* **`.github/workflows/ci.yml`** runs on pull requests and pushes to `master`:
+  gofmt, `go vet`, `go build` and `go test` for the backend, `npm run typecheck`,
+  `npm run check` and `npm run build` for the frontend, and a multi-platform
+  image build.
+* **`.github/workflows/release.yml`** runs on tag pushes only. It reuses the CI
+  workflow as a gate and then pushes `qxuken/gbp` as a single multi-arch
+  manifest tagged with the git tag name, the commit sha and `latest`.
+
+Publishing needs two repository secrets, `DOCKERHUB_USERNAME` and
+`DOCKERHUB_TOKEN`. A `SEED_HOSTS` repository variable overrides the seed origins
+for both workflows.
 
 ## TODO
 

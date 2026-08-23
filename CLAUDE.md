@@ -54,7 +54,7 @@ The frontend reads plans through the **`plans` SQL view collection**, not the un
 
 ### Seed / dictionary data (`internals/seed/`)
 
-Game data (characters, weapons, artifact sets, elements, specials, patches, domains) is shipped as a standalone SQLite file, not fixtures. `seed.Seed` opens the file and copies each table into the matching PocketBase collection inside one transaction; `seed.Dump` does the reverse. Both are driven by reflection over the structs in `internals/seed/models.go` and their `pb:"name,file|fileext|json|opt"` tags (`internals/seed/utils.go`), so a new dictionary field is added by adding a struct field + tag. Icons are carried as `Icon []byte` blobs alongside a filename column. `backup/seed.db` + `seed.note` are gitignored but required by the Dockerfile.
+Game data (characters, weapons, artifact sets, elements, specials, patches, domains) is shipped as a standalone SQLite file, not fixtures. `seed.Seed` opens the file and copies each table into the matching PocketBase collection inside one transaction; `seed.Dump` does the reverse. Both are driven by reflection over the structs in `internals/seed/models.go` and their `pb:"name,file|fileext|json|opt"` tags (`internals/seed/utils.go`), so a new dictionary field is added by adding a struct field + tag. Icons are carried as `Icon []byte` blobs alongside a filename column. `backup/seed.db` + `seed.note` are gitignored but required by the Dockerfile; `scripts/fetch_seed.sh` pulls them from a running deployment (`SEED_HOSTS`, first origin whose payload matches the sha256 on `/api/dump/latest` wins). `seed.UpdateFromPreload` skips the bundled seed when its hash is already the `dictionaryVersion` or is already stored as a `_dbDumps` record.
 
 ### Frontend (`ui/src/`)
 
@@ -95,4 +95,6 @@ React Compiler runs over `ui/src` via a babel plugin, and `react-compiler/react-
 
 ## Deployment
 
-Multi-stage `Dockerfile` (node → go → alpine) bakes `backup/seed.db`, its generated `seed.hash`, and `seed.note` into the image; serves on 8080 with `/app/pb_data` as a volume. `publish.nu` builds and pushes `qxuken/gbp` for linux/amd64 + arm64.
+Multi-stage `Dockerfile` (node → go → alpine) bakes `backup/seed.db`, its generated `seed.hash`, and `seed.note` into the image; serves on 8080 with `/app/pb_data` as a volume. Every build stage runs on `$BUILDPLATFORM` and the binary is cross compiled (`CGO_ENABLED=0`, pure-Go sqlite), so multi-arch builds don't go through qemu — only the final COPY-only stage is per platform. `publish.nu` builds and pushes `qxuken/gbp` for linux/amd64 + arm64 locally.
+
+CI lives in `.github/workflows/`: `ci.yml` (pull requests + `master`) runs gofmt/vet/build/test, the frontend typecheck/eslint/build and a multi-platform image build; `release.yml` (tag pushes only) reuses `ci.yml` as a gate and pushes the image. The backend job stubs `ui/dist` because `ui/embed.go` won't compile without it. Publishing needs the `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN` secrets.
