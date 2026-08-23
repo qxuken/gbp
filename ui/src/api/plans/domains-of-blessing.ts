@@ -1,4 +1,8 @@
-import { useDomainsOfBlessingMapByArtifactSetId } from '@/api/dictionaries/hooks';
+import {
+  useCharactersMap,
+  useDomainsOfBlessingMapByArtifactSetId,
+} from '@/api/dictionaries/hooks';
+import { Characters, Plans } from '@/api/types';
 import { mapGetOrSetDefault } from '@/lib/map-get-or-set-default';
 
 import { useArtifactSetsPlans } from './artifact-sets-plans';
@@ -10,8 +14,12 @@ export interface DomainsByArtifactSets {
   artifactSets: string[];
 }
 
-export function useDomainsByArtifactSets(includeComplete?: boolean) {
+export function useDomainsByArtifactSets(
+  includeComplete?: boolean,
+  filter?: (character: Characters, plan?: Plans) => boolean,
+) {
   const domainsBySet = useDomainsOfBlessingMapByArtifactSetId();
+  const charactersMap = useCharactersMap();
   const plans = usePlansMap(includeComplete);
   const artifactSetsPlans = useArtifactSetsPlans(includeComplete);
 
@@ -21,10 +29,17 @@ export function useDomainsByArtifactSets(includeComplete?: boolean) {
   >();
 
   for (const item of artifactSetsPlans) {
+    const plan = plans.get(item.characterPlan);
+    if (!plan) {
+      continue;
+    }
+    const character = charactersMap.get(plan.character);
+    if (!character || (filter && !filter(character, plan))) {
+      continue;
+    }
     for (const artifactSet of item.artifactSets) {
       const domain = domainsBySet.get(artifactSet);
-      const plan = plans.get(item.characterPlan);
-      if (!domain || !plan) {
+      if (!domain) {
         continue;
       }
       const v = mapGetOrSetDefault(domainsWithSets, domain.id, () => ({
