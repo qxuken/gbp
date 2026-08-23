@@ -40,7 +40,7 @@ func main() {
 	latestDumpCache.Bind(app)
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
-		if err := seed.UpdateFromPreload(app, latestDumpCache); err != nil {
+		if err := seed.UpdateFromPreload(app); err != nil {
 			app.Logger().Error(err.Error())
 		}
 		return se.Next()
