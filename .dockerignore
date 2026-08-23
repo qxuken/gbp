@@ -1,0 +1,19 @@
+# Build outputs, they are produced inside the image
+dist
+ui/dist
+ui/node_modules
+tmp
+pb_data
+
+# Everything under backup/ except the seed the image is built with
+backup/*
+!backup/seed.db
+!backup/seed.note
+
+.git
+.github
+.playwright
+.playwright-mcp
+.playwright-cli
+screenshots
+.DS_Store

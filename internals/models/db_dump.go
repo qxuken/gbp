@@ -47,6 +47,18 @@ func FindDbDumpById(app core.App, id string) (*DbDump, error) {
 	return dump, nil
 }
 
+// FindDbDumpByHash returns the stored dump with the given content hash
+// or sql.ErrNoRows if there is none.
+func FindDbDumpByHash(app core.App, hash string) (*DbDump, error) {
+	rec, err := app.FindFirstRecordByData(DB_DUMPS_COLLECTION_NAME, "hash", hash)
+	if err != nil {
+		return nil, err
+	}
+	dump := &DbDump{}
+	dump.SetProxyRecord(rec)
+	return dump, nil
+}
+
 // FindLatestDbDump returns the most recently created dump
 // or sql.ErrNoRows if there is none.
 func FindLatestDbDump(app core.App) (*DbDump, error) {
