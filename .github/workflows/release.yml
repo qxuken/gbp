@@ -31,8 +31,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # the first host is where new seeds are published, the fallbacks are the
+      # deployments this release is about to replace, so falling back would
+      # quietly ship the seed that is already live
       - name: Fetch the dictionary seed
         run: scripts/fetch_seed.sh
+        env:
+          SEED_STRICT: '1'
 
       - uses: docker/setup-qemu-action@v3
 
