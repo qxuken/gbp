@@ -23,7 +23,7 @@ RUN npm run build
 
 # --- Backend build
 
-FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS backend-base
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS backend-base
 
 WORKDIR /app
 
