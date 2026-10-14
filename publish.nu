@@ -24,7 +24,7 @@ export def main [
 		let tag = image-tag $arch $commit_hash
 		log info $"Building ($target)"
 		log debug $"Tag ($tag)"
-		DOCKER_DEFAULT_PLATFORM=$target docker build . --tag $tag
+		DOCKER_DEFAULT_PLATFORM=$target docker build . --tag $tag --build-arg $"VERSION=($commit_hash)"
 	}
 	log debug $"Aliasing"
 	docker tag (image-tag $main_arch $commit_hash) $'($REPO):latest'

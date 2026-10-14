@@ -13,6 +13,7 @@ import (
 	"github.com/qxuken/gbp/internals/api"
 	"github.com/qxuken/gbp/internals/completions"
 	"github.com/qxuken/gbp/internals/models"
+	"github.com/qxuken/gbp/internals/monitoring"
 	"github.com/qxuken/gbp/internals/seed"
 	_ "github.com/qxuken/gbp/migrations"
 )
@@ -45,6 +46,8 @@ func main() {
 		}
 		return se.Next()
 	})
+
+	monitoring.Bind(app, monitoring.ConfigFromEnv())
 
 	api.Bind(app, latestDumpCache)
 

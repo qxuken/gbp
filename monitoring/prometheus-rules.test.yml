@@ -1,0 +1,119 @@
+# promtool test rules monitoring/prometheus-rules.test.yml
+rule_files:
+  - prometheus-rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: the whole host going dark trips GbpMetricsMissing
+    interval: 1m
+    input_series:
+      - series: 'gbp_build_info{job="gbp", instance="genshinbuild.app", version="v1"}'
+        values: '1x10 _x15'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: GbpMetricsMissing
+        exp_alerts: []
+      - eval_time: 18m
+        alertname: GbpMetricsMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: gbp
+            exp_annotations:
+              summary: No gbp metrics for 5 minutes
+              description: >-
+                Nothing has arrived from job="gbp" for 5 minutes. The app, its
+                container, the host, Alloy or the remote write link may be down.
+
+  - name: failed batch requests trip GbpPlanSavesFailing
+    interval: 1m
+    input_series:
+      - series: 'gbp_http_requests_total{job="gbp", instance="genshinbuild.app", method="POST", route="/api/batch", status="200"}'
+        values: '0+10x30'
+      - series: 'gbp_http_requests_total{job="gbp", instance="genshinbuild.app", method="POST", route="/api/batch", status="400"}'
+        values: '0x10 1+1x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: GbpPlanSavesFailing
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: GbpPlanSavesFailing
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: genshinbuild.app
+            exp_annotations:
+              summary: 10 failed plan saves in 15 minutes
+              description: >-
+                Requests to /api/batch are failing. Users see the retry toast and
+                their edits are not saved. Check {job="gbp", type="request"} in
+                Loki for the error details.
+
+  - name: a failing probe trips GbpProbeFailing after 3 minutes
+    interval: 1m
+    input_series:
+      - series: 'probe_success{job="blackbox", instance="genshinbuild.app", probe="health"}'
+        values: '1x5 0x10'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: GbpProbeFailing
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: GbpProbeFailing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: blackbox
+              instance: genshinbuild.app
+              probe: health
+            exp_annotations:
+              summary: genshinbuild.app probe health is failing
+              description: >-
+                The external HTTPS probe "health" has failed for 3
+                minutes (DNS, TLS, or a non-2xx response).
+
+  - name: 5xx above 2% with real traffic trips GbpHighErrorRate
+    interval: 1m
+    input_series:
+      - series: 'gbp_http_requests_total{job="gbp", instance="genshinbuild.app", method="GET", route="/api/health", status="200"}'
+        values: '0+60x30'
+      - series: 'gbp_http_requests_total{job="gbp", instance="genshinbuild.app", method="POST", route="/api/batch", status="500"}'
+        values: '0x10 0+6x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: GbpHighErrorRate
+        exp_alerts: []
+      - eval_time: 25m
+        alertname: GbpHighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: genshinbuild.app
+            exp_annotations:
+              summary: genshinbuild.app serves 9.091% 5xx responses
+              description: More than 2% of requests have failed with a 5xx status for 5 minutes.
+
+  - name: a filling disk trips GbpDiskSpaceLow but not the critical one
+    interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{job="node", instance="genshinbuild.app", mountpoint="/", fstype="ext4"}'
+        values: '10x30'
+      - series: 'node_filesystem_size_bytes{job="node", instance="genshinbuild.app", mountpoint="/", fstype="ext4"}'
+        values: '100x30'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: GbpDiskSpaceLow
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: node
+              instance: genshinbuild.app
+              mountpoint: /
+              fstype: ext4
+            exp_annotations:
+              summary: genshinbuild.app / has 10% disk left
+              description: A disk filesystem (pb_data lives on one of them) is under 15% free.
+      - eval_time: 15m
+        alertname: GbpDiskSpaceCritical
+        exp_alerts: []
