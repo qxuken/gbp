@@ -77,11 +77,15 @@ to Loki labels. Everything else is available through `| json`.
 1. **Prometheus** must accept remote write: start it with
    `--web.enable-remote-write-receiver`. The endpoint is `/api/v1/write`.
 2. **Loki** accepts pushes on `/loki/api/v1/push` by default.
-3. **Make both reachable from the VPS**, either:
-   - over a private tunnel (WireGuard/Tailscale) to plain `http://` URLs, or
-   - through your reverse proxy with TLS and basic auth. Set
-     `gbp_monitoring_basic_auth: true` and put `gbp_monitoring_password` in the
-     vault.
+3. **Make both reachable from the VPS** (`gbp_monitoring_auth` in the role):
+   - `cloudflare_access`: a Cloudflare Tunnel from home with no open ports. Its
+     ingress exposes only the two write paths. A Cloudflare Access application
+     with a Service Auth policy rejects every request without the service token
+     at the edge. Put `gbp_monitoring_cf_access_client_id` / `_secret` in the
+     vault. See [Cloudflare Tunnel](#cloudflare-tunnel) below.
+   - `none`: over a private tunnel (WireGuard/Tailscale) to plain `http://` URLs.
+   - `basic`: through your reverse proxy with TLS and basic auth. Put
+     `gbp_monitoring_password` in the vault.
 4. Set `gbp_monitoring_prometheus_url` and `gbp_monitoring_loki_url` for the
    host and run the `pets/gbp.yml` playbook. Alloy is skipped while either URL
    is empty.
@@ -92,6 +96,51 @@ to Loki labels. Everything else is available through `| json`.
    with Loki. Every rule carries `severity` (`critical`/`warning`/`info`) for the
    notification policy that routes to n8n. Alternatively, load the files
    straight into Prometheus `rule_files` and the Loki ruler.
+
+## Cloudflare Tunnel
+
+At home, run `cloudflared` next to Prometheus and Loki. It only dials out to
+Cloudflare. Then:
+
+1. Zero Trust → Networks → Tunnels: create a tunnel and a public hostname, e.g.
+   `ingest.qxuken.dev`, with path-scoped ingress so the query APIs and UIs are
+   never routed:
+
+   ```yaml
+   ingress:
+     - hostname: ingest.qxuken.dev
+       path: ^/api/v1/write$
+       service: http://prometheus:9090
+     - hostname: ingest.qxuken.dev
+       path: ^/loki/api/v1/push$
+       service: http://loki:3100
+     - service: http_status:404
+   ```
+
+2. Zero Trust → Access → Service credentials: create a service token for the VPS.
+3. Zero Trust → Access → Applications: add a self-hosted application for
+   `ingest.qxuken.dev` with a single policy, action **Service Auth**, include
+   that service token. Requests without the token are rejected at the edge.
+4. In the role, set:
+
+   ```yaml
+   gbp_monitoring_auth: cloudflare_access
+   gbp_monitoring_prometheus_url: https://ingest.qxuken.dev/api/v1/write
+   gbp_monitoring_loki_url: https://ingest.qxuken.dev/loki/api/v1/push
+   gbp_monitoring_cf_access_client_id: "{{ vault_gbp_cf_access_client_id }}"
+   gbp_monitoring_cf_access_client_secret: "{{ vault_gbp_cf_access_client_secret }}"
+   ```
+
+To check the path from the VPS, run the command below. Without the two `-H`
+headers it should get a 403 from Access. With them, an empty push returns
+`204 No Content` from Prometheus:
+
+```bash
+curl -si -X POST https://ingest.qxuken.dev/api/v1/write -H "CF-Access-Client-Id: $ID" -H "CF-Access-Client-Secret: $SECRET" | head -1
+```
+
+If the zone has Bot Fight Mode on, check that it doesn't challenge Alloy's
+requests (they show up as blocked under Security → Events).
 
 ## Checking the rules
 
