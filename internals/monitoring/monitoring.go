@@ -1,9 +1,11 @@
 // Package monitoring exposes the app's Prometheus metrics on a private
-// listener and mirrors the app logs to stdout so a log shipper can pick
-// them up (PocketBase itself only persists them into auxiliary.db).
+// listener. App log entries are counted by level, and optionally mirrored to
+// stdout so a log shipper can pick them up (PocketBase itself only persists
+// them into auxiliary.db).
 package monitoring
 
 import (
+	"io"
 	"os"
 	"runtime"
 	"strconv"
@@ -30,12 +32,9 @@ type Config struct {
 }
 
 // ConfigFromEnv reads the config from GBP_METRICS_ADDR, GBP_METRICS_TOKEN
-// and GBP_LOG_STDOUT (defaults to true).
+// and GBP_LOG_STDOUT.
 func ConfigFromEnv() Config {
-	logStdout := true
-	if v, ok := os.LookupEnv("GBP_LOG_STDOUT"); ok {
-		logStdout, _ = strconv.ParseBool(v)
-	}
+	logStdout, _ := strconv.ParseBool(os.Getenv("GBP_LOG_STDOUT"))
 	return Config{
 		MetricsAddr:  os.Getenv("GBP_METRICS_ADDR"),
 		MetricsToken: os.Getenv("GBP_METRICS_TOKEN"),
@@ -61,9 +60,11 @@ func Bind(app core.App, cfg Config) *prometheus.Registry {
 	bindHTTPMetrics(app, reg)
 	bindRecordMetrics(app, reg)
 
+	var logMirror io.Writer
 	if cfg.LogStdout && !app.IsDev() {
-		bindLogMirror(app, os.Stdout)
+		logMirror = os.Stdout
 	}
+	bindLogs(app, reg, logMirror)
 	if cfg.MetricsAddr != "" {
 		bindServer(app, cfg, reg)
 	}

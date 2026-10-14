@@ -184,8 +184,9 @@ func TestHistogram(t *testing.T) {
 
 func TestLogMirror(t *testing.T) {
 	app := testutil.NewTestApp(t)
+	reg := prometheus.NewRegistry()
 	var buf bytes.Buffer
-	bindLogMirror(app, &buf)
+	bindLogs(app, reg, &buf)
 
 	// mimic the PocketBase logs writer: one transaction per batch, reusing
 	// a single model for every entry
@@ -197,6 +198,10 @@ func TestLogMirror(t *testing.T) {
 			l.Level = int(slog.LevelDebug)
 			l.Message = msg
 			l.Data = types.JSONMap[any]{"type": "request", "status": 200}
+			if msg == "POST /api/batch" {
+				l.Level = int(slog.LevelError)
+				l.Data = types.JSONMap[any]{"error": "boom"}
+			}
 			l.Created, _ = types.ParseDateTime("2026-01-02 03:04:05.000Z")
 			if err := txApp.AuxSave(l); err != nil {
 				return err
@@ -224,10 +229,32 @@ func TestLogMirror(t *testing.T) {
 			"type":   "request",
 			"status": float64(200),
 		}
+		if i == 1 {
+			want = map[string]any{
+				"time":  "2026-01-02T03:04:05Z",
+				"level": "ERROR",
+				"msg":   msg,
+				"error": "boom",
+			}
+		}
 		for k, v := range want {
 			if line[k] != v {
 				t.Errorf("line %d: %s = %v, want %v", i, k, line[k], v)
 			}
+		}
+	}
+
+	for _, c := range []struct {
+		level, kind string
+		want        float64
+	}{
+		{"DEBUG", "request", 1},
+		{"ERROR", "app", 1},
+		{"ERROR", "request", 0},
+	} {
+		labels := map[string]string{"level": c.level, "type": c.kind}
+		if got := metricValue(t, reg, "gbp_log_entries_total", labels); got != c.want {
+			t.Errorf("gbp_log_entries_total%v = %v, want %v", labels, got, c.want)
 		}
 	}
 }

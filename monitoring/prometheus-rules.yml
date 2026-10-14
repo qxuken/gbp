@@ -1,25 +1,28 @@
-# Prometheus alerting rules for gbp. Load them into Prometheus (rule_files) or
-# import them in Grafana: Alerting -> Alert rules -> Import to Grafana-managed
-# rules, with the Prometheus data source the Alloy remote write lands in.
+# Prometheus alerting rules for gbp. Import them in Grafana (Alerting -> Alert
+# rules -> Import to Grafana-managed rules) with the Prometheus data source, or
+# load them into Prometheus with rule_files.
 #
-# Series come from three jobs, all with instance="<domain>":
-#   job="gbp"      the app /metrics (internals/monitoring)
-#   job="node"     host metrics from Alloy's unix exporter
-#   job="blackbox" Alloy probing https://<domain>/api/health and /
+# Series come from three jobs, all with instance="<domain>" (see README.md):
+#   job="gbp"      the app /metrics, scraped through the Cloudflare Tunnel
+#   job="node"     node-exporter on the VPS, scraped through the same tunnel
+#   job="blackbox" home Alloy probing https://<domain>/api/health and /
 groups:
   - name: gbp-availability
     rules:
       - alert: GbpMetricsMissing
-        # also fires when the whole host, Alloy or the link home is down
-        expr: absent_over_time(gbp_build_info{job="gbp"}[5m])
-        for: 2m
+        # a dead VPS, tunnel or token makes the scrape fail (up == 0); absent()
+        # covers the scrape job itself disappearing from the config
+        expr: up{job="gbp"} == 0 or absent(up{job="gbp"})
+        for: 5m
         labels:
           severity: critical
         annotations:
-          summary: No gbp metrics for 5 minutes
+          summary: gbp metrics can't be scraped
           description: >-
-            Nothing has arrived from job="gbp" for 5 minutes. The app, its
-            container, the host, Alloy or the remote write link may be down.
+            Scraping job="gbp" has failed for 5 minutes. The app, its
+            container, the VPS, the cloudflared tunnel or the Access service
+            token may be broken; check the scrape error on Prometheus' targets
+            page.
 
       - alert: GbpProbeFailing
         expr: probe_success{job="blackbox"} == 0
@@ -29,7 +32,7 @@ groups:
         annotations:
           summary: "{{ $labels.instance }} probe {{ $labels.probe }} is failing"
           description: >-
-            The external HTTPS probe "{{ $labels.probe }}" has failed for 3
+            The HTTPS probe "{{ $labels.probe }}" from home has failed for 3
             minutes (DNS, TLS, or a non-2xx response).
 
       - alert: GbpCertificateExpiring
@@ -42,7 +45,7 @@ groups:
           summary: "{{ $labels.instance }} TLS certificate expires in {{ $value | humanize }} days"
           description: >-
             The certificate should have been renewed by PocketBase autocert
-            already. Check the ERROR logs for ACME failures.
+            already. Check the PocketBase logs (/_/#/logs) for ACME failures.
 
       - alert: GbpRestarted
         expr: changes(process_start_time_seconds{job="gbp"}[15m]) > 0
@@ -65,6 +68,19 @@ groups:
             The db queries behind the gbp_users / gbp_plan_records metrics
             fail. The app logs a "Failed to gather usage metrics" warning with
             the error.
+
+      - alert: GbpErrorLogged
+        # app errors only: failed requests are logged as ERROR too, and the
+        # HTTP alerts below cover them
+        expr: sum by (instance) (increase(gbp_log_entries_total{job="gbp", level="ERROR", type="app"}[10m])) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "gbp logged {{ printf \"%.0f\" $value }} errors in 10 minutes"
+          description: >-
+            The app logged an ERROR that is not a request log, e.g. a failed
+            seed preload or an ACME renewal problem. Read it in the PocketBase
+            logs (/_/#/logs), they are kept for 5 days.
 
   - name: gbp-http
     rules:
@@ -92,8 +108,8 @@ groups:
           summary: "{{ printf \"%.0f\" $value }} failed plan saves in 15 minutes"
           description: >-
             Requests to /api/batch are failing. Users see the retry toast and
-            their edits are not saved. Check {job="gbp", type="request"} in
-            Loki for the error details.
+            their edits are not saved. The PocketBase logs (/_/#/logs) have
+            the error details of each failed request.
 
       - alert: GbpSlowResponses
         expr: |

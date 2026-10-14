@@ -5,26 +5,28 @@ rule_files:
 evaluation_interval: 1m
 
 tests:
-  - name: the whole host going dark trips GbpMetricsMissing
+  - name: the scrape job disappearing trips GbpMetricsMissing
     interval: 1m
     input_series:
-      - series: 'gbp_build_info{job="gbp", instance="genshinbuild.app", version="v1"}'
+      - series: 'up{job="gbp", instance="genshinbuild.app"}'
         values: '1x10 _x15'
     alert_rule_test:
       - eval_time: 10m
         alertname: GbpMetricsMissing
         exp_alerts: []
-      - eval_time: 18m
+      - eval_time: 21m
         alertname: GbpMetricsMissing
         exp_alerts:
           - exp_labels:
               severity: critical
               job: gbp
             exp_annotations:
-              summary: No gbp metrics for 5 minutes
+              summary: gbp metrics can't be scraped
               description: >-
-                Nothing has arrived from job="gbp" for 5 minutes. The app, its
-                container, the host, Alloy or the remote write link may be down.
+                Scraping job="gbp" has failed for 5 minutes. The app, its
+                container, the VPS, the cloudflared tunnel or the Access service
+                token may be broken; check the scrape error on Prometheus' targets
+                page.
 
   - name: failed batch requests trip GbpPlanSavesFailing
     interval: 1m
@@ -47,8 +49,8 @@ tests:
               summary: 10 failed plan saves in 15 minutes
               description: >-
                 Requests to /api/batch are failing. Users see the retry toast and
-                their edits are not saved. Check {job="gbp", type="request"} in
-                Loki for the error details.
+                their edits are not saved. The PocketBase logs (/_/#/logs) have
+                the error details of each failed request.
 
   - name: a failing probe trips GbpProbeFailing after 3 minutes
     interval: 1m
@@ -70,7 +72,7 @@ tests:
             exp_annotations:
               summary: genshinbuild.app probe health is failing
               description: >-
-                The external HTTPS probe "health" has failed for 3
+                The HTTPS probe "health" from home has failed for 3
                 minutes (DNS, TLS, or a non-2xx response).
 
   - name: 5xx above 2% with real traffic trips GbpHighErrorRate
@@ -117,3 +119,48 @@ tests:
       - eval_time: 15m
         alertname: GbpDiskSpaceCritical
         exp_alerts: []
+
+  - name: a failing scrape (tunnel or token broken) trips GbpMetricsMissing
+    interval: 1m
+    input_series:
+      - series: 'up{job="gbp", instance="genshinbuild.app"}'
+        values: '1x5 0x10'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: GbpMetricsMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: gbp
+              instance: genshinbuild.app
+            exp_annotations:
+              summary: gbp metrics can't be scraped
+              description: >-
+                Scraping job="gbp" has failed for 5 minutes. The app, its
+                container, the VPS, the cloudflared tunnel or the Access service
+                token may be broken; check the scrape error on Prometheus' targets
+                page.
+
+  - name: an app error log trips GbpErrorLogged, request errors don't
+    interval: 1m
+    input_series:
+      - series: 'gbp_log_entries_total{job="gbp", instance="genshinbuild.app", level="ERROR", type="request"}'
+        values: '0+5x20'
+      - series: 'gbp_log_entries_total{job="gbp", instance="genshinbuild.app", level="ERROR", type="app"}'
+        values: '0x10 1x10'
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: GbpErrorLogged
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: GbpErrorLogged
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: genshinbuild.app
+            exp_annotations:
+              summary: gbp logged 1 errors in 10 minutes
+              description: >-
+                The app logged an ERROR that is not a request log, e.g. a failed
+                seed preload or an ACME renewal problem. Read it in the PocketBase
+                logs (/_/#/logs), they are kept for 5 days.

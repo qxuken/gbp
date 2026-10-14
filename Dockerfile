@@ -74,8 +74,8 @@ COPY --from=backend-builder      /out/gbp                                      /
 
 VOLUME /app/pb_data
 
-# Prometheus metrics on a separate listener (see internals/monitoring); keep
-# this port unpublished and scrape it from the container network
+# Prometheus metrics on a separate listener (see internals/monitoring); never
+# publish this port publicly (see monitoring/README.md)
 ENV GBP_METRICS_ADDR=:9091
 
 EXPOSE 8080

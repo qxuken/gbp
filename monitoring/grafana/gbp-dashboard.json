@@ -6,13 +6,6 @@
       "type": "datasource",
       "pluginId": "prometheus",
       "pluginName": "Prometheus"
-    },
-    {
-      "name": "DS_LOKI",
-      "label": "Loki",
-      "type": "datasource",
-      "pluginId": "loki",
-      "pluginName": "Loki"
     }
   ],
   "__requires": [
@@ -27,17 +20,11 @@
       "id": "prometheus",
       "name": "Prometheus",
       "version": "1.0.0"
-    },
-    {
-      "type": "datasource",
-      "id": "loki",
-      "name": "Loki",
-      "version": "1.0.0"
     }
   ],
   "uid": "gbp-overview",
   "title": "Genshin Build Planner",
-  "description": "gbp app, usage and host metrics shipped by Alloy (see monitoring/README.md).",
+  "description": "gbp app, usage and VPS host metrics scraped through a Cloudflare Tunnel (see monitoring/README.md).",
   "tags": [
     "gbp"
   ],
@@ -58,6 +45,13 @@
       "url": "https://genshinbuild.app/",
       "targetBlank": true,
       "icon": "external link"
+    },
+    {
+      "title": "PocketBase logs",
+      "type": "link",
+      "url": "https://genshinbuild.app/_/#/logs",
+      "targetBlank": true,
+      "icon": "doc"
     }
   ],
   "templating": {
@@ -133,7 +127,7 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
-      "description": "External HTTPS probe of /api/health and / from the host.",
+      "description": "HTTPS probe of /api/health and / from home.",
       "gridPos": {
         "h": 4,
         "w": 3,
@@ -2142,71 +2136,78 @@
       "panels": []
     },
     {
-      "type": "logs",
-      "title": "App errors and warnings",
+      "type": "timeseries",
+      "title": "Log entries",
       "id": 34,
       "datasource": {
-        "type": "loki",
-        "uid": "${DS_LOKI}"
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
       },
+      "description": "Warnings and errors the app logged, by kind (request = a failed request). Read the entries in the PocketBase logs (dashboard link above), kept for 5 days.",
       "gridPos": {
-        "h": 10,
-        "w": 12,
+        "h": 8,
+        "w": 24,
         "x": 0,
         "y": 66
       },
       "targets": [
         {
           "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "{job=\"gbp\", instance=\"$instance\", type!=\"request\", level=~\"ERROR|WARN\"}",
+          "expr": "sum by (level, type) (increase(gbp_log_entries_total{job=\"gbp\", instance=\"$instance\", level=~\"WARN|ERROR\"}[$__rate_interval]))",
           "refId": "A",
-          "queryType": "range"
+          "legendFormat": "{{level}} {{type}}"
         }
       ],
       "options": {
-        "showTime": true,
-        "wrapLogMessage": true,
-        "sortOrder": "Descending",
-        "enableLogDetails": true,
-        "dedupStrategy": "none",
-        "prettifyLogMessage": false
-      }
-    },
-    {
-      "type": "logs",
-      "title": "Failed requests",
-      "id": 35,
-      "datasource": {
-        "type": "loki",
-        "uid": "${DS_LOKI}"
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 12,
-        "y": 66
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
-          "expr": "{job=\"gbp\", instance=\"$instance\", type=\"request\", level=\"ERROR\"} | json | line_format \"{{.status}} {{.method}} {{.url}} {{.error}} {{.details}}\"",
-          "refId": "A",
-          "queryType": "range"
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
         }
-      ],
-      "options": {
-        "showTime": true,
-        "wrapLogMessage": true,
-        "sortOrder": "Descending",
-        "enableLogDetails": true,
-        "dedupStrategy": "none",
-        "prettifyLogMessage": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ERROR app"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
       }
     }
   ]
