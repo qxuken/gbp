@@ -1,0 +1,195 @@
+# Prometheus alerting rules for gbp. Import them in Grafana (Alerting -> Alert
+# rules -> Import to Grafana-managed rules) with the Prometheus data source, or
+# load them into Prometheus with rule_files.
+#
+# Series come from three jobs, all with instance="<domain>" (see README.md):
+#   job="gbp"      the app /metrics, scraped through the Cloudflare Tunnel
+#   job="node"     node-exporter on the VPS, scraped through the same tunnel
+#   job="blackbox" home Alloy probing https://<domain>/api/health and /
+groups:
+  - name: gbp-availability
+    rules:
+      - alert: GbpMetricsMissing
+        # a dead VPS, tunnel or token makes the scrape fail (up == 0); absent()
+        # covers the scrape job itself disappearing from the config
+        expr: up{job="gbp"} == 0 or absent(up{job="gbp"})
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: gbp metrics can't be scraped
+          description: >-
+            Scraping job="gbp" has failed for 5 minutes. The app, its
+            container, the VPS, the cloudflared tunnel or the Access service
+            token may be broken; check the scrape error on Prometheus' targets
+            page.
+
+      - alert: GbpProbeFailing
+        expr: probe_success{job="blackbox"} == 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} probe {{ $labels.probe }} is failing"
+          description: >-
+            The HTTPS probe "{{ $labels.probe }}" from home has failed for 3
+            minutes (DNS, TLS, or a non-2xx response).
+
+      - alert: GbpCertificateExpiring
+        # PocketBase autocert renews 30 days before expiry, so this means renewal is failing
+        expr: (probe_ssl_earliest_cert_expiry{job="blackbox"} - time()) / 86400 < 14
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} TLS certificate expires in {{ $value | humanize }} days"
+          description: >-
+            The certificate should have been renewed by PocketBase autocert
+            already. Check the PocketBase logs (/_/#/logs) for ACME failures.
+
+      - alert: GbpRestarted
+        expr: changes(process_start_time_seconds{job="gbp"}[15m]) > 0
+        labels:
+          severity: info
+        annotations:
+          summary: gbp restarted
+          description: >-
+            The gbp process restarted in the last 15 minutes. Expected after a
+            deploy; otherwise look for a crash or OOM kill.
+
+      - alert: GbpUsageMetricsFailing
+        expr: gbp_usage_up{job="gbp"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: gbp usage metrics queries are failing
+          description: >-
+            The db queries behind the gbp_users / gbp_plan_records metrics
+            fail. The app logs a "Failed to gather usage metrics" warning with
+            the error.
+
+      - alert: GbpErrorLogged
+        # app errors only: failed requests are logged as ERROR too, and the
+        # HTTP alerts below cover them
+        expr: sum by (instance) (increase(gbp_log_entries_total{job="gbp", level="ERROR", type="app"}[10m])) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "gbp logged {{ printf \"%.0f\" $value }} errors in 10 minutes"
+          description: >-
+            The app logged an ERROR that is not a request log, e.g. a failed
+            seed preload or an ACME renewal problem. Read it in the PocketBase
+            logs (/_/#/logs), they are kept for 5 days.
+
+  - name: gbp-http
+    rules:
+      - alert: GbpHighErrorRate
+        expr: |
+          sum by (instance) (rate(gbp_http_requests_total{job="gbp", status=~"5.."}[5m]))
+            / sum by (instance) (rate(gbp_http_requests_total{job="gbp"}[5m]))
+            > 0.02
+          and sum by (instance) (rate(gbp_http_requests_total{job="gbp"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} serves {{ $value | humanizePercentage }} 5xx responses"
+          description: More than 2% of requests have failed with a 5xx status for 5 minutes.
+
+      - alert: GbpPlanSavesFailing
+        # every plan edit goes through one PocketBase batch request; the
+        # frontend only sends valid payloads, so any failure here is a bug
+        expr: |
+          sum by (instance) (increase(gbp_http_requests_total{job="gbp", route="/api/batch", status!~"2.."}[15m])) > 3
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ printf \"%.0f\" $value }} failed plan saves in 15 minutes"
+          description: >-
+            Requests to /api/batch are failing. Users see the retry toast and
+            their edits are not saved. The PocketBase logs (/_/#/logs) have
+            the error details of each failed request.
+
+      - alert: GbpSlowResponses
+        expr: |
+          histogram_quantile(0.95,
+            sum by (instance, le) (rate(gbp_http_request_duration_seconds_bucket{job="gbp", route!="/api/realtime"}[10m]))
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} p95 latency is {{ $value | humanizeDuration }}"
+          description: The 95th percentile of request latency has been above 1s for 10 minutes.
+
+      - alert: GbpLoginFailuresSpike
+        expr: |
+          sum by (instance) (increase(gbp_http_requests_total{job="gbp", route="/api/collections/{collection}/auth-with-password", status=~"4.."}[15m])) > 50
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ printf \"%.0f\" $value }} failed logins in 15 minutes"
+          description: Many failed password logins, possibly credential stuffing.
+
+      - alert: GbpSignupSpike
+        expr: sum by (instance) (increase(gbp_record_writes_total{job="gbp", collection="users", op="create"}[1h])) > 50
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ printf \"%.0f\" $value }} sign-ups in the last hour"
+          description: Unusually many new accounts, possibly spam registrations.
+
+      - alert: GbpNoPlanEdits
+        # catches a frontend that silently stopped saving anything
+        expr: |
+          sum by (instance) (increase(gbp_record_writes_total{job="gbp", collection!="users"}[24h])) == 0
+          and on (instance) gbp_build_info{job="gbp"}
+          and on (instance) (time() - process_start_time_seconds{job="gbp"}) > 86400
+        labels:
+          severity: info
+        annotations:
+          summary: No plan edits in 24 hours
+          description: Nobody created, edited or deleted a plan in a day. Check that saving works.
+
+  - name: gbp-host
+    rules:
+      - alert: GbpDiskSpaceLow
+        expr: |
+          node_filesystem_avail_bytes{job="node", fstype=~"ext[234]|xfs|btrfs|zfs|f2fs"}
+            / node_filesystem_size_bytes{job="node", fstype=~"ext[234]|xfs|btrfs|zfs|f2fs"} < 0.15
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} {{ $labels.mountpoint }} has {{ $value | humanizePercentage }} disk left"
+          description: A disk filesystem (pb_data lives on one of them) is under 15% free.
+
+      - alert: GbpDiskSpaceCritical
+        expr: |
+          node_filesystem_avail_bytes{job="node", fstype=~"ext[234]|xfs|btrfs|zfs|f2fs"}
+            / node_filesystem_size_bytes{job="node", fstype=~"ext[234]|xfs|btrfs|zfs|f2fs"} < 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} {{ $labels.mountpoint }} has {{ $value | humanizePercentage }} disk left"
+          description: SQLite writes will start failing when the disk is full.
+
+      - alert: GbpMemoryLow
+        expr: node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"} < 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} has {{ $value | humanizePercentage }} memory available"
+          description: Less than 10% of the host memory has been available for 10 minutes.
+
+      - alert: GbpCpuSaturated
+        expr: 1 - avg by (instance) (rate(node_cpu_seconds_total{job="node", mode="idle"}[5m])) > 0.9
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.instance }} CPU is {{ $value | humanizePercentage }} busy"
+          description: The host CPU has been over 90% busy for 15 minutes.

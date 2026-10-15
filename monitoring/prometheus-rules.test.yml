@@ -1,0 +1,166 @@
+# promtool test rules monitoring/prometheus-rules.test.yml
+rule_files:
+  - prometheus-rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: the scrape job disappearing trips GbpMetricsMissing
+    interval: 1m
+    input_series:
+      - series: 'up{job="gbp", instance="genshinbuild.app"}'
+        values: '1x10 _x15'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: GbpMetricsMissing
+        exp_alerts: []
+      - eval_time: 21m
+        alertname: GbpMetricsMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: gbp
+            exp_annotations:
+              summary: gbp metrics can't be scraped
+              description: >-
+                Scraping job="gbp" has failed for 5 minutes. The app, its
+                container, the VPS, the cloudflared tunnel or the Access service
+                token may be broken; check the scrape error on Prometheus' targets
+                page.
+
+  - name: failed batch requests trip GbpPlanSavesFailing
+    interval: 1m
+    input_series:
+      - series: 'gbp_http_requests_total{job="gbp", instance="genshinbuild.app", method="POST", route="/api/batch", status="200"}'
+        values: '0+10x30'
+      - series: 'gbp_http_requests_total{job="gbp", instance="genshinbuild.app", method="POST", route="/api/batch", status="400"}'
+        values: '0x10 1+1x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: GbpPlanSavesFailing
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: GbpPlanSavesFailing
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: genshinbuild.app
+            exp_annotations:
+              summary: 10 failed plan saves in 15 minutes
+              description: >-
+                Requests to /api/batch are failing. Users see the retry toast and
+                their edits are not saved. The PocketBase logs (/_/#/logs) have
+                the error details of each failed request.
+
+  - name: a failing probe trips GbpProbeFailing after 3 minutes
+    interval: 1m
+    input_series:
+      - series: 'probe_success{job="blackbox", instance="genshinbuild.app", probe="health"}'
+        values: '1x5 0x10'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: GbpProbeFailing
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: GbpProbeFailing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: blackbox
+              instance: genshinbuild.app
+              probe: health
+            exp_annotations:
+              summary: genshinbuild.app probe health is failing
+              description: >-
+                The HTTPS probe "health" from home has failed for 3
+                minutes (DNS, TLS, or a non-2xx response).
+
+  - name: 5xx above 2% with real traffic trips GbpHighErrorRate
+    interval: 1m
+    input_series:
+      - series: 'gbp_http_requests_total{job="gbp", instance="genshinbuild.app", method="GET", route="/api/health", status="200"}'
+        values: '0+60x30'
+      - series: 'gbp_http_requests_total{job="gbp", instance="genshinbuild.app", method="POST", route="/api/batch", status="500"}'
+        values: '0x10 0+6x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: GbpHighErrorRate
+        exp_alerts: []
+      - eval_time: 25m
+        alertname: GbpHighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: genshinbuild.app
+            exp_annotations:
+              summary: genshinbuild.app serves 9.091% 5xx responses
+              description: More than 2% of requests have failed with a 5xx status for 5 minutes.
+
+  - name: a filling disk trips GbpDiskSpaceLow but not the critical one
+    interval: 1m
+    input_series:
+      - series: 'node_filesystem_avail_bytes{job="node", instance="genshinbuild.app", mountpoint="/", fstype="ext4"}'
+        values: '10x30'
+      - series: 'node_filesystem_size_bytes{job="node", instance="genshinbuild.app", mountpoint="/", fstype="ext4"}'
+        values: '100x30'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: GbpDiskSpaceLow
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              job: node
+              instance: genshinbuild.app
+              mountpoint: /
+              fstype: ext4
+            exp_annotations:
+              summary: genshinbuild.app / has 10% disk left
+              description: A disk filesystem (pb_data lives on one of them) is under 15% free.
+      - eval_time: 15m
+        alertname: GbpDiskSpaceCritical
+        exp_alerts: []
+
+  - name: a failing scrape (tunnel or token broken) trips GbpMetricsMissing
+    interval: 1m
+    input_series:
+      - series: 'up{job="gbp", instance="genshinbuild.app"}'
+        values: '1x5 0x10'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: GbpMetricsMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: gbp
+              instance: genshinbuild.app
+            exp_annotations:
+              summary: gbp metrics can't be scraped
+              description: >-
+                Scraping job="gbp" has failed for 5 minutes. The app, its
+                container, the VPS, the cloudflared tunnel or the Access service
+                token may be broken; check the scrape error on Prometheus' targets
+                page.
+
+  - name: an app error log trips GbpErrorLogged, request errors don't
+    interval: 1m
+    input_series:
+      - series: 'gbp_log_entries_total{job="gbp", instance="genshinbuild.app", level="ERROR", type="request"}'
+        values: '0+5x20'
+      - series: 'gbp_log_entries_total{job="gbp", instance="genshinbuild.app", level="ERROR", type="app"}'
+        values: '0x10 1x10'
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: GbpErrorLogged
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: GbpErrorLogged
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              instance: genshinbuild.app
+            exp_annotations:
+              summary: gbp logged 1 errors in 10 minutes
+              description: >-
+                The app logged an ERROR that is not a request log, e.g. a failed
+                seed preload or an ACME renewal problem. Read it in the PocketBase
+                logs (/_/#/logs), they are kept for 5 days.

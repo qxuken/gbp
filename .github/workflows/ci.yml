@@ -79,6 +79,20 @@ jobs:
 
       - run: npm run build
 
+  monitoring:
+    name: Alert rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check and test the Prometheus rules
+        run: |
+          promtool() {
+            docker run --rm --entrypoint promtool -v "$PWD/monitoring:/m" -w /m prom/prometheus:v3.7.3 "$@"
+          }
+          promtool check rules prometheus-rules.yml
+          promtool test rules prometheus-rules.test.yml
+
   docker:
     name: Docker image
     runs-on: ubuntu-latest
