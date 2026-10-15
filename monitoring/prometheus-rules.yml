@@ -82,6 +82,28 @@ groups:
             seed preload or an ACME renewal problem. Read it in the PocketBase
             logs (/_/#/logs), they are kept for 5 days.
 
+      - alert: GbpBackupStale
+        # backups run daily at 00:00 UTC, so 30h is one missed run plus slack;
+        # the second branch covers a server with no successful backup at all
+        # (the gauge is absent until one is known, e.g. none exist in the bucket)
+        expr: |
+          time() - gbp_backup_last_success_timestamp_seconds{job="gbp"} > 30 * 3600
+          or (
+            max by (job, instance) (gbp_build_info{job="gbp"})
+            unless on (instance) gbp_backup_last_success_timestamp_seconds{job="gbp"}
+          )
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: No successful gbp backup in over 30 hours
+          description: >-
+            The daily backup to R2 has not succeeded, or no backup exists at
+            all. Check gbp_backups_total{result="failure"}, the "[Backup cron]"
+            errors in the PocketBase logs (/_/#/logs) and the S3 settings
+            (/_/#/settings/backups); an expired or revoked R2 token is the
+            usual cause.
+
   - name: gbp-http
     rules:
       - alert: GbpHighErrorRate
