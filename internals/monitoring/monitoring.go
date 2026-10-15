@@ -59,6 +59,7 @@ func Bind(app core.App, cfg Config) *prometheus.Registry {
 
 	bindHTTPMetrics(app, reg)
 	bindRecordMetrics(app, reg)
+	bindBackupMetrics(app, reg)
 
 	var logMirror io.Writer
 	if cfg.LogStdout && !app.IsDev() {

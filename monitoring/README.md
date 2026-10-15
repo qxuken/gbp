@@ -20,7 +20,7 @@ scrape (`GbpMetricsMissing`).
 
 | File | What it is |
 |---|---|
-| [`prometheus-rules.yml`](prometheus-rules.yml) | Alerts: availability, app errors, HTTP errors and latency, failed plan saves, abuse, host |
+| [`prometheus-rules.yml`](prometheus-rules.yml) | Alerts: availability, app errors, stale backups, HTTP errors and latency, failed plan saves, abuse, host |
 | [`prometheus-rules.test.yml`](prometheus-rules.test.yml) | `promtool test rules` cases, run in CI |
 | [`grafana/gbp-dashboard.json`](grafana/gbp-dashboard.json) | Dashboard: overview, usage, HTTP, host, log entries |
 
@@ -60,6 +60,8 @@ The image version comes from the `VERSION` build arg (the git tag in
 | `gbp_dictionary_info` | `version` | applied seed hash |
 | `gbp_db_size_bytes` | `file` | `data.db`, `auxiliary.db` and their WALs |
 | `gbp_usage_up` | | 0 when the usage queries fail |
+| `gbp_backup_last_success_timestamp_seconds` | | unix time of the newest successful backup; seeded on start from the backups storage (local or S3/R2), absent until a backup is known |
+| `gbp_backups_total` | `result` | backup attempts, manual and cron: `success`/`failure` |
 
 Plus the standard `go_*` and `process_*` collectors. The usage gauges are
 computed with a few `COUNT` queries at scrape time, cached for 30s. Nothing is

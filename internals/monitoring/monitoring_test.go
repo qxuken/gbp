@@ -2,10 +2,14 @@ package monitoring
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -166,6 +170,103 @@ func TestUsageMetrics(t *testing.T) {
 		if got := metricValue(t, reg, c.name, c.labels); got != c.want {
 			t.Errorf("%s%v = %v, want %v", c.name, c.labels, got, c.want)
 		}
+	}
+}
+
+// hasMetric reports whether any series of the named family is gathered.
+func hasMetric(t testing.TB, g prometheus.Gatherer, name string) bool {
+	t.Helper()
+	families, err := g.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range families {
+		if f.GetName() == name && len(f.GetMetric()) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func TestBackupMetrics(t *testing.T) {
+	app := testutil.NewTestApp(t)
+	reg := Bind(app, Config{})
+
+	if hasMetric(t, reg, "gbp_backup_last_success_timestamp_seconds") {
+		t.Fatal("last success gauge set before any backup")
+	}
+
+	before := time.Now()
+	if err := app.CreateBackup(context.Background(), "test_backup.zip"); err != nil {
+		t.Fatal(err)
+	}
+	last := metricValue(t, reg, "gbp_backup_last_success_timestamp_seconds", nil)
+	if last < float64(before.Unix()) || last > float64(time.Now().Unix()+1) {
+		t.Errorf("last success = %v, want between %v and now", last, before.Unix())
+	}
+
+	// a hook bound after Bind runs inside its e.Next(), so its error is the backup's
+	app.OnBackupCreate().BindFunc(func(e *core.BackupEvent) error {
+		return errors.New("upload failed")
+	})
+	if err := app.CreateBackup(context.Background(), "failed_backup.zip"); err == nil {
+		t.Fatal("want backup error")
+	}
+
+	for _, c := range []struct {
+		result string
+		want   float64
+	}{
+		{"success", 1},
+		{"failure", 1},
+	} {
+		labels := map[string]string{"result": c.result}
+		if got := metricValue(t, reg, "gbp_backups_total", labels); got != c.want {
+			t.Errorf("gbp_backups_total%v = %v, want %v", labels, got, c.want)
+		}
+	}
+	if got := metricValue(t, reg, "gbp_backup_last_success_timestamp_seconds", nil); got != last {
+		t.Errorf("failed backup moved last success from %v to %v", last, got)
+	}
+}
+
+func TestBackupMetricsSeededOnServe(t *testing.T) {
+	app := testutil.NewTestApp(t)
+	// only the backup hooks: the HTTP metrics' serve hook needs a router
+	reg := prometheus.NewRegistry()
+	bindBackupMetrics(app, reg)
+
+	dir := filepath.Join(app.DataDir(), core.LocalBackupsDirName)
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	older := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	newest := time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)
+	for name, mtime := range map[string]time.Time{"@auto_pb_backup_old.zip": older, "pb_backup_new.zip": newest} {
+		path := filepath.Join(dir, name)
+		if err := os.WriteFile(path, []byte("zip"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Chtimes(path, mtime, mtime); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	err := app.OnServe().Trigger(&core.ServeEvent{App: app}, func(e *core.ServeEvent) error { return nil })
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// the listing runs in the background
+	deadline := time.Now().Add(5 * time.Second)
+	for !hasMetric(t, reg, "gbp_backup_last_success_timestamp_seconds") {
+		if time.Now().After(deadline) {
+			t.Fatal("last success gauge not seeded")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if got := metricValue(t, reg, "gbp_backup_last_success_timestamp_seconds", nil); got != float64(newest.Unix()) {
+		t.Errorf("last success = %v, want %v", got, newest.Unix())
 	}
 }
 
