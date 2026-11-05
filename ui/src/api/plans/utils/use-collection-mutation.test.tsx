@@ -8,6 +8,7 @@ import {
 import {
   act,
   cleanup,
+  fireEvent,
   render,
   renderHook,
   screen,
@@ -23,6 +24,7 @@ import { useWeaponPlansMutation } from '@/api/plans/weapon-plans';
 import { authStore } from '@/api/pocketbase';
 import { queryClient } from '@/api/queryClient';
 import type { Plans } from '@/api/types';
+import { MainStat } from '@/components/plan-card/ui/main-stats';
 import { logger } from '@/store/logger';
 
 import { plan, weapon } from './mutation-test-fixtures';
@@ -499,4 +501,36 @@ it('shows the failing request’s error even when it is not the first operation'
     <>{typeof description === 'function' ? description() : description}</>,
   );
   expect(screen.getByText('Invalid weapon level')).toBeDefined();
+});
+
+it('updates the visible level input before the batch is sent with the production React Compiler', async () => {
+  const requests = network();
+  function EditableStats() {
+    const plans = usePlans();
+    const mutation = useCharacterPlansMutation(plans);
+    const record = mutation.records[0];
+    return (
+      <MainStat
+        plan={record}
+        mutate={(recipe) => mutation.update(record, recipe)}
+      />
+    );
+  }
+  const { wrapper } = context();
+  render(<EditableStats />, { wrapper });
+  const input = screen.getByLabelText<HTMLInputElement>('Lvl');
+  fireEvent.change(input, { target: { value: '80' } });
+  expect(input.value).toBe('80');
+  expect(requests).toHaveLength(0);
+  fireEvent.change(input, { target: { value: '70' } });
+  expect(input.value).toBe('70');
+  expect(requests).toHaveLength(0);
+  await advance();
+  expect(requests).toHaveLength(1);
+  expect(input.value).toBe('70');
+  expect(requests[0].operations[0].body.levelTarget).toBe(70);
+  await respond(requests[0], [
+    { status: 200, body: { id: 'plan-a', levelTarget: 70 } },
+  ]);
+  expect(input.value).toBe('70');
 });

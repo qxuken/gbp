@@ -6,7 +6,10 @@ import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import type { Plans, PlansExtra } from '@/api/types';
 import { logger } from '@/store/logger';
 
-import type { MutationTarget } from './collection-mutation-coordinator';
+import {
+  getOptimisticRecords,
+  type MutationTarget,
+} from './collection-mutation-coordinator';
 import { plansMutationCoordinator } from './plans-mutation-coordinator';
 
 export type { OptimisticRecord } from './collection-mutation-coordinator';
@@ -29,23 +32,18 @@ export function useCollectionMutation<T extends { id: string }>(
     () => plansMutationCoordinator.getSnapshot(scope),
     [scope],
   );
-  const version = useSyncExternalStore(
+  const snapshot = useSyncExternalStore(
     plansMutationCoordinator.subscribe,
     getSnapshot,
     getSnapshot,
   );
-  const { hasChanges, isPending, isError } =
-    plansMutationCoordinator.getStatus(scope);
+  const { hasChanges, isPending, isError } = snapshot;
   const postUpdate = updateConfig?.postUpdate;
   const shadowRecords = useMemo(() => {
-    const result = plansMutationCoordinator.getRecords(
-      scope,
-      collectionName,
-      records,
-    );
+    const result = getOptimisticRecords(snapshot, collectionName, records);
     postUpdate?.(result);
     return result;
-  }, [version, scope, collectionName, records, postUpdate]);
+  }, [snapshot, collectionName, records, postUpdate]);
 
   useEffect(() => {
     plansMutationCoordinator.setDisabled(scope, Boolean(disabled));

@@ -5,6 +5,7 @@ import type { Plans } from '@/api/types';
 
 import {
   CollectionMutationCoordinator,
+  getOptimisticRecords,
   type BatchOperation,
   type MutationTarget,
 } from './collection-mutation-coordinator';
@@ -716,4 +717,31 @@ it('pauses an already scheduled scope without losing its batching deadline', asy
   f.coordinator.setDisabled('characters', false);
   await vi.advanceTimersByTimeAsync(0);
   expect(f.requests).toHaveLength(1);
+});
+
+it('returns stable immutable snapshots so subscribers can derive optimistic records from state', () => {
+  const f = setup();
+  const untouched = f.coordinator.getSnapshot('weapons-a');
+  f.coordinator.update(f.characters, f.cache[0], (draft) => {
+    draft.note = 'first edit';
+  });
+  const first = f.coordinator.getSnapshot('characters');
+  expect(f.coordinator.getSnapshot('characters')).toBe(first);
+  expect(first).toMatchObject({
+    hasChanges: true,
+    isPending: true,
+    isError: false,
+  });
+  expect(f.coordinator.getSnapshot('weapons-a')).toBe(untouched);
+  f.coordinator.update(f.characters, f.charactersView()[0], (draft) => {
+    draft.note = 'second edit';
+  });
+  const second = f.coordinator.getSnapshot('characters');
+  expect(second).not.toBe(first);
+  expect(getOptimisticRecords(first, 'characterPlans', f.cache)[0].note).toBe(
+    'first edit',
+  );
+  expect(getOptimisticRecords(second, 'characterPlans', f.cache)[0].note).toBe(
+    'second edit',
+  );
 });

@@ -116,7 +116,8 @@ This section is for developers who want to contribute to the project or modify t
 ### Frontend tests
 Run `npm test` from `ui/`. The suite covers shared mutation batching, optimistic
 records, edits during in-flight requests, cumulative failure/retry, session
-changes, and the PocketBase request/cache integration. It uses fake timers and
+changes, and the PocketBase request/cache integration. React hooks and visible
+inputs run with the production React Compiler enabled. It uses fake timers and
 network responses, so no backend is required.
 
 ### Building & Publishing

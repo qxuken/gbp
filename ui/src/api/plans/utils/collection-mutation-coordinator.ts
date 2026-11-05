@@ -38,6 +38,55 @@ interface QueuedMutation {
   applyResult: (plans: Plans[], body: MutationRecord) => void;
 }
 
+type OptimisticChange = Pick<
+  QueuedMutation,
+  'type' | 'collectionName' | 'id' | 'value' | 'patches'
+> & {
+  isOptimisticBlocked: boolean;
+  isOptimisticError: boolean;
+};
+
+export interface CollectionMutationSnapshot {
+  readonly hasChanges: boolean;
+  readonly isPending: boolean;
+  readonly isError: boolean;
+  readonly changes: readonly OptimisticChange[];
+}
+
+const EMPTY_SNAPSHOT: CollectionMutationSnapshot = {
+  hasChanges: false,
+  isPending: false,
+  isError: false,
+  changes: [],
+};
+
+/** Project the subscribed snapshot without reading mutable coordinator state. */
+export function getOptimisticRecords<T extends MutationRecord>(
+  snapshot: CollectionMutationSnapshot,
+  collectionName: string,
+  records: T[] = [],
+): OptimisticRecord<T>[] {
+  const result = new Map<string, OptimisticRecord<T>>(
+    records.map((record) => [record.id, record]),
+  );
+  for (const entry of snapshot.changes) {
+    if (entry.collectionName !== collectionName) continue;
+    if (!result.has(entry.id) && entry.type !== 'create') continue;
+    if (entry.type === 'delete') {
+      result.delete(entry.id);
+      continue;
+    }
+    const value = entry.type === 'create' ? entry.value : result.get(entry.id)!;
+    result.set(entry.id, {
+      ...applyPatches(value, entry.patches),
+      isOptimistic: true,
+      isOptimisticBlocked: entry.isOptimisticBlocked,
+      isOptimisticError: entry.isOptimisticError,
+    } as OptimisticRecord<T>);
+  }
+  return [...result.values()];
+}
+
 interface Dependencies {
   send: (operations: BatchOperation[]) => Promise<MutationRecord[]>;
   commit: (apply: (plans: Plans[]) => void) => void;
@@ -60,9 +109,8 @@ export class CollectionMutationCoordinator {
   private readyAt: number | undefined;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private generation = 0;
-  private version = 0;
   private disabledScopes = new Set<string>();
-  private scopeVersions = new Map<string, number>();
+  private snapshots = new Map<string, CollectionMutationSnapshot>();
   private listeners = new Set<() => void>();
 
   constructor(private dependencies: Dependencies) {}
@@ -74,8 +122,8 @@ export class CollectionMutationCoordinator {
     };
   };
 
-  getSnapshot = (scope?: string) =>
-    scope === undefined ? this.version : (this.scopeVersions.get(scope) ?? 0);
+  getSnapshot = (scope: string): CollectionMutationSnapshot =>
+    this.snapshots.get(scope) ?? EMPTY_SNAPSHOT;
 
   setDisabled(scope: string, disabled: boolean) {
     if (disabled) this.disabledScopes.add(scope);
@@ -84,17 +132,8 @@ export class CollectionMutationCoordinator {
   }
 
   getStatus(scope: string) {
-    const queued = [...this.queued.values()].some(
-      (entry) => entry.scope === scope,
-    );
-    const current = [...(this.current?.entries.values() ?? [])].some(
-      (entry) => entry.scope === scope,
-    );
-    return {
-      hasChanges: queued || current,
-      isPending: queued || (current && this.current?.state === 'sending'),
-      isError: current && this.current?.state === 'error',
-    };
+    const { hasChanges, isPending, isError } = this.getSnapshot(scope);
+    return { hasChanges, isPending, isError };
   }
 
   getRecords<T extends MutationRecord>(
@@ -102,42 +141,11 @@ export class CollectionMutationCoordinator {
     collectionName: string,
     records: T[] = [],
   ): OptimisticRecord<T>[] {
-    const result = new Map<string, OptimisticRecord<T>>(
-      records.map((record) => [record.id, record]),
+    return getOptimisticRecords(
+      this.getSnapshot(scope),
+      collectionName,
+      records,
     );
-    for (const [entries, inFlight] of [
-      [this.current?.entries, true],
-      [this.queued, false],
-    ] as const) {
-      for (const entry of entries?.values() ?? []) {
-        if (entry.collectionName !== collectionName) continue;
-        if (
-          !result.has(entry.id) &&
-          !(entry.type === 'create' && entry.scope === scope)
-        )
-          continue;
-        if (entry.type === 'delete') {
-          result.delete(entry.id);
-          continue;
-        }
-        const value =
-          entry.type === 'create'
-            ? entry.value
-            : (result.get(entry.id) ?? entry.value);
-        result.set(entry.id, {
-          ...applyPatches(value, entry.patches),
-          isOptimistic: true,
-          isOptimisticBlocked:
-            entry.type === 'create' &&
-            inFlight &&
-            this.current?.state === 'sending',
-          isOptimisticError:
-            this.current?.state === 'error' &&
-            this.current.entries.has(keyOf(collectionName, entry.id)),
-        } as OptimisticRecord<T>);
-      }
-    }
-    return [...result.values()];
   }
 
   create<T extends MutationRecord>(target: MutationTarget<T>, value: T) {
@@ -267,9 +275,46 @@ export class CollectionMutationCoordinator {
       ...this.queued.values(),
     ],
   ) {
-    this.version++;
-    for (const entry of entries)
-      this.scopeVersions.set(entry.scope, this.version);
+    for (const scope of new Set(Array.from(entries, (entry) => entry.scope))) {
+      const current = [...(this.current?.entries.values() ?? [])].filter(
+        (entry) => entry.scope === scope,
+      );
+      const queued = [...this.queued.values()].filter(
+        (entry) => entry.scope === scope,
+      );
+      const hasChanges = current.length > 0 || queued.length > 0;
+      const changes = (
+        entries: QueuedMutation[],
+        inFlight: boolean,
+      ): OptimisticChange[] =>
+        entries.map((entry) => ({
+          type: entry.type,
+          collectionName: entry.collectionName,
+          id: entry.id,
+          value: entry.value,
+          patches: entry.patches,
+          isOptimisticBlocked:
+            entry.type === 'create' &&
+            inFlight &&
+            this.current?.state === 'sending',
+          isOptimisticError:
+            this.current?.state === 'error' &&
+            this.current.entries.has(keyOf(entry.collectionName, entry.id)),
+        }));
+      this.snapshots.set(
+        scope,
+        hasChanges
+          ? {
+              hasChanges,
+              isPending:
+                queued.length > 0 ||
+                (current.length > 0 && this.current?.state === 'sending'),
+              isError: current.length > 0 && this.current?.state === 'error',
+              changes: [...changes(current, true), ...changes(queued, false)],
+            }
+          : EMPTY_SNAPSHOT,
+      );
+    }
     this.listeners.forEach((listener) => listener());
   }
 
