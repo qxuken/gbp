@@ -16,7 +16,7 @@ export function newCharacterPlan(
   if (!pbClient.authStore.record) {
     throw new Error('User should be authorized at this point');
   }
-  const id = Date.now().toString();
+  const id = crypto.randomUUID();
   const ts = new Date();
   return {
     id,
@@ -52,8 +52,6 @@ const PLAN_TO_CHARACTER_PLAN_PATCHES: Patch[] = [
   { op: 'remove', path: ['teamPlans'] },
 ];
 
-const MUTATION_DEBOUNCE_MS = 750;
-
 export function useCharacterPlansMutation(plans: Plans[], disabled?: boolean) {
   const mutation = useCollectionMutation(
     'characterPlans',
@@ -62,7 +60,6 @@ export function useCharacterPlansMutation(plans: Plans[], disabled?: boolean) {
     disabled,
     UPDATE_CHARACTER_PLAN_MUTATION_KEY,
     {
-      debounceMS: MUTATION_DEBOUNCE_MS,
       serverPatches: PLAN_TO_CHARACTER_PLAN_PATCHES,
       postUpdate(v) {
         v.sort((a, b) => a.order - b.order);

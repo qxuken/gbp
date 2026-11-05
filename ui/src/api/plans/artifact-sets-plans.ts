@@ -49,7 +49,7 @@ export function useArtifactSetsPlansMutation(
   );
 
   const createHandler = (artifactSets: ArtifactSetsPlans['artifactSets']) => {
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     const ts = new Date();
     mutation.create({
       id,

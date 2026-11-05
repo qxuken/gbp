@@ -113,6 +113,13 @@ This section is for developers who want to contribute to the project or modify t
    npm run dev
    ```
 
+### Frontend tests
+Run `npm test` from `ui/`. The suite covers shared mutation batching, optimistic
+records, edits during in-flight requests, cumulative failure/retry, session
+changes, and the PocketBase request/cache integration. React hooks and visible
+inputs run with the production React Compiler enabled. It uses fake timers and
+network responses, so no backend is required.
+
 ### Building & Publishing
 The project includes Nushell scripts for building and publishing.
 * **`build.nu`**: Builds the application.
@@ -137,7 +144,7 @@ by default) until one serves a dump matching the sha256 it advertises.
 ### CI
 * **`.github/workflows/ci.yml`** runs on pull requests and pushes to `master`:
   gofmt, `go vet`, `go build` and `go test` for the backend, `npm run typecheck`,
-  `npm run check` and `npm run build` for the frontend, and a multi-platform
+  `npm run check`, `npm test` and `npm run build` for the frontend, and a multi-platform
   image build.
 * **`.github/workflows/release.yml`** runs on tag pushes only. It reuses the CI
   workflow as a gate and then pushes `qxuken/gbp` as a single multi-arch

@@ -46,7 +46,7 @@ export function useArtifactTypesPlansMutation(
   const createHandler = (
     value: Pick<ArtifactTypePlans, 'artifactType' | 'special'>,
   ) => {
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     const ts = new Date();
     mutation.create({
       id,

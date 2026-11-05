@@ -26,11 +26,11 @@ export function useTeamPlansMutation(
     teamPlans,
     disabled,
     newTeamPlansMutation(planId),
-    { debounceMS: 0, onPendingChange, onErrorChange },
+    { onPendingChange, onErrorChange },
   );
 
   const createHandler = (characterId: string) => {
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     const ts = new Date();
     mutation.create({
       id,
