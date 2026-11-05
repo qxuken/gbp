@@ -43,7 +43,7 @@ export function useWeaponPlansMutation(
   );
 
   const createHandler = (weapon: string) => {
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     const ts = new Date();
     mutation.create({
       id,

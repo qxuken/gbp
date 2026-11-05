@@ -25,11 +25,12 @@ Frontend (`ui/`):
 npm run dev        # vite on :3001, talks to :8090 via ui/.env.development.local
 npm run build      # -> ui/dist (what embed.go embeds)
 npm run typecheck  # tsc --noEmit
+npm test           # Vitest coordinator + React/PocketBase integration tests
 npm run check      # eslint
 npm run fix        # eslint --fix
 ```
 
-Backend tests use the PocketBase [testing helpers](https://pocketbase.io/docs/go-testing/). `internals/testutil` bootstraps an empty data dir, applies every migration to it once per test binary (the data dir bundled with `pocketbase/tests` collides with our `users` collection) and hands out clones of it — so a package with tests needs `func TestMain(m *testing.M) { testutil.Main(m) }`. Route tests build on `tests.ApiScenario` with a `TestAppFactory` that calls `api.Bind`. There are no frontend tests; verification there is typecheck + eslint + running the app.
+Backend tests use the PocketBase [testing helpers](https://pocketbase.io/docs/go-testing/). `internals/testutil` bootstraps an empty data dir, applies every migration to it once per test binary (the data dir bundled with `pocketbase/tests` collides with our `users` collection) and hands out clones of it — so a package with tests needs `func TestMain(m *testing.M) { testutil.Main(m) }`. Route tests build on `tests.ApiScenario` with a `TestAppFactory` that calls `api.Bind`. Frontend mutation tests use Vitest, jsdom, and React Testing Library; run `npm test` in `ui/`. Coordinator tests exercise the public queue, while hook integration tests use the real PocketBase SDK with fake network responses and timers.
 
 Dev login is `test@test.com` / `testtest` — seeded by `1732466001_test_superuser.go` (superuser) and `1732467000_setup_users.go` (regular verified user "Qest Testovich"), both gated on `app.IsDev()`. The same pair works for the app, the PocketBase admin UI at `/_/`, and `/admin/dump`. Wiping `tmp/pb_data` re-creates them on next `air` run.
 
@@ -69,11 +70,11 @@ Three distinct state layers, and picking the wrong one is the main way to get th
 
 #### The mutation engine
 
-`api/plans/utils/use-collection-mutation.ts` is the heart of the app and every `api/plans/*.ts` module is a thin wrapper over it. It implements debounced, batched, optimistic writes:
+`api/plans/utils/use-collection-mutation.ts` adapts React to the shared `CollectionMutationCoordinator`; `plans-mutation-coordinator.ts` connects it to PocketBase, the plans query cache, and auth. Every `api/plans/*.ts` mutation wrapper uses this same queue:
 
-- Edits are recorded as **immer patches** into a reducer (`toCreate` / `toUpdate` / `toDelete`), debounced (450ms default, 750ms for character plans), then promoted into a `currentBatch` and sent as a single PocketBase batch request.
+- Edits merge by `(collectionName, recordId)` as **immer patches**. One fixed 450ms window starts with the first queued edit; later edits do not reset it. Writes across hook instances and collections share a PocketBase batch, capped at 150 operations to match the backend setting. Requests run serially, with later edits queued and rebased onto successful server responses.
 - `records` returned from the hook are *shadow records*: the server data with pending patches applied and flagged `isOptimistic` / `isOptimisticBlocked` / `isOptimisticError`. Components render these, so a card stays editable while its write is in flight.
-- On success the batch responses are merged into `PLANS_QUERY`'s cache via `queryClient.setQueryData` + `produce`. On error the batch flips to `error` state and a sonner toast offers retry; a `useBlocker` guards navigation while a batch is outstanding.
+- Success merges all batch responses into `PLANS_QUERY` in one cache update. Failure retains the entire batch; retry merges newer edits into it. The shared sonner toast offers retry, and `useBlocker` guards queued and in-flight writes. Disabled scopes retain their edits until re-enabled. Logout/account changes discard queued state and ignore old responses; unmounting a hook preserves its writes.
 - `serverPatches` strip client-only fields before sending (e.g. `PLAN_TO_CHARACTER_PLAN_PATCHES` removes the view's nested arrays so `characterPlans` gets a clean payload).
 - Per-plan pending/error state from nested collections is aggregated in the `useSharedPendingPlansStatus` zustand store so `PlanInfo` can show one spinner for the whole card.
 
@@ -98,4 +99,4 @@ React Compiler runs over `ui/src` via a babel plugin, and `react-compiler/react-
 
 Multi-stage `Dockerfile` (node → go → alpine) bakes `backup/seed.db`, its generated `seed.hash`, and `seed.note` into the image; serves on 8080 with `/app/pb_data` as a volume and `/metrics` on 9091 (`GBP_METRICS_ADDR`, keep it unpublished). Every build stage runs on `$BUILDPLATFORM` and the binary is cross compiled (`CGO_ENABLED=0`, pure-Go sqlite), so multi-arch builds don't go through qemu — only the final COPY-only stage is per platform. `publish.nu` builds and pushes `qxuken/gbp` for linux/amd64 + arm64 locally.
 
-CI lives in `.github/workflows/`: `ci.yml` (pull requests + `master`) runs gofmt/vet/build/test, the frontend typecheck/eslint/build, `promtool` checks of `monitoring/prometheus-rules.yml` and a multi-platform image build; `release.yml` (tag pushes only) reuses `ci.yml` as a gate and pushes the image. The backend job stubs `ui/dist` because `ui/embed.go` won't compile without it. Publishing needs the `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN` secrets.
+CI lives in `.github/workflows/`: `ci.yml` (pull requests + `master`) runs gofmt/vet/build/test, the frontend typecheck/eslint/test/build, `promtool` checks of `monitoring/prometheus-rules.yml` and a multi-platform image build; `release.yml` (tag pushes only) reuses `ci.yml` as a gate and pushes the image. The backend job stubs `ui/dist` because `ui/embed.go` won't compile without it. Publishing needs the `DOCKERHUB_USERNAME`/`DOCKERHUB_TOKEN` secrets.
