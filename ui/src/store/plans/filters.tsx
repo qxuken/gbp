@@ -63,7 +63,7 @@ export function FiltersProvider({ children, value, setValue }: Props) {
     [value],
   );
 
-  const filter = useCallback(
+  const filterBeforeMainStats = useCallback(
     (character: Characters, plan?: Plans): boolean => {
       if (!value.complete && plan?.complete) return false;
       if (!isFiltersEnabled) return true;
@@ -73,21 +73,6 @@ export function FiltersProvider({ children, value, setValue }: Props) {
           (!!character.element && value.elements.has(character.element))) &&
         (value.weaponTypes.size == 0 ||
           value.weaponTypes.has(character.weaponType));
-
-      const artifactTypeSpecialsFilter = () => {
-        if (value.specialsByArtifactTypePlans.size == 0) {
-          return true;
-        }
-        if (!plan?.artifactTypePlans) {
-          return false;
-        }
-        return Array.from(value.specialsByArtifactTypePlans.entries()).every(
-          ([at, specials]) =>
-            plan.artifactTypePlans?.some(
-              (atp) => atp.artifactType == at && specials.has(atp.special),
-            ),
-        );
-      };
 
       const artifactSetsSpecialsFilter = () => {
         if (value.artifactSets.size == 0) {
@@ -105,14 +90,22 @@ export function FiltersProvider({ children, value, setValue }: Props) {
         !value.name ||
         fuzzysearch(value.name.toLowerCase(), character.name.toLowerCase());
 
-      return (
-        simpleFilters &&
-        artifactTypeSpecialsFilter() &&
-        artifactSetsSpecialsFilter() &&
-        nameFilter()
-      );
+      return simpleFilters && artifactSetsSpecialsFilter() && nameFilter();
     },
     [value],
+  );
+
+  const filter = useCallback(
+    (character: Characters, plan?: Plans): boolean => {
+      if (!filterBeforeMainStats(character, plan)) return false;
+      return Array.from(value.specialsByArtifactTypePlans.entries()).every(
+        ([at, specials]) =>
+          plan?.artifactTypePlans?.some(
+            (atp) => atp.artifactType == at && specials.has(atp.special),
+          ),
+      );
+    },
+    [value.specialsByArtifactTypePlans, filterBeforeMainStats],
   );
 
   const availableFilters = useMemo(() => {
@@ -143,6 +136,8 @@ export function FiltersProvider({ children, value, setValue }: Props) {
           res.artifactSets.add(as);
         }
       }
+      // Main-stat choices depend on earlier filters, never on selected main stats.
+      if (!filterBeforeMainStats(character, plan)) continue;
       for (const atp of plan.artifactTypePlans ?? []) {
         mapGetOrSetDefault(
           res.specialsByArtifactTypePlans,
@@ -152,7 +147,7 @@ export function FiltersProvider({ children, value, setValue }: Props) {
       }
     }
     return res;
-  }, [value, plans, charactersMap]);
+  }, [value, plans, charactersMap, filterBeforeMainStats]);
 
   const context: FiltersContextType = useMemo(
     () => ({
@@ -164,7 +159,7 @@ export function FiltersProvider({ children, value, setValue }: Props) {
         setValue(produce(context.value, (d) => void cb(d)));
       },
     }),
-    [value, isFiltersEnabled, availableFilters, setValue],
+    [value, isFiltersEnabled, availableFilters, filter, setValue],
   );
 
   return (
